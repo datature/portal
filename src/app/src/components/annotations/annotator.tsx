@@ -29,6 +29,7 @@ import {
   APIGetAsset,
   APIGetVideoPrediction,
   APIGetModelTags,
+  APIGetCacheList,
 } from "@portal/api/annotation";
 
 import { invert } from "lodash";
@@ -81,6 +82,8 @@ interface AnnotatorProps {
 interface AnnotatorState {
   /* Image List for Storing Project Files */
   assetList: Array<AssetAPIObject>;
+  /* List of files whose predictions are cached  */
+  cacheList: Array<string>;
   /* Tags for Project */
   tagInfo: {
     modelHash: string | undefined;
@@ -195,6 +198,7 @@ export default class Annotator extends Component<
       userEditState: "None",
       changesMade: false,
       assetList: [],
+      cacheList: [],
       tagInfo: {
         modelHash: undefined,
         tags: {},
@@ -362,6 +366,7 @@ export default class Annotator extends Component<
 
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
+      this.updateImage();
     }
 
     if (!this.props.loadedModel && this.state.tagInfo.modelHash !== undefined) {
@@ -535,9 +540,10 @@ export default class Annotator extends Component<
 
     this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
     this.setState({ uiState: "Predicting" });
+    if (!this.currentAsset.isCached) {
+      this.handleProgressToast();
+    }
     // dummy setTimeout to simulate prediction delay
-    this.handleProgressToast();
-
     setTimeout(async () => {
       if (this.currentAsset.type === "image") {
         await APIGetInferenceFlask(
@@ -606,6 +612,8 @@ export default class Annotator extends Component<
           });
       }
 
+      await this.updateImage();
+
       this.setState({ predictDone: 0, uiState: null });
     }, 750);
   }
@@ -620,11 +628,11 @@ export default class Annotator extends Component<
       thumbnailUrl: this.currentAsset.thumbnailUrl,
       localPath: this.currentAsset.localPath,
       type: this.currentAsset.type,
+      isCached: this.currentAsset.isCached,
       /* useless properties but deleting them will cause lots
       of type conflicts. decided to use dummy values instead
       */
     };
-
     const currentAssetAnnotations: Array<PolylineObjectType> = RenderAssetAnnotations(
       this.map,
       this.annotationGroup,
@@ -652,22 +660,46 @@ export default class Annotator extends Component<
     this.filterAnnotationVisibility();
   };
 
-  private updateImage = () => {
+  private updateCacheList = async () => {
+    if (this.props.loadedModel) {
+      await APIGetCacheList(this.props.loadedModel.hash)
+        .then(res => {
+          this.setState({ cacheList: res.data });
+        })
+        .catch(() => {
+          // TODO: Get rid when backend is done
+          this.setState({
+            cacheList: [
+              "d%3A%5Ctest%5Cpictures%5Canimals%5Cbicycle%20folder%5Cbicycle.jpg",
+              "d%3A%5Ctest%5Cpictures%5Canimals%5Cchip%20munk%5Cdog%20folder%5Cdog1.jpg",
+              "d%3A%5Ctest%5Cpictures%5Canimals%5Cchip%20munk%5Cchipmunk%20and%20pizza.jpg",
+            ],
+          });
+        });
+    }
+  };
+
+  private updateImage = async () => {
+    await this.updateCacheList();
+
     /* Get All Existing Registered Folder and Image Assets */
-    APIGetAsset().then(res => {
+    await APIGetAsset().then(res => {
       /* Generate New Asset List Based on Updated Data */
       const newImageAssets = res.data.map((encodedUri: string) => {
         const decodedUri = decodeURIComponent(encodedUri);
         let seperator = "/";
         let type = "image";
+        const isCached = this.state.cacheList.includes(encodedUri);
         if (decodedUri.includes("\\")) seperator = "\\";
         if (decodedUri.match(/\.(?:mov|mp4|wmv)/i)) type = "video";
         return {
+          url: encodedUri,
           filename: decodedUri.split(seperator).pop(),
           assetUrl: APIGetImageData(encodedUri),
           thumbnailUrl: APIGetImageData(encodedUri),
           localPath: encodedUri,
           type,
+          isCached,
         };
       });
 
@@ -901,6 +933,10 @@ export default class Annotator extends Component<
           }, 150);
           /* Reset to Default Zoom */
           this.map.setMinZoom(-3);
+          /** Get inference from cache */
+          if (asset.isCached) {
+            this.getInference();
+          }
         }
 
         if (initialSelect) {
@@ -957,6 +993,10 @@ export default class Annotator extends Component<
             /** Set Focus */
             videoElement?.focus();
           }, 150);
+          /** Get inference from cache */
+          if (asset.isCached) {
+            this.getInference();
+          }
         } else {
           /** Set Focus */
           videoElement?.focus();
