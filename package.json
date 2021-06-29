@@ -1,0 +1,60 @@
+{
+  "name": "portal",
+  "version": "0.1.0",
+  "author": "Datature",
+  "private": true,
+  "main": "./src/app/main.js",
+  "scripts": {
+    "portal-dev": "cross-env NODE_ENV=development npx electron ./src/app",
+    "portal-prod": "npx electron ./src/app",
+    "build:dev": "chmod +x setup.sh && . ./setup.sh",
+    "build:dev-win": "setup.sh",
+    "build:prod": "chmod +x build-electron.sh && . ./build-electron.sh",
+    "build:prod-win": "build-electron.sh",
+    "postinstall": "electron-builder install-app-deps",
+    "pack": "set DEBUG=electron-builder electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "asar": false,
+    "appId": "com.electron.datatureportal",
+    "productName": "Portal",
+    "copyright": "Copyright © 2021 Datature",
+    "directories": {
+      "output": "./application",
+      "app": "./src/app"
+    },
+    "extraResources": [
+      {
+        "from": "./dist",
+        "to": "./dist"
+      }
+    ],
+    "extraFiles": [
+      {
+        "from": "./server/cache",
+        "to": "./server/cache"
+      },
+      "./build/icon.*"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "dependencies": {
+    "cross-env": "^7.0.3",
+    "electron-squirrel-startup": "^1.0.0"
+  },
+  "devDependencies": {
+    "electron": "^13.1.2",
+    "electron-builder": "^22.10.5",
+    "npx": "^10.2.2"
+  }
+}

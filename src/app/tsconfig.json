@@ -1,0 +1,53 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "allowJs": true,
+    "jsx": "preserve",
+    "target": "esnext",
+    "module": "esnext",
+    "skipLibCheck": true,
+    "removeComments": true,
+    "noUnusedLocals": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "preserveConstEnums": true,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "baseUrl": "./",
+    "paths": {
+      "@portal/components/*": ["./src/components/*"],
+      "@portal/utils/*": ["./src/utils/*"],
+      "@portal/constants/*": ["./src/constants/*"],
+      "@portal/api/*": ["./src/api/*"],
+      "@portal/root/*": ["./*"]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next",
+    "out",
+    "next.config.js",
+    ".babelrc",
+    ".eslintrc",
+    ".prettierrc",
+    "bundles",
+    "coverage",
+    "test/*"
+  ],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**.*.tsx",
+    "./src/**/*.ts",
+    "./src/**/*.tsx",
+    "pages/api/mock/project/response.js",
+    "pages/api/mock/util.ts"
+  ]
+}

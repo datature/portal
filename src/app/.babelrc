@@ -1,0 +1,31 @@
+{
+  "sourceType": "unambiguous",
+  "presets": [
+    [
+      "next/babel"
+    ]
+  ],
+  "plugins": [
+    [
+      "@babel/plugin-proposal-optional-chaining"
+    ],
+    [
+      "@babel/plugin-proposal-decorators",
+      {
+        "legacy": true
+      }
+    ],
+    [
+      "module-resolver",
+      {
+        "alias": {
+          "@portal/components": "./src/components/",
+          "@portal/constants": "./src/constants/",
+          "@portal/utils": "./src/utils/",
+          "@portal/api": "./src/api/",
+          "@portal/root": "./"
+        }
+      }
+    ]
+  ]
+}

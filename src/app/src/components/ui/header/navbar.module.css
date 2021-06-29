@@ -1,0 +1,41 @@
+.Navbar {
+  box-shadow: 0 0 0 1px rgba(168, 168, 168, 0.15),
+    0 0 0 rgba(168, 168, 168, 0.15), 0 1px 1px rgba(168, 168, 168, 0.15);
+}
+
+.ProfileBadge {
+  -webkit-background-size: 32px 32px;
+  background-size: 32px 32px;
+  border: 0;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+  display: block;
+  margin-top: 3px;
+  position: relative;
+  height: 24px;
+  width: 24px;
+  z-index: 0;
+  cursor: pointer;
+}
+
+.ProjectSelect {
+  background-color: #8a9ba825 !important;
+}
+
+.ProjectSwitch {
+  width: 140px;
+}
+
+.ProjectSwitch p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 75px;
+  margin-block-start: 0em;
+  margin-block-end: 0em;
+}
+
+.IconAlertSpinner {
+  box-sizing: inherit;
+  margin-right: 15px;
+}

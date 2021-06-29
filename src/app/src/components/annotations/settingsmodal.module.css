@@ -1,0 +1,26 @@
+.Dialog {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.Divider {
+  margin-bottom: 10px;
+}
+
+.Section {
+  padding: 10px;
+}
+
+.Icon {
+  padding-left: 7px;
+}
+
+.Slider {
+  width: inherit;
+  margin-left: 3%;
+  margin-right: 3%;
+}
+
+.SubTitle {
+  margin-bottom: 7px;
+}

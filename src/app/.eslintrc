@@ -1,0 +1,109 @@
+{
+  "extends": [
+    "airbnb",
+    "plugin:prettier/recommended"
+  ],
+  "env": {
+    "browser": true,
+    "es6": true
+  },
+  "parser": "babel-eslint",
+  "plugins": [
+    "react",
+    "prettier"
+  ],
+  "rules": {
+    "no-use-before-define": 0,
+    "react/prop-types": 0,
+    "import/extensions": 0,
+    "react/no-multi-comp": 0,
+    "import/no-unresolved": 0,
+    "no-useless-constructor": 0,
+    "react/prefer-es6-class": 0,
+    "react/require-default-props": 0,
+    "prettier/prettier": "error",
+    "react/forbid-prop-types": 1,
+    "react/jsx-boolean-value": 0,
+    "lines-between-class-members": 0,
+    "react/jsx-props-no-spreading": 0,
+    "react/jsx-curly-brace-presence": 0,
+    "react/destructuring-assignment": 0,
+    "react/prefer-stateless-function": 0,
+    "react/jsx-one-expression-per-line": 0,
+    "no-unused-expressions": 0,
+    "jsx-a11y/no-static-element-interactions": 1,
+    "react/jsx-filename-extension": [
+      2,
+      {
+        "extensions": [
+          ".js",
+          ".jsx",
+          ".ts",
+          ".tsx"
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/*.ts",
+        "**/*.tsx",
+        "src/**/*.ts",
+        "src/**/*.tsx"
+      ],
+      "env": {
+        "browser": true,
+        "es6": true
+      },
+      "extends": [
+        "plugin:react/recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/eslint-recommended"
+      ],
+      "globals": {
+        "Atomics": "readonly",
+        "SharedArrayBuffer": "readonly"
+      },
+      "parser": "@typescript-eslint/parser",
+      "plugins": [
+        "react",
+        "@typescript-eslint"
+      ],
+      "rules": {
+        "indent": [
+          "error",
+          2,
+          {
+            "SwitchCase": 1
+          }
+        ],
+        "@typescript-eslint/ban-types": [
+          "error",
+          {
+            "extendDefaults": true,
+            "types": {
+              "{}": false
+            }
+          }
+        ],
+        "linebreak-style": [
+          "error",
+          "unix"
+        ],
+        "quotes": [
+          "error",
+          "double"
+        ],
+        "@typescript-eslint/camelcase": "off",
+        "@typescript-eslint/no-explicit-any": 0,
+        "@typescript-eslint/explicit-function-return-type": 0
+      },
+      "settings": {
+        "react": {
+          "version": "detect"
+        }
+      }
+    }
+  ]
+}

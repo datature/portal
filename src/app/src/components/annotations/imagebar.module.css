@@ -1,0 +1,13 @@
+.Card {
+  position: relative;
+}
+
+.StackTop {
+  position: absolute;
+  float: right;
+}
+
+.Tag {
+  position: absolute;
+  top: 80px;
+}

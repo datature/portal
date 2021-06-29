@@ -1,0 +1,63 @@
+.DrawerNavbar {
+  max-height: 40px;
+  padding-bottom: 0;
+}
+
+.Section {
+  padding: 10px;
+}
+
+.RegistrationForm {
+  padding: 10px;
+  min-width: 600px;
+}
+
+.Center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.Spin {
+  padding-top: 19px;
+  padding-bottom: 19px;
+}
+
+.Panel {
+  word-wrap: break-word;
+  padding: 2%;
+}
+
+.PopOverMenu {
+  min-width: 300px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.IconAlertSpinner {
+  box-sizing: inherit;
+  margin-right: 15px;
+}
+
+.Right {
+  float: right;
+  padding: 10px;
+}
+
+.Left {
+  float: left;
+  padding: 10px;
+}
+
+.TagsList {
+  height: 125px;
+  overflow-y: scroll;
+}
+
+.TagLabel {
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
+
+.NonIdealPopOver {
+  transform: translate(0%, -20%);
+}

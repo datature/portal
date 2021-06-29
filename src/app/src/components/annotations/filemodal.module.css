@@ -1,0 +1,20 @@
+.Dialog {
+  max-height: 600px;
+}
+.Divider {
+  margin-bottom: 10px;
+}
+.Tree {
+  padding-top: 3px;
+  overflow-y: scroll;
+  max-height: 400px;
+  margin-top: 5px;
+}
+.NotFound {
+  opacity: 0.5;
+  color: aquamarine;
+}
+
+.Icon {
+  padding-right: 7px;
+}

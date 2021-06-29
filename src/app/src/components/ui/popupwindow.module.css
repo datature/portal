@@ -1,0 +1,29 @@
+.predictionText {
+  position:relative;
+  text-align: center;
+  left: 50%;
+  top: 45%;
+  margin-left: -200px;
+  width: 400px !important;
+  z-index: 999;
+}
+
+.predictionSpinner {
+  vertical-align: middle;
+  left: 50%;
+  top: 45%;
+  margin-left: -200px;
+  width: 400px !important;
+  z-index: 999;
+}
+
+.predictionDisplay {
+  position: fixed !important;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+}
