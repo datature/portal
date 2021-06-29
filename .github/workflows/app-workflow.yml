@@ -1,0 +1,48 @@
+## Continuous Integration Workflow
+name: Build Tests
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [release, staging, develop]
+    paths: 'src/app/**'
+  pull_request:
+    branches: [release, staging, develop]
+    paths: 'src/app/**'
+
+# Target Branch Job
+jobs:
+  Lint-Build:
+    # Execute on Ubuntu-Latest Distro
+    runs-on: ubuntu-latest
+    steps:
+      # Check Out Repository
+      - uses: actions/checkout@v1
+
+      # Install Node.js
+      - uses: actions/setup-node@v1.4.4
+        with:
+          node-version: 14
+          registry-url: https://npm.pkg.github.com/
+          scope: "@datature"
+
+      # Install your dependencies
+      - name: Installing
+        working-directory: ./src/app
+        run: npm install
+
+      # Run Eslint
+      - name: ESLint Check
+        working-directory: ./src/app
+        run: npm run github-action:eslint
+
+      # Run Prettier
+      - name: Prettier Check
+        working-directory: ./src/app
+        run: npm run github-action:prettier
+
+      # Build NextJS Project
+      - name: Building Nexus / NextJS
+        working-directory: ./src/app
+        run: npm run build:github
