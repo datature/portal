@@ -610,6 +610,7 @@ export default class Annotator extends Component<
               (videoElement as any).requestVideoFrameCallback(
                 videoFrameCallback
               );
+              console.log(videoElement);
             };
 
             if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {

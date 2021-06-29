@@ -185,6 +185,12 @@
   outline: 5px solid #106ba3;
 }
 
+.react-thumbnail-generator > img {
+  width: 150px;
+  height: 100px;
+  object-fit: cover;
+}
+
 .bp3-dark > .image-bar-thumbnail-highlighted {
   outline: 5px solid #2b95d6;
 }

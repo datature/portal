@@ -36,8 +36,6 @@ function ThumbnailGenerator(
               <VideoThumbnail
                 snapshotAtTime={1}
                 videoUrl={asset.thumbnailUrl}
-                width={150}
-                height={100}
               />
             </div>
           </>
