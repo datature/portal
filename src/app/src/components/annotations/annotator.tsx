@@ -633,27 +633,8 @@ export default class Annotator extends Component<
       }
 
       this.setState({ predictDone: 0, uiState: null });
-    }, 750);
+    }, 0);
   }
-
-  private videoFrameCallback = (
-    now: DOMHighResTimeStamp,
-    metadata: VideoFrameMetadata,
-    response: any,
-    videoElement: HTMLElement
-  ): void => {
-    const secondsInterval =
-      this.state.inferenceOptions.video.frameInterval / response.data.fps;
-    const quotient = Math.floor(metadata.mediaTime / secondsInterval);
-
-    const key = Math.floor(quotient * secondsInterval * 1000).toString();
-
-    if (response.data.frames[key]) {
-      this.updateAnnotations(response.data.frames[key]);
-    }
-
-    (videoElement as any).requestVideoFrameCallback(this.videoFrameCallback);
-  };
 
   private updateAnnotations = (annotations: any) => {
     const res = {
