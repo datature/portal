@@ -14,7 +14,15 @@ import {
 
 interface ImageSettingsProps {
   image: HTMLElement;
-  callbacks: { setAnnotatedAssetsHidden: (flag: boolean) => void };
+  annotationOptions: {
+    isOutline: boolean;
+    opacity: number;
+  };
+  callbacks: {
+    setAnnotatedAssetsHidden: (flag: boolean) => void;
+    setAnnotationOutline: (isReset: boolean) => void;
+    setAnnotationOpacity: (value: number) => void;
+  };
 }
 
 interface ImageSettingsState {
@@ -94,6 +102,8 @@ export default class AnnotatorSettings extends Component<
       contrast: 100,
       saturate: 100,
     });
+    this.props.callbacks.setAnnotationOpacity(0.3);
+    this.props.callbacks.setAnnotationOutline(true);
   };
 
   /**
@@ -131,6 +141,29 @@ export default class AnnotatorSettings extends Component<
               >
                 Filter Annotated Images
               </Switch>
+              <br />
+              <Switch
+                checked={this.props.annotationOptions.isOutline}
+                onChange={() => {
+                  this.props.callbacks.setAnnotationOutline(false);
+                }}
+              >
+                Toggle Annotation Outline
+              </Switch>
+              <br />
+              <Label>
+                Annotation Opacity
+                <Slider
+                  min={0}
+                  max={1}
+                  stepSize={0.01}
+                  labelStepSize={1}
+                  value={this.props.annotationOptions.opacity}
+                  onChange={value => {
+                    this.props.callbacks.setAnnotationOpacity(value);
+                  }}
+                />
+              </Label>
             </div>
             <Divider className="annotator-settings-divider" />
             <div className="annotator-settings-col">

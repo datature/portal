@@ -31,7 +31,7 @@ import {
   APIGetModelTags,
 } from "@portal/api/annotation";
 
-import { invert } from "lodash";
+import { invert, cloneDeep } from "lodash";
 
 import { CreateGenericToast } from "@portal/utils/ui/toasts";
 import AnnotatorInstanceSingleton from "./utils/annotator.singleton";
@@ -124,6 +124,11 @@ interface AnnotatorState {
       frameInterval: number;
     };
   };
+  /* Utility to toggle existing annotations */
+  annotationOptions: {
+    isOutline: true;
+    opacity: number;
+  };
 }
 
 /**
@@ -209,6 +214,10 @@ export default class Annotator extends Component<
       predictDone: 0,
       multiplier: 1,
       confidence: 0.5,
+      annotationOptions: {
+        isOutline: true,
+        opacity: 0.3,
+      },
       filterArr: [],
       showSelected: true,
       inferenceOptions: {
@@ -270,6 +279,8 @@ export default class Annotator extends Component<
     this.filterAnnotationVisibility = this.filterAnnotationVisibility.bind(
       this
     );
+    this.setAnnotationOutline = this.setAnnotationOutline.bind(this);
+    this.setAnnotationOpacity = this.setAnnotationOpacity.bind(this);
     this.toggleShowSelected = this.toggleShowSelected.bind(this);
     this.setAnnotatedAssetsHidden = this.setAnnotatedAssetsHidden.bind(this);
   }
@@ -321,11 +332,6 @@ export default class Annotator extends Component<
      */
     // eslint-disable-next-line no-new
     new AnnotatorInstanceSingleton(this.map, this);
-
-    /* Select background image in DOM */
-    this.backgroundImg = document.querySelector(
-      ".leaflet-pane.leaflet-overlay-pane img.leaflet-image-layer"
-    );
 
     setTimeout(() => this.updateImage(), 200);
   }
@@ -439,6 +445,31 @@ export default class Annotator extends Component<
   public setAnnotationTag(tagIndex: number): number {
     this.currentTag = tagIndex;
     return this.currentTag;
+  }
+
+  private setAnnotationOpacity(value: number): void {
+    this.setState(
+      prevState => {
+        const config = prevState.annotationOptions;
+        config.opacity = value;
+        return { annotationOptions: config };
+      },
+      () => this.filterAnnotationVisibility()
+    );
+  }
+
+  private setAnnotationOutline(isReset: boolean): void {
+    this.setState(
+      prevState => {
+        const config = prevState.annotationOptions;
+        config.isOutline = isReset
+          ? true
+          : !prevState.annotationOptions.isOutline;
+
+        return { annotationOptions: config };
+      },
+      () => this.filterAnnotationVisibility()
+    );
   }
 
   /**
@@ -813,7 +844,15 @@ export default class Annotator extends Component<
       )
       .forEach((confidentAnnotation: any) => {
         /* Add It Onto Leaflet */
-        this.annotationGroup.addLayer(confidentAnnotation);
+        const annotationToCommit = cloneDeep(confidentAnnotation);
+        annotationToCommit.options.fillOpacity = this.state.annotationOptions.opacity;
+        if (!this.state.annotationOptions.isOutline) {
+          annotationToCommit.options.weight = 0;
+        } else {
+          annotationToCommit.options.weight =
+            confidentAnnotation.options.weight;
+        }
+        this.annotationGroup.addLayer(annotationToCommit);
       });
   }
 
@@ -906,6 +945,11 @@ export default class Annotator extends Component<
         if (initialSelect) {
           this.setState({});
         }
+
+        /* Select background image in DOM */
+        this.backgroundImg = document.querySelector(
+          ".leaflet-pane.leaflet-overlay-pane img.leaflet-image-layer"
+        );
       };
     }
     if (asset.type === "video") {
@@ -1250,8 +1294,11 @@ export default class Annotator extends Component<
                 <div className="annotator-settings-button">
                   <AnnotatorSettings
                     image={this.backgroundImg}
+                    annotationOptions={this.state.annotationOptions}
                     callbacks={{
                       setAnnotatedAssetsHidden: this.setAnnotatedAssetsHidden,
+                      setAnnotationOutline: this.setAnnotationOutline,
+                      setAnnotationOpacity: this.setAnnotationOpacity,
                     }}
                   />
                 </div>
@@ -1269,7 +1316,6 @@ export default class Annotator extends Component<
               predictTotal={this.state.predictTotal}
               hiddenAnnotations={this.state.hiddenAnnotations}
               confidence={this.state.confidence}
-              // temporary since TagSelector uses this
               filterArr={this.state.filterArr}
               showSelected={this.state.showSelected}
               useDarkTheme={this.props.useDarkTheme}
