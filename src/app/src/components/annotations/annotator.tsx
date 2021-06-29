@@ -126,7 +126,7 @@ interface AnnotatorState {
   };
   /* Utility to toggle existing annotations */
   annotationOptions: {
-    isOutline: true;
+    isOutlined: true;
     opacity: number;
   };
 }
@@ -215,7 +215,7 @@ export default class Annotator extends Component<
       multiplier: 1,
       confidence: 0.5,
       annotationOptions: {
-        isOutline: true,
+        isOutlined: true,
         opacity: 0.3,
       },
       filterArr: [],
@@ -462,9 +462,9 @@ export default class Annotator extends Component<
     this.setState(
       prevState => {
         const config = prevState.annotationOptions;
-        config.isOutline = isReset
+        config.isOutlined = isReset
           ? true
-          : !prevState.annotationOptions.isOutline;
+          : (!prevState.annotationOptions.isOutlined as any);
 
         return { annotationOptions: config };
       },
@@ -846,7 +846,7 @@ export default class Annotator extends Component<
         /* Add It Onto Leaflet */
         const annotationToCommit = cloneDeep(confidentAnnotation);
         annotationToCommit.options.fillOpacity = this.state.annotationOptions.opacity;
-        if (!this.state.annotationOptions.isOutline) {
+        if (!this.state.annotationOptions.isOutlined) {
           annotationToCommit.options.weight = 0;
         } else {
           annotationToCommit.options.weight =
@@ -945,11 +945,6 @@ export default class Annotator extends Component<
         if (initialSelect) {
           this.setState({});
         }
-
-        /* Select background image in DOM */
-        this.backgroundImg = document.querySelector(
-          ".leaflet-pane.leaflet-overlay-pane img.leaflet-image-layer"
-        );
       };
     }
     if (asset.type === "video") {

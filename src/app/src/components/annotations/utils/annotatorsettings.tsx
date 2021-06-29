@@ -12,12 +12,14 @@ import {
   Divider,
 } from "@blueprintjs/core";
 
+interface AnnotationOptions {
+  isOutlined: boolean;
+  opacity: number;
+}
+
 interface ImageSettingsProps {
   image: HTMLElement;
-  annotationOptions: {
-    isOutline: boolean;
-    opacity: number;
-  };
+  annotationOptions: AnnotationOptions;
   callbacks: {
     setAnnotatedAssetsHidden: (flag: boolean) => void;
     setAnnotationOutline: (isReset: boolean) => void;
@@ -143,7 +145,7 @@ export default class AnnotatorSettings extends Component<
               </Switch>
               <br />
               <Switch
-                checked={this.props.annotationOptions.isOutline}
+                checked={this.props.annotationOptions.isOutlined}
                 onChange={() => {
                   this.props.callbacks.setAnnotationOutline(false);
                 }}
