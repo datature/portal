@@ -46,6 +46,28 @@ export default class AnnotatorSettings extends Component<
       "brightness(100%) contrast(100%) saturate(100%)";
   }
 
+  componentDidUpdate(
+    prevProps: ImageSettingsProps,
+    prevState: ImageSettingsState
+  ): void {
+    if (prevProps.image !== this.imageElement) {
+      this.imageElement = prevProps.image;
+      const { brightness, contrast, saturate } = prevState;
+      this.setFilter({
+        filterName: "brightness",
+        value: brightness,
+      });
+      this.setFilter({
+        filterName: "contrast",
+        value: contrast,
+      });
+      this.setFilter({
+        filterName: "saturate",
+        value: saturate,
+      });
+    }
+  }
+
   /**
    * Set slider state and CSS property value on image element for
    * target filter property
