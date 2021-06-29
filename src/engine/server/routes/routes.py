@@ -12,7 +12,11 @@ from flask_cors import cross_origin
 from server import app, global_store, wait_for_process
 from server.services import decode
 from server.services.errors import Errors, PortalError
-from server.services.filesystem.file import allowed_image, allowed_video, generate_thumbnail
+from server.services.filesystem.file import (
+    allowed_image,
+    allowed_video,
+    generate_thumbnail,
+)
 from server.services.model_loader import load_local
 from server.services.model_register import (
     register_endpoint,
@@ -42,7 +46,9 @@ def portal_function_handler(clear_status: bool) -> callable:
             try:
                 response = func(*args, **kwargs)
             except PortalError as e:
-                e.set_fail_location(" - ".join([func.__module__, func.__name__]))
+                e.set_fail_location(
+                    " - ".join([func.__module__, func.__name__])
+                )
                 if e.get_error() != "ATOMICERROR" and clear_status:
                     global_store.clear_status()
                 return e.output()
@@ -105,8 +111,10 @@ def shutdown():
 @portal_function_handler(clear_status=False)
 def heartbeat() -> tuple:
     """Check if server is alive."""
-    output = {"hasCache": global_store.has_cache(),
-              "isCacheCalled": global_store.is_cache_called()}
+    output = {
+        "hasCache": global_store.has_cache(),
+        "isCacheCalled": global_store.is_cache_called(),
+    }
     return jsonify(output), 200
 
 
@@ -205,7 +213,9 @@ def register_model() -> tuple:
             )
 
         if input_type == "endpoint":
-            register_endpoint(model_key=model_key, project_secret=project_secret)
+            register_endpoint(
+                model_key=model_key, project_secret=project_secret
+            )
 
         return (jsonify(global_store.get_registered_model_info()), 200)
 
@@ -373,7 +383,9 @@ def predict_single_image(model_id: str) -> tuple:
         return global_store.get_caught_response("predict_single_image")
     try:
         if request.args.get("filepath") is None:
-            raise PortalError(Errors.INVALIDQUERY, "Filepath is a compulsory query")
+            raise PortalError(
+                Errors.INVALIDQUERY, "Filepath is a compulsory query"
+            )
 
         image_directory = decode(request.args.get("filepath"))
         if not os.path.isfile(image_directory):
@@ -386,7 +398,7 @@ def predict_single_image(model_id: str) -> tuple:
         format_arg, iou, _ = corrected_predict_query(
             "format", "iou", request=request
         )
-        prediction_key = model_id + image_directory + format_arg + str(iou)
+        prediction_key = (model_id, image_directory, format_arg + str(iou))
 
         if global_store.check_predictions(prediction_key):
             output = global_store.get_predictions(prediction_key)
@@ -470,11 +482,9 @@ def predict_video_fn(model_id: str) -> tuple:
             "iou", "confidence", request=request
         )
         prediction_key = (
-            model_id
-            + video_directory
-            + str(frame_interval)
-            + str(iou)
-            + str(confidence)
+            model_id,
+            video_directory,
+            str(frame_interval) + str(iou) + str(confidence),
         )
         if global_store.check_predictions(prediction_key):
             output = global_store.get_predictions(prediction_key)
@@ -509,6 +519,23 @@ def predict_video_fn(model_id: str) -> tuple:
         raise PortalError(Errors.INVALIDMODELKEY, str(e)) from e
     except ValueError as e:
         raise PortalError(Errors.INVALIDQUERY, str(e)) from e
+
+
+@app.route("/api/model/<model_id>/cachelist", methods=["GET"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def get_cachelist(model_id) -> tuple:
+    """Obtain the list of images that has been successfully predicted."""
+    return (jsonify(global_store.get_predicted_images(model_id)), 200)
+
+
+@app.route("/api/model/<model_id>/cachelist", methods=["DELETE"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def clear_cachelist(model_id) -> tuple:
+    """Clear the cached list of predictions."""
+    global_store.clear_predicted_images(model_id)
+    return Response(status=200)
 
 
 @app.route("/api/project/register", methods=["POST"])
@@ -604,7 +631,9 @@ def get_image():
         path = request.args.get("filepath")
         decoded_path = decode(path)
         if not os.path.exists(decoded_path):
-            raise FileNotFoundError(f"File path {decoded_path} does not exists")
+            raise FileNotFoundError(
+                f"File path {decoded_path} does not exists"
+            )
         head, tail = os.path.split(decoded_path)
         return send_from_directory(head, tail)
 
@@ -625,7 +654,9 @@ def get_thumbnail():
         path = request.args.get("filepath")
         decoded_path = decode(path)
         if not os.path.exists(decoded_path):
-            raise FileNotFoundError(f"File path {decoded_path} does not exists")
+            raise FileNotFoundError(
+                f"File path {decoded_path} does not exists"
+            )
         # pylint: disable=unused-variable
         head, tail = os.path.split(decoded_path)
         image_bytes = generate_thumbnail(decoded_path, tail)
