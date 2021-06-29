@@ -124,9 +124,6 @@ interface AnnotatorState {
       frameInterval: number;
     };
   };
-  /* Reference to background image */
-  backgroundImg: HTMLElement | null;
-  /* Reference to Video */
 }
 
 /**
@@ -137,10 +134,6 @@ interface AnnotationLayer extends L.Layer {
   editing: any;
   options: any;
 }
-
-/* const fire_message = () => {
-  console.log("7 is fired");
-} */
 
 /**
  * This Annotator class is a super class of the annotator controls, image select
@@ -183,6 +176,9 @@ export default class Annotator extends Component<
     toaster: (ref: Toaster) => (this.toaster = ref),
   };
 
+  /* Reference to background Image or Video */
+  backgroundImg: HTMLElement | null;
+
   constructor(props: AnnotatorProps) {
     super(props);
 
@@ -214,7 +210,6 @@ export default class Annotator extends Component<
           frameInterval: 20,
         },
       },
-      backgroundImg: null,
     };
 
     this.toaster = new Toaster({}, {});
@@ -234,6 +229,7 @@ export default class Annotator extends Component<
 
     /* Image Bar Reference to Track Which Image is Selected */
     this.imagebarRef = React.createRef();
+    this.backgroundImg = null;
 
     this.selectAsset = this.selectAsset.bind(this);
     this.showToaster = this.showToaster.bind(this);
@@ -899,11 +895,9 @@ export default class Annotator extends Component<
       };
 
       /* Select background image in DOM */
-      this.setState({
-        backgroundImg: document.querySelector(
-          ".leaflet-pane.leaflet-overlay-pane img.leaflet-image-layer"
-        ),
-      });
+      this.backgroundImg = document.querySelector(
+        ".leaflet-pane.leaflet-overlay-pane img.leaflet-image-layer"
+      );
     }
     if (asset.type === "video") {
       if (!this.map.hasLayer(this.videoOverlay)) {
@@ -963,12 +957,9 @@ export default class Annotator extends Component<
         }
       };
 
-      /* Select background video in DOM */
-      this.setState({
-        backgroundImg: document.querySelector(
-          ".leaflet-pane.leaflet-overlay-pane video.leaflet-image-layer"
-        ),
-      });
+      this.backgroundImg = document.querySelector(
+        ".leaflet-pane.leaflet-overlay-pane video.leaflet-image-layer"
+      );
     }
   }
 
@@ -1250,10 +1241,9 @@ export default class Annotator extends Component<
             {/* End Non-Ideal State Render */}
             <Card className={"main-annotator"}>
               <div id="annotation-map" className={"style-annotator"} />
-              {this.state.backgroundImg ? (
+              {this.backgroundImg ? (
                 <div className="annotator-settings-button">
                   <AnnotatorSettings
-                    image={this.state.backgroundImg}
                     callbacks={{
                       setAnnotatedAssetsHidden: this.setAnnotatedAssetsHidden,
                     }}

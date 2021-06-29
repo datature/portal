@@ -13,7 +13,6 @@ import {
 } from "@blueprintjs/core";
 
 interface ImageSettingsProps {
-  image: HTMLElement;
   callbacks: { setAnnotatedAssetsHidden: (flag: boolean) => void };
 }
 
@@ -29,8 +28,6 @@ export default class AnnotatorSettings extends Component<
   ImageSettingsState
 > {
   /* Image to be targeted */
-  private imageElement: HTMLElement;
-
   constructor(props: ImageSettingsProps) {
     super(props);
     this.state = {
@@ -41,32 +38,28 @@ export default class AnnotatorSettings extends Component<
     };
 
     /* Initialize filters */
-    this.imageElement = this.props.image;
-    this.imageElement.style.filter =
+    this.getImageElement().style.filter =
       "brightness(100%) contrast(100%) saturate(100%)";
   }
 
-  componentDidUpdate(
-    prevProps: ImageSettingsProps,
-    prevState: ImageSettingsState
-  ): void {
-    if (prevProps.image !== this.imageElement) {
-      this.imageElement = prevProps.image;
-      const { brightness, contrast, saturate } = prevState;
-      this.setFilter({
-        filterName: "brightness",
-        value: brightness,
-      });
-      this.setFilter({
-        filterName: "contrast",
-        value: contrast,
-      });
-      this.setFilter({
-        filterName: "saturate",
-        value: saturate,
-      });
+  /**
+   * Function to get the current Video or Image element
+   * @returns HTML Element that targets the Current Video/ Image
+   */
+  private getImageElement = (): any => {
+    if (
+      document.querySelector(
+        ".leaflet-pane.leaflet-overlay-pane img.leaflet-image-layer"
+      ) !== null
+    ) {
+      return document.querySelector(
+        ".leaflet-pane.leaflet-overlay-pane img.leaflet-image-layer"
+      );
     }
-  }
+    return document.querySelector(
+      ".leaflet-pane.leaflet-overlay-pane video.leaflet-image-layer"
+    );
+  };
 
   /**
    * Set slider state and CSS property value on image element for
@@ -82,7 +75,7 @@ export default class AnnotatorSettings extends Component<
      * we maintain the order "brightness", "contrast", "saturate" so as to correctly
      * change only one value at a time
      */
-    const filterString = window.getComputedStyle(this.imageElement).filter;
+    const filterString = window.getComputedStyle(this.getImageElement()).filter;
     const entries = filterString.split(" ");
     /* If format invalid, reset to default */
     if (entries.length !== 3) {
@@ -96,7 +89,7 @@ export default class AnnotatorSettings extends Component<
     else if (params.filterName === "contrast")
       entries[1] = `contrast(${params.value}%)`;
     else entries[2] = `saturate(${params.value}%)`;
-    this.imageElement.style.filter = entries.join(" ");
+    this.getImageElement().style.filter = entries.join(" ");
 
     this.setState(prevState => {
       const state = { ...prevState };
@@ -109,7 +102,7 @@ export default class AnnotatorSettings extends Component<
    * Reset all values to default
    */
   resetValues = (): void => {
-    this.imageElement.style.filter =
+    this.getImageElement().style.filter =
       "brightness(100%) contrast(100%) saturate(100%)";
     this.setState({
       brightness: 100,
