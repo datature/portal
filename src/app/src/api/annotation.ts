@@ -16,6 +16,7 @@ import {
   MODEL_TAGS,
   PREDICT_VIDEO,
   LOADED_MODELS,
+  GET_CACHE_LIST,
 } from "@portal/constants/api";
 
 /* Annotation Type */
@@ -45,6 +46,7 @@ export interface AssetAPIObject {
   localPath: string;
   annotations: Array<AnnotationAPIObject>;
   type: string;
+  isCached: boolean;
   metadata: {
     height: number;
     width: number;
@@ -198,4 +200,8 @@ export function APIGetInferenceFlask(
       ...(filter ? { filter } : {}),
     },
   });
+}
+
+export function APIGetCacheList(modelKey: string): Promise<AxiosResponse<any>> {
+  return axios.get(SERVER_ADDRESS + GET_CACHE_LIST(modelKey));
 }
