@@ -152,6 +152,7 @@ export default class AnnotatorSettings extends Component<
           <div className="annotator-settings-content">
             <div className="annotator-settings-col">
               <H5>Annotator Settings</H5>
+              <br />
               <Switch
                 checked={this.state.onlyUnannotatedShown}
                 onChange={this.filterAnnotatedAssetsHandler}

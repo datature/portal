@@ -129,6 +129,7 @@ interface AnnotatorState {
     isOutlined: true;
     opacity: number;
   };
+  currAnnotationPlaybackId: number;
 }
 
 /**
@@ -219,6 +220,7 @@ export default class Annotator extends Component<
           frameInterval: 20,
         },
       },
+      currAnnotationPlaybackId: 0,
     };
 
     this.toaster = new Toaster({}, {});
@@ -610,13 +612,14 @@ export default class Annotator extends Component<
               (videoElement as any).requestVideoFrameCallback(
                 videoFrameCallback
               );
-              console.log(videoElement);
             };
 
             if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
-              (videoElement as any).requestVideoFrameCallback(
+              const id = (videoElement as any).requestVideoFrameCallback(
                 videoFrameCallback
               );
+              console.log(id);
+              this.setState({ currAnnotationPlaybackId: id });
             }
           })
           .catch(error => {
@@ -632,6 +635,25 @@ export default class Annotator extends Component<
       this.setState({ predictDone: 0, uiState: null });
     }, 750);
   }
+
+  private videoFrameCallback = (
+    now: DOMHighResTimeStamp,
+    metadata: VideoFrameMetadata,
+    response: any,
+    videoElement: HTMLElement
+  ): void => {
+    const secondsInterval =
+      this.state.inferenceOptions.video.frameInterval / response.data.fps;
+    const quotient = Math.floor(metadata.mediaTime / secondsInterval);
+
+    const key = Math.floor(quotient * secondsInterval * 1000).toString();
+
+    if (response.data.frames[key]) {
+      this.updateAnnotations(response.data.frames[key]);
+    }
+
+    (videoElement as any).requestVideoFrameCallback(this.videoFrameCallback);
+  };
 
   private updateAnnotations = (annotations: any) => {
     const res = {
@@ -838,12 +860,11 @@ export default class Annotator extends Component<
         /* Add It Onto Leaflet */
         const annotationToCommit = cloneDeep(confidentAnnotation);
         annotationToCommit.options.fillOpacity = this.state.annotationOptions.opacity;
-        if (!this.state.annotationOptions.isOutlined) {
-          annotationToCommit.options.weight = 0;
-        } else {
-          annotationToCommit.options.weight =
-            confidentAnnotation.options.weight;
-        }
+        annotationToCommit.options.weight = !this.state.annotationOptions
+          .isOutlined
+          ? 0
+          : confidentAnnotation.options.weight;
+
         this.annotationGroup.addLayer(annotationToCommit);
       });
   }
@@ -872,13 +893,20 @@ export default class Annotator extends Component<
     /* Checks if there is AssetReselection */
     const isAssetReselection = !(asset.assetUrl !== this.currentAsset.assetUrl);
 
+    const videoElement = this.videoOverlay.getElement();
     if (!isAssetReselection) {
       this.setState({ currentAssetAnnotations: [] });
       this.annotationGroup.eachLayer(layer => {
         this.annotationGroup.removeLayer(layer);
       });
       this.updateMenuBarAnnotations();
+      if (videoElement) {
+        (videoElement as any).cancelVideoFrameCallback(
+          this.state.currAnnotationPlaybackId
+        );
+      }
     }
+    console.log(this.state.currAnnotationPlaybackId);
 
     const initialSelect = Object.keys(this.currentAsset).length === 0;
     this.imagebarRef.highlightAsset(asset.assetUrl);
@@ -971,7 +999,6 @@ export default class Annotator extends Component<
           },
         };
 
-        const videoElement = this.videoOverlay.getElement();
         if (videoElement) {
           videoElement.controls = true;
           videoElement.setAttribute("controlsList", "nofullscreen nodownload");
