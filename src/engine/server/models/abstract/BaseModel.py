@@ -1,7 +1,7 @@
 """Base model class that should be inherited by all other models."""
 
 
-class Model:
+class BaseModel:
     def __init__(
         self,
         directory: str,

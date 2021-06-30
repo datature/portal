@@ -6,10 +6,10 @@ import numpy as np
 from server.services.errors import Errors, PortalError
 from server.services.hashing import get_hash
 
-from server.models._BaseModel import Model
+from server.models._BaseModel import BaseModel
 
 
-class DarknetModel(Model):
+class DarknetModel(BaseModel):
     def _load_label_map_(self):
         labels = (
             open(os.path.join(self._directory_, self._labelsname_))

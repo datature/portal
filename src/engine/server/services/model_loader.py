@@ -5,7 +5,7 @@ from flask import Response
 from server import global_store
 from server.services.errors import Errors, PortalError
 
-from server.models._BaseModel import Model
+from server.models.abstract.BaseModel import BaseModel
 
 
 def model_loader(model_id: str) -> Response:
@@ -23,7 +23,9 @@ def model_loader(model_id: str) -> Response:
     if model_id in list(global_store.get_loaded_model_keys()):
         return Response(status=200)
     try:
-        registered_model: Model = global_store.get_registered_model(model_id)
+        registered_model: BaseModel = global_store.get_registered_model(
+            model_id
+        )
         loaded_model = registered_model.load()
         model_dict = {"model": loaded_model, "model_class": registered_model}
         global_store.load_model(model_id, model_dict)

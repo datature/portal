@@ -8,10 +8,10 @@ import tensorflow as tf
 from server.services.errors import Errors, PortalError
 from server.services.hashing import get_hash
 
-from server.models._BaseModel import Model
+from server.models.abstract.BaseModel import BaseModel
 
 
-class TensorflowModel(Model):
+class TensorflowModel(BaseModel):
     def _load_label_map_(self):
         self._label_map_ = {}
         with open(

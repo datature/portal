@@ -15,7 +15,7 @@ from server.services.errors import Errors, PortalError
 # pylint: disable=cyclic-import
 from server.services.filesystem.folder_target import FolderTargets
 
-from server.models._BaseModel import Model
+from server.models.abstract.BaseModel import BaseModel
 
 
 def _delete_store_():

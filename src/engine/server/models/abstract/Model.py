@@ -3,7 +3,7 @@ from server.models.tensorflow_model import TensorflowModel
 from server.models.darknet_model import DarknetModel
 
 
-def model(
+def Model(
     model_type: str, directory: str, name: str, description: str, **kwargs
 ):
     """Factory function that routes the model to the specific class."""

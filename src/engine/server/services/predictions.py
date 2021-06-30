@@ -10,7 +10,7 @@ from server.utilities.prediction_utilities import (
     visualize,
     save_to_bytes,
 )
-from server.models._BaseModel import Model
+from server.models.abstract.BaseModel import BaseModel
 
 
 # pylint: disable=R0913
@@ -35,7 +35,7 @@ def _predict_single_image(
     :return: The predictions in the format requested by format_arg.
     """
     model = model_dict["model"]
-    model_class: Model = model_dict["model_class"]
+    model_class: BaseModel = model_dict["model_class"]
     label_map = model_class.get_label_map()
     image_array = cv2.cvtColor(image_array, cv2.COLOR_BGRA2RGB)
     detections = model_class.predict(

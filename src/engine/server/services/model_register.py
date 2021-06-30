@@ -7,7 +7,7 @@ from datature_hub.utils.get_height_width import dims_from_config
 # pylint: disable=E0401, E0611
 from server import global_store
 from server.services.errors import Errors, PortalError
-from server.models._model import model
+from server.models.abstract.Model import Model
 
 
 def register_local(
@@ -26,7 +26,7 @@ def register_local(
         INVALIDFILEPATH:
             saved_model/{saved_model.pb|saved_model.pbtxt} is not found in given directory.
     """
-    reg_model = model(model_type, directory, name, description)
+    reg_model = Model(model_type, directory, name, description)
     global_store.add_registered_model(*reg_model.register())
 
 
@@ -53,7 +53,7 @@ def register_hub(
             model_folder = hub_model.download_model()
         pipeline_config_directory = hub_model.get_pipeline_config_dir()
         height, width = dims_from_config(pipeline_config_directory)
-        reg_model = model(
+        reg_model = Model(
             "tensorflow",
             model_folder,
             name,
