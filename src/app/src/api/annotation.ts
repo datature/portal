@@ -16,7 +16,7 @@ import {
   MODEL_TAGS,
   PREDICT_VIDEO,
   LOADED_MODELS,
-  GET_CACHE_LIST,
+  CACHE_LIST,
 } from "@portal/constants/api";
 
 /* Annotation Type */
@@ -203,5 +203,11 @@ export function APIGetInferenceFlask(
 }
 
 export function APIGetCacheList(modelKey: string): Promise<AxiosResponse<any>> {
-  return axios.get(SERVER_ADDRESS + GET_CACHE_LIST(modelKey));
+  return axios.get(SERVER_ADDRESS + CACHE_LIST(modelKey));
+}
+
+export function APIDeleteCacheList(
+  modelKey: string
+): Promise<AxiosResponse<any>> {
+  return axios.delete(SERVER_ADDRESS + CACHE_LIST(modelKey));
 }

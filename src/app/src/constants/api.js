@@ -33,6 +33,6 @@ export const PREDICT_VIDEO = modelKey => {
 export const GET_INFERENCE_FLASK = modelKey => {
   return `/api/model/${modelKey}/predict`;
 };
-export const GET_CACHE_LIST = modelKey => {
+export const CACHE_LIST = modelKey => {
   return `/api/model/${modelKey}/cachelist`;
 };
