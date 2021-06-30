@@ -619,6 +619,7 @@ export default class Annotator extends Component<
       })
     );
 
+    await this.updateImage();
     this.setState({ predictDone: 0, uiState: null });
   }
 
