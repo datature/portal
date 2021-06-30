@@ -119,6 +119,7 @@ interface AnnotatorState {
     /* Intersection over Union */
     iou: number;
     cacheResults: boolean;
+    bulkAnalysisStatus: string;
     video: {
       /* Frame interval to produce predictions for video */
       frameInterval: number;
@@ -212,6 +213,7 @@ export default class Annotator extends Component<
       filterArr: [],
       showSelected: true,
       inferenceOptions: {
+        bulkAnalysisStatus: "both",
         cacheResults: false,
         iou: 0.8,
         video: {
@@ -704,6 +706,9 @@ export default class Annotator extends Component<
   private handleChangeInAdvancedSettings = (value: any, key: string) => {
     this.setState(prevState => {
       const settings = prevState.inferenceOptions;
+      if (key === "bulkAnalysisStatus") {
+        settings.bulkAnalysisStatus = value;
+      }
       if (key === "frameInterval") {
         settings.video.frameInterval = value;
       }
