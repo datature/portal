@@ -12,8 +12,12 @@ from flask_cors import cross_origin
 from server import app, global_store, wait_for_process
 from server.services import decode
 from server.services.errors import Errors, PortalError
-from server.services.filesystem.file import allowed_image, allowed_video, generate_thumbnail
-from server.services.model_loader import load_local
+from server.services.filesystem.file import (
+    allowed_image,
+    allowed_video,
+    generate_thumbnail,
+)
+from server.services.model_loader import model_loader
 from server.services.model_register import (
     register_endpoint,
     register_hub,
@@ -42,7 +46,9 @@ def portal_function_handler(clear_status: bool) -> callable:
             try:
                 response = func(*args, **kwargs)
             except PortalError as e:
-                e.set_fail_location(" - ".join([func.__module__, func.__name__]))
+                e.set_fail_location(
+                    " - ".join([func.__module__, func.__name__])
+                )
                 if e.get_error() != "ATOMICERROR" and clear_status:
                     global_store.clear_status()
                 return e.output()
@@ -105,8 +111,10 @@ def shutdown():
 @portal_function_handler(clear_status=False)
 def heartbeat() -> tuple:
     """Check if server is alive."""
-    output = {"hasCache": global_store.has_cache(),
-              "isCacheCalled": global_store.is_cache_called()}
+    output = {
+        "hasCache": global_store.has_cache(),
+        "isCacheCalled": global_store.is_cache_called(),
+    }
     return jsonify(output), 200
 
 
@@ -155,6 +163,7 @@ def register_model() -> tuple:
         model_description: str = data["description"]
         model_key: str = input_credentials["modelKey"]
         project_secret: str = input_credentials["projectSecret"]
+        model_type: str = data["modelType"]
         input_directory: str = data["directory"]
 
         if global_store.set_status("register_model_" + model_key):
@@ -190,10 +199,21 @@ def register_model() -> tuple:
                 Errors.INVALIDAPI,
                 "model_key needs to be given if input_type is 'hub'.",
             )
-
+        if model_type not in ["darknet", "tensorflow", "pytorch"]:
+            raise PortalError(
+                Errors.INVALIDAPI,
+                "model_type needs to be one of 'darknet', 'tensorflow' or 'pytorch'.",
+            )
+        if input_type == "hub" and model_type != "tensorflow":
+            raise PortalError(
+                Errors.INVALIDAPI,
+                "only tensorflow models are supported for Hub.",
+            )
         # Register the model using the respective registration code.
         if input_type == "local":
-            register_local(input_directory, model_name, model_description)
+            register_local(
+                input_directory, model_type, model_name, model_description
+            )
 
         if input_type == "hub":
             register_hub(
@@ -205,7 +225,9 @@ def register_model() -> tuple:
             )
 
         if input_type == "endpoint":
-            register_endpoint(model_key=model_key, project_secret=project_secret)
+            register_endpoint(
+                model_key=model_key, project_secret=project_secret
+            )
 
         return (jsonify(global_store.get_registered_model_info()), 200)
 
@@ -319,7 +341,7 @@ def load_model(model_id: str) -> Response:
         return global_store.get_caught_response("load_model")
     if global_store.check_model_limit():
         raise PortalError(Errors.OVERLOADED, "Maximum loadable model reached.")
-    return load_local(model_id)
+    return model_loader(model_id)
 
 
 @app.route("/api/model/<model_id>/unload", methods=["PUT"])
@@ -363,7 +385,7 @@ def predict_single_image(model_id: str) -> tuple:
         UNINITIALIZED:      Empty loaded model list.
         INVALIDFILETYPE:    Image file extension is not allowed.
         INVALIDQUERY:       Wrongly given query parameters.
-        FAILEDTENSORFLOW:   Tensorflow failed. See error message for more information.
+        FAILEDPREDICTION:   Prediction failed. See error message for more information.
         NOTFOUND:           Image directory not found.
         INVALIDMODELKEY:    Model key is not in loaded model list.
     """
@@ -373,7 +395,9 @@ def predict_single_image(model_id: str) -> tuple:
         return global_store.get_caught_response("predict_single_image")
     try:
         if request.args.get("filepath") is None:
-            raise PortalError(Errors.INVALIDQUERY, "Filepath is a compulsory query")
+            raise PortalError(
+                Errors.INVALIDQUERY, "Filepath is a compulsory query"
+            )
 
         image_directory = decode(request.args.get("filepath"))
         if not os.path.isfile(image_directory):
@@ -392,21 +416,12 @@ def predict_single_image(model_id: str) -> tuple:
             output = global_store.get_predictions(prediction_key)
         elif not global_store.get_loaded_model_keys():
             raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
+        elif model_id not in global_store.get_loaded_model_keys():
+            raise PortalError(Errors.NOTFOUND, "model_id not loaded.")
         else:
-            (
-                model,
-                label_map,
-                model_height,
-                model_width,
-            ) = global_store.get_all_model_attributes(model_id)
+            model_dict = global_store.get_model_dict(model_id)
             output = predict_image(
-                model,
-                model_height,
-                model_width,
-                label_map,
-                format_arg,
-                iou,
-                image_directory,
+                model_dict, format_arg, iou, image_directory
             )
             global_store.add_predictions(prediction_key, output)
 
@@ -441,7 +456,7 @@ def predict_video_fn(model_id: str) -> tuple:
         UNINITIALIZED:      Empty loaded model list.
         INVALIDFILETYPE:    Image file extension is not allowed.
         INVALIDQUERY:       Wrongly given query parameters.
-        FAILEDTENSORFLOW:   Tensorflow failed. See error message for more information.
+        FAILEDPREDICTION:   Prediction failed. See error message for more information.
         NOTFOUND:           Image directory not found.
         INVALIDMODELKEY:    Model key is not in loaded model list.
     """
@@ -480,18 +495,12 @@ def predict_video_fn(model_id: str) -> tuple:
             output = global_store.get_predictions(prediction_key)
         elif not global_store.get_loaded_model_keys():
             raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
+        elif model_id not in global_store.get_loaded_model_keys():
+            raise PortalError(Errors.NOTFOUND, "model_id not loaded.")
         else:
-            (
-                model,
-                label_map,
-                model_height,
-                model_width,
-            ) = global_store.get_all_model_attributes(model_id)
+            model_dict = global_store.get_all_model_attributes(model_id)
             output = predict_video(
-                model=model,
-                model_height=model_height,
-                model_width=model_width,
-                label_map=label_map,
+                model_dict,
                 iou=iou,
                 video_directory=video_directory,
                 frame_interval=frame_interval,
@@ -604,7 +613,9 @@ def get_image():
         path = request.args.get("filepath")
         decoded_path = decode(path)
         if not os.path.exists(decoded_path):
-            raise FileNotFoundError(f"File path {decoded_path} does not exists")
+            raise FileNotFoundError(
+                f"File path {decoded_path} does not exists"
+            )
         head, tail = os.path.split(decoded_path)
         return send_from_directory(head, tail)
 
@@ -625,7 +636,9 @@ def get_thumbnail():
         path = request.args.get("filepath")
         decoded_path = decode(path)
         if not os.path.exists(decoded_path):
-            raise FileNotFoundError(f"File path {decoded_path} does not exists")
+            raise FileNotFoundError(
+                f"File path {decoded_path} does not exists"
+            )
         # pylint: disable=unused-variable
         head, tail = os.path.split(decoded_path)
         image_bytes = generate_thumbnail(decoded_path, tail)

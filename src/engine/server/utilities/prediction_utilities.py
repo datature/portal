@@ -352,13 +352,13 @@ def get_suppressed_output(
     """
 
     detection_masks = (
-        np.squeeze(detections["detection_masks"].numpy())
+        detections["detection_masks"]
         if "detection_masks" in detections
         else None
     )
-    detection_boxes = np.squeeze(detections["detection_boxes"].numpy())
-    detection_scores = np.squeeze(detections["detection_scores"].numpy())
-    detection_classes = np.squeeze(detections["detection_classes"].numpy())
+    detection_boxes = detections["detection_boxes"]
+    detection_scores = detections["detection_scores"]
+    detection_classes = detections["detection_classes"]
     return (
         _non_max_suppress_bbox(
             bbox=detection_boxes,
@@ -419,7 +419,7 @@ def back_to_tensor(suppressed_output: tuple) -> dict:
     return tensor_dict
 
 
-def get_detection_json(detections_output: tuple, category_map: tuple) -> list:
+def get_detection_json(detections_output: dict, category_map: tuple) -> list:
     """Obtain the json detections given the detection tuple.
     :param detections: Tuple containing bboxes, scores, classes
     :param category_map: Category map of classes.
@@ -455,8 +455,9 @@ def get_detection_json(detections_output: tuple, category_map: tuple) -> list:
         contours = None
 
     output = []
+    print(category_map)
     for each_class, _ in enumerate(classes):
-        class_name = category_map[classes[each_class]]
+        class_name = category_map[str(classes[each_class])]
         item = {}
         item["confidence"] = float(scores[each_class])
         item["tag"] = class_name

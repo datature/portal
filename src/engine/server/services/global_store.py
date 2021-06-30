@@ -15,6 +15,8 @@ from server.services.errors import Errors, PortalError
 # pylint: disable=cyclic-import
 from server.services.filesystem.folder_target import FolderTargets
 
+from server.models._BaseModel import Model
+
 
 def _delete_store_():
     if os.path.isfile("./server/cache/store.portalCache"):
@@ -178,47 +180,30 @@ class GlobalStore:
     def add_registered_model(
         self,
         key: str,
-        directory: str,
-        model_name: str,
-        description: str,
-        height: int,
-        width: int,
+        model: Model,
     ) -> None:
-        """Add a model into the registry.
+        """Add or update a model into the registry.
 
         :param key: The model key.
-        :param directory: The path of the model.
-        :model_name: The name of the model.
-        :description: A short description of the model.
-        :height: The model height.
-        :width: The model width.
+        :param _model_: The _model_ class attributed to the model key.
         """
-        self._store_["registry"][key] = {
-            "directory": directory,
-            "name": model_name,
-            "description": description,
-            "height": height,
-            "width": width,
-        }
+        serialized_model_class = jsonpickle.encode(model)
+        self._store_["registry"][key] = serialized_model_class
         self._save_store_()
 
-    def get_registered_model(self, key: str) -> dict:
+    def get_registered_model(self, key: str) -> Model:
         """Retrieve the model given its model key
 
         :param key: The model key.
-        :return: The model as a dictionary.
+        :return: The model as a Model class.
         """
-        return self._store_["registry"][key]
+        return jsonpickle.decode(self._store_["registry"][key])
 
     def get_registered_model_info(self) -> str:
         """Retrieve directory, description, name of all registered models"""
         return {
-            model_id: {
-                required_info: model_info[required_info]
-                for required_info in ["directory", "description", "name"]
-                if required_info in model_info
-            }
-            for model_id, model_info in self._store_["registry"].items()
+            model_id: jsonpickle.decode(model_class).get_info()
+            for model_id, model_class in self._store_["registry"].items()
         }
 
     def del_registered_model(self, key: str) -> None:
@@ -244,7 +229,7 @@ class GlobalStore:
         self._loaded_model_list_[key] = model_dict
 
     def get_loaded_model_keys(self) -> list:
-        """Retrieve all modek keys in the loaded model list."""
+        """Retrieve all model keys in the loaded model list."""
         return list(self._loaded_model_list_.keys())
 
     def unload_model(self, key: str) -> None:
@@ -255,19 +240,13 @@ class GlobalStore:
         self._loaded_model_list_.pop(key)
         gc.collect()
 
-    def get_all_model_attributes(self, key: str) -> tuple:
+    def get_model_dict(self, key: str) -> tuple:
         """Retrieve the model, label map, height and width given the model key.
 
         :param key: The model key.
         :return: A tuple represented by (model, label map, height, width).
         """
-        model_info = self._loaded_model_list_[key]
-        return (
-            model_info["tf_model"],
-            model_info["label_map"],
-            model_info["model_height"],
-            model_info["model_width"],
-        )
+        return self._loaded_model_list_[key]
 
     # PREDICTIONS
     def add_predictions(self, key: str, value: str) -> None:

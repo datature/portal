@@ -7,15 +7,14 @@ from datature_hub.utils.get_height_width import dims_from_config
 # pylint: disable=E0401, E0611
 from server import global_store
 from server.services.errors import Errors, PortalError
-from server.services.hashing import get_hash
+from server.models._model import model
 
 
 def register_local(
     directory: str,
+    model_type: str,
     name: str,
     description: str,
-    height: int = 1024,
-    width: int = 1024,
 ) -> None:
     """Register a locally stored model.
 
@@ -27,27 +26,8 @@ def register_local(
         INVALIDFILEPATH:
             saved_model/{saved_model.pb|saved_model.pbtxt} is not found in given directory.
     """
-    if not os.path.isfile(os.path.join(directory, "label_map.pbtxt")):
-        raise PortalError(
-            Errors.INVALIDFILEPATH,
-            "label_map.pbtxt is not found in given directory.",
-        )
-    if not (
-        os.path.isfile(
-            os.path.join(directory, "saved_model", "saved_model.pbtxt")
-        )
-        or os.path.isfile(
-            os.path.join(directory, "saved_model", "saved_model.pb")
-        )
-    ):
-        raise PortalError(
-            Errors.INVALIDFILEPATH,
-            "saved_model/{saved_model.pb|saved_model.pbtxt} is not found in given directory",
-        )
-    hash_data = get_hash(directory)
-    global_store.add_registered_model(
-        hash_data, directory, name, description, height, width
-    )
+    reg_model = model(model_type, directory, name, description)
+    global_store.add_registered_model(*reg_model.register())
 
 
 def register_hub(
@@ -71,12 +51,17 @@ def register_hub(
         model_folder = hub_model.model_dir
         if not os.path.exists(model_folder):
             model_folder = hub_model.download_model()
-        hash_data = get_hash(model_folder)
         pipeline_config_directory = hub_model.get_pipeline_config_dir()
         height, width = dims_from_config(pipeline_config_directory)
-        global_store.add_registered_model(
-            hash_data, model_folder, name, description, height, width
+        reg_model = model(
+            "tensorflow",
+            model_folder,
+            name,
+            description,
+            height=height,
+            width=width,
         )
+        global_store.add_registered_model(*reg_model.register())
 
     # Except Block
     # Catches all possible native exceptions here and translates them into PortalError.
