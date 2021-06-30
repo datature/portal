@@ -666,15 +666,12 @@ export default class Annotator extends Component<
         .then(res => {
           this.setState({ cacheList: res.data });
         })
-        .catch(() => {
-          // TODO: Get rid when backend is done
-          this.setState({
-            cacheList: [
-              "d%3A%5Ctest%5Cpictures%5Canimals%5Cbicycle%20folder%5Cbicycle.jpg",
-              "d%3A%5Ctest%5Cpictures%5Canimals%5Cchip%20munk%5Cdog%20folder%5Cdog1.jpg",
-              "d%3A%5Ctest%5Cpictures%5Canimals%5Cchip%20munk%5Cchipmunk%20and%20pizza.jpg",
-            ],
-          });
+        .catch(error => {
+          let message = `Failed to load cached predictions. ${error}`;
+          if (error.response) {
+            message = `${error.response.data.error}: ${error.response.data.message}`;
+          }
+          CreateGenericToast(message, Intent.DANGER, 3000);
         });
     }
   };
