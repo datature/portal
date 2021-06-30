@@ -886,7 +886,6 @@ export default class Annotator extends Component<
         );
       }
     }
-    console.log(this.state.currAnnotationPlaybackId);
 
     const initialSelect = Object.keys(this.currentAsset).length === 0;
     this.imagebarRef.highlightAsset(asset.assetUrl);
