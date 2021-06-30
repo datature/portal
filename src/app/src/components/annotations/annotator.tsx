@@ -245,6 +245,7 @@ export default class Annotator extends Component<
     this.showToaster = this.showToaster.bind(this);
     this.renderProgress = this.renderProgress.bind(this);
     this.getInference = this.getInference.bind(this);
+    this.bulkAnalysis = this.bulkAnalysis.bind(this);
     this.updateAnnotations = this.updateAnnotations.bind(this);
 
     this.resetControls = this.resetControls.bind(this);
@@ -522,6 +523,105 @@ export default class Annotator extends Component<
     this.setState({ annotatedAssetsHidden: flag });
   }
 
+  // eslint-disable-next-line react/sort-comp
+  private async bulkAnalysis() {
+    if (!this.props.loadedModel) {
+      CreateGenericToast("There is no model loaded", Intent.WARNING, 3000);
+      return;
+    }
+
+    const loadedModelHash = this.props.loadedModel.hash;
+
+    this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
+    this.setState({ uiState: "Predicting" });
+    this.handleProgressToast();
+
+    await Promise.all(
+      this.state.assetList.map(async asset => {
+        if (
+          asset.type === "image" &&
+          this.state.inferenceOptions.bulkAnalysisStatus !== "video"
+        ) {
+          await APIGetInferenceFlask(
+            loadedModelHash,
+            asset.localPath,
+            this.state.inferenceOptions.iou,
+            "json"
+          )
+            .then(response => {
+              if (this.currentAsset.url === asset.url) {
+                this.updateAnnotations(response.data);
+              }
+            })
+            .catch(error => {
+              let message = `Failed to predict image. ${error}`;
+              if (error.response) {
+                message = `${error.response.data.error}: ${error.response.data.message}`;
+              }
+
+              CreateGenericToast(message, Intent.DANGER, 3000);
+            });
+        }
+
+        if (
+          asset.type === "video" &&
+          this.state.inferenceOptions.bulkAnalysisStatus !== "image"
+        ) {
+          await APIGetVideoPrediction(
+            loadedModelHash,
+            asset.localPath,
+            this.state.inferenceOptions.video.frameInterval,
+            this.state.inferenceOptions.iou
+          )
+            .then(response => {
+              if (this.currentAsset.url === asset.url) {
+                const videoElement = this.videoOverlay.getElement();
+                const videoFrameCallback = (
+                  now: DOMHighResTimeStamp,
+                  metadata: VideoFrameMetadata
+                ) => {
+                  const secondsInterval =
+                    this.state.inferenceOptions.video.frameInterval /
+                    response.data.fps;
+                  const quotient = Math.floor(
+                    metadata.mediaTime / secondsInterval
+                  );
+
+                  const key = Math.floor(
+                    quotient * secondsInterval * 1000
+                  ).toString();
+
+                  if (response.data.frames[key]) {
+                    this.updateAnnotations(response.data.frames[key]);
+                  }
+
+                  (videoElement as any).requestVideoFrameCallback(
+                    videoFrameCallback
+                  );
+                };
+
+                if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
+                  (videoElement as any).requestVideoFrameCallback(
+                    videoFrameCallback
+                  );
+                }
+              }
+            })
+            .catch(error => {
+              let message = `Failed to predict video. ${error}`;
+              if (error.response) {
+                message = `${error.response.data.error}: ${error.response.data.message}`;
+              }
+
+              CreateGenericToast(message, Intent.DANGER, 3000);
+            });
+        }
+      })
+    );
+
+    this.setState({ predictDone: 0, uiState: null });
+  }
+
   private getInference() {
     if (this.state.predictDone !== 0 || this.state.uiState === "Predicting") {
       CreateGenericToast("Inference is already running", Intent.WARNING, 3000);
@@ -665,6 +765,7 @@ export default class Annotator extends Component<
         if (decodedUri.includes("\\")) seperator = "\\";
         if (decodedUri.match(/\.(?:mov|mp4|wmv)/i)) type = "video";
         return {
+          url: encodedUri,
           filename: decodedUri.split(seperator).pop(),
           assetUrl: APIGetImageData(encodedUri),
           thumbnailUrl: APIGetImageData(encodedUri),
@@ -1085,7 +1186,7 @@ export default class Annotator extends Component<
           global={true}
           combo={"b"}
           label={"Bulk Analysis"}
-          onKeyDown={this.getInference}
+          onKeyDown={this.bulkAnalysis}
         />
         <Hotkey
           global={true}
@@ -1285,6 +1386,7 @@ export default class Annotator extends Component<
                 OpenAdvancedSettings: this.handleAdvancedSettingsOpen,
                 SetAnnotationVisibility: this.setAnnotationVisibility,
                 GetInference: this.getInference,
+                BulkAnalysis: this.bulkAnalysis,
                 ToggleConfidence: this.toggleConfidence,
                 /* Used by TagSelector */
                 SetFilterArr: this.setFilterArr,

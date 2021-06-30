@@ -380,7 +380,7 @@ export default class AnnotationMenu extends Component {
                     ? "bp3-active"
                     : ""
                 }
-                onClick={this.props.callbacks.GetInference}
+                onClick={this.props.callbacks.BulkAnalysis}
               />
             </>
           ) : (
