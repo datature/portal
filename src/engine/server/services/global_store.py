@@ -253,7 +253,8 @@ class GlobalStore:
         :param key: The model key.
         """
         self._loaded_model_list_.pop(key)
-        self._store_["predictions"].pop(key)
+        if key in self._store_["predictions"]:
+            self._store_["predictions"].pop(key)
         gc.collect()
         self._save_store_()
 
