@@ -172,6 +172,7 @@ export default class AnnotatorSettings extends Component<
               <Label>
                 Annotation Opacity
                 <Slider
+                  className={"opacity-slider"}
                   min={0}
                   max={1}
                   stepSize={0.01}

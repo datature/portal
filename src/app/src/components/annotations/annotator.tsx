@@ -609,17 +609,16 @@ export default class Annotator extends Component<
                 this.updateAnnotations(response.data.frames[key]);
               }
 
-              (videoElement as any).requestVideoFrameCallback(
-                videoFrameCallback
-              );
-            };
-
-            if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
               const id = (videoElement as any).requestVideoFrameCallback(
                 videoFrameCallback
               );
-              console.log(id);
               this.setState({ currAnnotationPlaybackId: id });
+            };
+
+            if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
+              (videoElement as any).requestVideoFrameCallback(
+                videoFrameCallback
+              );
             }
           })
           .catch(error => {

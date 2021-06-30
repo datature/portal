@@ -253,6 +253,11 @@
   margin-right: 30px !important;
 }
 
+.bp3-slider.opacity-slider {
+  width: 90%;
+  min-width: 140px;
+}
+
 .main-annotator {
   z-index: 0;
   position: absolute;
