@@ -327,6 +327,7 @@ export default class Annotator extends Component<
     // eslint-disable-next-line no-new
     new AnnotatorInstanceSingleton(this.map, this);
 
+    /* Slight delay so that all images can be reliably fetched from the server */
     setTimeout(() => this.updateImage(), 200);
   }
 
@@ -545,12 +546,17 @@ export default class Annotator extends Component<
     this.setState({ annotatedAssetsHidden: flag });
   }
 
+  /**
+   * Centralized Handler to Perform predictions on both Video and Images
+   */
   private getInference() {
+    /* Blocker to account for case where prediction is still running */
     if (this.state.predictDone !== 0 || this.state.uiState === "Predicting") {
       CreateGenericToast("Inference is already running", Intent.WARNING, 3000);
       return;
     }
 
+    /* Blocker to account for case where there is no model to perform prediction */
     if (!this.props.loadedModel) {
       CreateGenericToast("There is no model loaded", Intent.WARNING, 3000);
       return;
@@ -562,79 +568,94 @@ export default class Annotator extends Component<
     this.setState({ uiState: "Predicting" });
     this.handleProgressToast();
 
-    setTimeout(async () => {
-      if (this.currentAsset.type === "image") {
-        await APIGetInferenceFlask(
-          loadedModelHash,
-          this.currentAsset.localPath,
-          this.state.inferenceOptions.iou,
-          "json"
-        )
-          .then(response => {
-            this.updateAnnotations(response.data);
-          })
-          .catch(error => {
-            let message = `Failed to predict image. ${error}`;
-            if (error.response) {
-              message = `${error.response.data.error}: ${error.response.data.message}`;
+    if (this.currentAsset.type === "image") {
+      APIGetInferenceFlask(
+        loadedModelHash,
+        this.currentAsset.localPath,
+        this.state.inferenceOptions.iou,
+        "json"
+      )
+        .then(response => {
+          /* Only a single frame of Annotation required, unlike Video */
+          this.updateAnnotations(response.data);
+        })
+        .catch(error => {
+          let message = `Failed to predict image. ${error}`;
+          if (error.response) {
+            message = `${error.response.data.error}: ${error.response.data.message}`;
+          }
+
+          CreateGenericToast(message, Intent.DANGER, 3000);
+        });
+    }
+
+    if (this.currentAsset.type === "video") {
+      APIGetVideoPrediction(
+        loadedModelHash,
+        this.currentAsset.localPath,
+        this.state.inferenceOptions.video.frameInterval,
+        this.state.inferenceOptions.iou
+      )
+        .then(response => {
+          const videoElement = this.videoOverlay.getElement();
+          /**
+           * Recursive Callback function that
+           * @param {DOMHighResTimeStamp} now
+           * @param {VideoFrameMetadata} metadata
+           */
+          const videoFrameCallback = (
+            now: DOMHighResTimeStamp,
+            metadata: VideoFrameMetadata
+          ) => {
+            /* Calculating the refresh rate of annotation rendering */
+            const secondsInterval =
+              this.state.inferenceOptions.video.frameInterval /
+              response.data.fps;
+            const quotient = Math.floor(metadata.mediaTime / secondsInterval);
+
+            /* Interval to determine the refresh-rate of annotation */
+            const key = Math.floor(
+              quotient * secondsInterval * 1000
+            ).toString();
+
+            if (response.data.frames[key]) {
+              this.updateAnnotations(response.data.frames[key]);
             }
 
-            CreateGenericToast(message, Intent.DANGER, 3000);
-          });
-      }
+            /**
+             * Id to track the current handler number so that this handler
+             * can be removed when selectAsset is called. more information
+             * on https://wicg.github.io/video-rvfc/
+             */
+            const videoId = (videoElement as any).requestVideoFrameCallback(
+              videoFrameCallback
+            );
+            this.setState({ currAnnotationPlaybackId: videoId });
+          };
 
-      if (this.currentAsset.type === "video") {
-        await APIGetVideoPrediction(
-          loadedModelHash,
-          this.currentAsset.localPath,
-          this.state.inferenceOptions.video.frameInterval,
-          this.state.inferenceOptions.iou
-        )
-          .then(response => {
-            const videoElement = this.videoOverlay.getElement();
-            const videoFrameCallback = (
-              now: DOMHighResTimeStamp,
-              metadata: VideoFrameMetadata
-            ) => {
-              const secondsInterval =
-                this.state.inferenceOptions.video.frameInterval /
-                response.data.fps;
-              const quotient = Math.floor(metadata.mediaTime / secondsInterval);
+          if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
+            (videoElement as any).requestVideoFrameCallback(videoFrameCallback);
+          }
+        })
+        .catch(error => {
+          let message = `Failed to predict video. ${error}`;
+          if (error.response) {
+            message = `${error.response.data.error}: ${error.response.data.message}`;
+          }
 
-              const key = Math.floor(
-                quotient * secondsInterval * 1000
-              ).toString();
+          CreateGenericToast(message, Intent.DANGER, 3000);
+        });
+    }
 
-              if (response.data.frames[key]) {
-                this.updateAnnotations(response.data.frames[key]);
-              }
-
-              const id = (videoElement as any).requestVideoFrameCallback(
-                videoFrameCallback
-              );
-              this.setState({ currAnnotationPlaybackId: id });
-            };
-
-            if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
-              (videoElement as any).requestVideoFrameCallback(
-                videoFrameCallback
-              );
-            }
-          })
-          .catch(error => {
-            let message = `Failed to predict video. ${error}`;
-            if (error.response) {
-              message = `${error.response.data.error}: ${error.response.data.message}`;
-            }
-
-            CreateGenericToast(message, Intent.DANGER, 3000);
-          });
-      }
-
-      this.setState({ predictDone: 0, uiState: null });
-    }, 0);
+    /* Once call is done, reset uiState and predictDone to perform additional predictions */
+    this.setState({ predictDone: 0, uiState: null });
   }
 
+  /**
+   * Atomic function that takes annotations generated from getInference
+   * and renders the annotations on the Leaflet Layer
+   * @param {any} annotations
+   */
   private updateAnnotations = (annotations: any) => {
     const res = {
       metadata: this.currentAsset.metadata,
@@ -645,9 +666,6 @@ export default class Annotator extends Component<
       thumbnailUrl: this.currentAsset.thumbnailUrl,
       localPath: this.currentAsset.localPath,
       type: this.currentAsset.type,
-      /* useless properties but deleting them will cause lots
-      of type conflicts. decided to use dummy values instead
-      */
     };
 
     const currentAssetAnnotations: Array<PolylineObjectType> = RenderAssetAnnotations(
@@ -839,7 +857,9 @@ export default class Annotator extends Component<
       .forEach((confidentAnnotation: any) => {
         /* Add It Onto Leaflet */
         const annotationToCommit = cloneDeep(confidentAnnotation);
+        /* Customize Annotation Opacity */
         annotationToCommit.options.fillOpacity = this.state.annotationOptions.opacity;
+        /* Customize Annotation Outline Toggle */
         annotationToCommit.options.weight = !this.state.annotationOptions
           .isOutlined
           ? 0
