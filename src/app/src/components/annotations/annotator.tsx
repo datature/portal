@@ -578,6 +578,9 @@ export default class Annotator extends Component<
         .then(response => {
           /* Only a single frame of Annotation required, unlike Video */
           this.updateAnnotations(response.data);
+
+          /* Once call is done, reset uiState and predictDone to perform additional predictions */
+          this.setState({ predictDone: 0, uiState: null });
         })
         .catch(error => {
           let message = `Failed to predict image. ${error}`;
@@ -633,6 +636,9 @@ export default class Annotator extends Component<
             this.setState({ currAnnotationPlaybackId: videoId });
           };
 
+          /* Once call is done, reset uiState and predictDone to perform additional predictions */
+          this.setState({ predictDone: 0, uiState: null });
+
           if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
             (videoElement as any).requestVideoFrameCallback(videoFrameCallback);
           }
@@ -646,9 +652,6 @@ export default class Annotator extends Component<
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
     }
-
-    /* Once call is done, reset uiState and predictDone to perform additional predictions */
-    this.setState({ predictDone: 0, uiState: null });
   }
 
   /**
