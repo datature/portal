@@ -10,7 +10,7 @@ from flask_cors import cross_origin
 # pylint: disable=cyclic-import
 # pylint: disable=undefined-variable
 from server import app, global_store, wait_for_process
-from server.services import decode
+from server.services import decode, encode
 from server.services.errors import Errors, PortalError
 from server.services.filesystem.file import (
     allowed_image,
@@ -526,7 +526,11 @@ def predict_video_fn(model_id: str) -> tuple:
 @portal_function_handler(clear_status=False)
 def get_cachelist(model_id) -> tuple:
     """Obtain the list of images that has been successfully predicted."""
-    return (jsonify(global_store.get_predicted_images(model_id)), 200)
+    cachelist = [
+        encode(image_dir)
+        for image_dir in global_store.get_predicted_images(model_id)
+    ]
+    return (jsonify(cachelist), 200)
 
 
 @app.route("/api/model/<model_id>/cachelist", methods=["DELETE"])
