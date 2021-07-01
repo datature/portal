@@ -60,7 +60,7 @@ def corrected_predict_query(*args, request) -> dict:
             ) from e
 
     reanalyse_string = request.args.get("reanalyse", "false")
-    if ["true", "false"] not in reanalyse_string:
+    if reanalyse_string not in ["true", "false"]:
         raise PortalError(
             Errors.INVALIDQUERY,
             "Reanalyse Query is not one of 'true' or 'false'.",
