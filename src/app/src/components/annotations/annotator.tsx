@@ -273,8 +273,7 @@ export default class Annotator extends Component<
     this.filterAnnotationVisibility = this.filterAnnotationVisibility.bind(
       this
     );
-    this.setAnnotationOutline = this.setAnnotationOutline.bind(this);
-    this.setAnnotationOpacity = this.setAnnotationOpacity.bind(this);
+    this.setAnnotationOptions = this.setAnnotationOptions.bind(this);
     this.toggleShowSelected = this.toggleShowSelected.bind(this);
     this.setAnnotatedAssetsHidden = this.setAnnotatedAssetsHidden.bind(this);
   }
@@ -442,25 +441,27 @@ export default class Annotator extends Component<
     return this.currentTag;
   }
 
-  private setAnnotationOpacity(value: number): void {
+  /**
+   * Updates the annotationOptions, handling both boolean
+   * and number case
+   * @param {boolean | number } newOption - updatedOptions
+   */
+  private setAnnotationOptions(newOption: boolean | number): void {
     this.setState(
       prevState => {
         const config = prevState.annotationOptions;
-        config.opacity = value;
-        return { annotationOptions: config };
-      },
-      () => this.filterAnnotationVisibility()
-    );
-  }
-
-  private setAnnotationOutline(isReset: boolean): void {
-    this.setState(
-      prevState => {
-        const config = prevState.annotationOptions;
-        config.isOutlined = isReset
-          ? true
-          : (!prevState.annotationOptions.isOutlined as any);
-
+        switch (typeof newOption) {
+          case "boolean":
+            config.isOutlined = newOption
+              ? true
+              : (!prevState.annotationOptions.isOutlined as any);
+            break;
+          case "number":
+            config.opacity = newOption;
+            break;
+          default:
+            break;
+        }
         return { annotationOptions: config };
       },
       () => this.filterAnnotationVisibility()
@@ -1321,8 +1322,7 @@ export default class Annotator extends Component<
                     annotationOptions={this.state.annotationOptions}
                     callbacks={{
                       setAnnotatedAssetsHidden: this.setAnnotatedAssetsHidden,
-                      setAnnotationOutline: this.setAnnotationOutline,
-                      setAnnotationOpacity: this.setAnnotationOpacity,
+                      setAnnotationOptions: this.setAnnotationOptions,
                     }}
                   />
                 </div>

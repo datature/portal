@@ -21,8 +21,7 @@ interface ImageSettingsProps {
   annotationOptions: AnnotationOptions;
   callbacks: {
     setAnnotatedAssetsHidden: (flag: boolean) => void;
-    setAnnotationOutline: (isReset: boolean) => void;
-    setAnnotationOpacity: (value: number) => void;
+    setAnnotationOptions: (newOption: boolean | number) => void;
   };
 }
 
@@ -57,17 +56,13 @@ export default class AnnotatorSettings extends Component<
    * @returns HTML Element that targets the Current Video/ Image
    */
   private getImageElement = (): any => {
-    if (
+    return (
       document.querySelector(
         ".leaflet-pane.leaflet-overlay-pane img.leaflet-image-layer"
-      ) !== null
-    ) {
-      return document.querySelector(
-        ".leaflet-pane.leaflet-overlay-pane img.leaflet-image-layer"
-      );
-    }
-    return document.querySelector(
-      ".leaflet-pane.leaflet-overlay-pane video.leaflet-image-layer"
+      ) ??
+      document.querySelector(
+        ".leaflet-pane.leaflet-overlay-pane video.leaflet-image-layer"
+      )
     );
   };
 
@@ -119,8 +114,8 @@ export default class AnnotatorSettings extends Component<
       contrast: 100,
       saturate: 100,
     });
-    this.props.callbacks.setAnnotationOpacity(0.3);
-    this.props.callbacks.setAnnotationOutline(true);
+    this.props.callbacks.setAnnotationOptions(0.3);
+    this.props.callbacks.setAnnotationOptions(true);
   };
 
   /**
@@ -163,7 +158,7 @@ export default class AnnotatorSettings extends Component<
               <Switch
                 checked={this.props.annotationOptions.isOutlined}
                 onChange={() => {
-                  this.props.callbacks.setAnnotationOutline(false);
+                  this.props.callbacks.setAnnotationOptions(false);
                 }}
               >
                 Toggle Annotation Outline
@@ -179,7 +174,7 @@ export default class AnnotatorSettings extends Component<
                   labelStepSize={1}
                   value={this.props.annotationOptions.opacity}
                   onChange={value => {
-                    this.props.callbacks.setAnnotationOpacity(value);
+                    this.props.callbacks.setAnnotationOptions(value);
                   }}
                 />
               </Label>
