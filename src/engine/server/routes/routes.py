@@ -9,7 +9,7 @@ from flask_cors import cross_origin
 # pylint: disable=E0401, E0611
 # pylint: disable=cyclic-import
 # pylint: disable=undefined-variable
-from server import app, global_store, wait_for_process
+from server import app, global_store, server, wait_for_process
 from server.services import decode, encode
 
 from server.services.errors import Errors, PortalError
@@ -406,9 +406,15 @@ def predict_single_image(model_id: str) -> tuple:
             image_directory,
             format_arg + str(iou),
         )
-
+        prediction_status = (
+            "predict_single_image_"
+            + model_id
+            + image_directory
+            + format_arg
+            + str(iou)
+        )
         # check if another atomic process / duplicate process exists
-        if global_store.set_status("predict_single_image_" + prediction_key):
+        if global_store.set_status(prediction_status):
             wait_for_process()
             return global_store.get_caught_response("predict_single_image")
 
@@ -505,8 +511,15 @@ def predict_video_fn(model_id: str) -> tuple:
             video_directory,
             str(frame_interval) + str(iou) + str(confidence),
         )
-
-        if global_store.set_status("predict_video_" + prediction_key):
+        prediction_status = (
+            "predict_single_image_"
+            + model_id
+            + video_directory
+            + str(frame_interval)
+            + str(iou)
+            + str(confidence)
+        )
+        if global_store.set_status(prediction_status):
             wait_for_process()
             return global_store.get_caught_response("predict_video")
 
