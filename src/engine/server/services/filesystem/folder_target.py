@@ -37,10 +37,10 @@ class FolderTargets:
     def update_folders(self, path):
         # Ensure all encoded path are encoded with the same format
         path = encode(os.path.normpath(decode(path)))
-        for i in range(len(self._folders_)):
-            folder = self._folders_[i]
+        for index, item in enumerate(self._folders_):
+            folder = item
             if path.startswith(folder.get_path()):
-                self._folders_[i] = folder.update_folder(
+                self._folders_[index] = folder.update_folder(
                     folder.get_path(), datetime.datetime.utcnow()
                 )
                 break
@@ -48,8 +48,8 @@ class FolderTargets:
     def delete_folder(self, path):
         # Ensure all encoded path are encoded with the same format
         path = encode(os.path.normpath(decode(path)))
-        for i in range(len(self._folders_)):
-            f = self._folders_[i]
+        for item in self._folders_:
+            f = item
             if path == f.get_path():
                 self._folders_.remove(f)
                 return
@@ -61,22 +61,26 @@ class FolderTargets:
         decoded_path = os.path.normpath(decode(path))
         # Makes sure path is a folder
         if not os.path.isdir(decoded_path):
-            raise PortalError(Errors.INVALIDFILETYPE, f"{decoded_path} is not a directory")
+            raise PortalError(
+                Errors.INVALIDFILETYPE, f"{decoded_path} is not a directory"
+            )
         # Ensure all encoded path are encoded with the same format
         path = encode(decoded_path)
         # pylint: disable=unused-variable
-        head, tail = os.path.split(decoded_path)
-        for i in range(len(self._folders_)):
-            folder = self._folders_[i]
+        _, tail = os.path.split(decoded_path)
+        for index, item in enumerate(self._folders_):
+            folder = item
             # check if folder exists
             if path.startswith(folder.get_path()):
                 is_exist = True
-                self._folders_[i] = folder.update_folder(
+                self._folders_[index] = folder.update_folder(
                     path, datetime.datetime.utcnow()
                 )
                 break
         if not is_exist:
-            self._folders_.append(Folder(path, tail, datetime.datetime.utcnow()))
+            self._folders_.append(
+                Folder(path, tail, datetime.datetime.utcnow())
+            )
 
     def _flatten_assets_(self, arr, folders):
         """
