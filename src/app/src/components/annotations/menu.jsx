@@ -369,7 +369,7 @@ export default class AnnotationMenu extends Component {
                 className={
                   this.props.userEditState === "Re-Analyse" ? "bp3-active" : ""
                 }
-                onClick={this.props.callbacks.GetInference}
+                onClick={() => this.props.callbacks.GetInference()}
               />
               <MenuItem
                 icon="heat-grid"
@@ -380,7 +380,7 @@ export default class AnnotationMenu extends Component {
                     ? "bp3-active"
                     : ""
                 }
-                onClick={this.props.callbacks.GetInference}
+                onClick={() => this.props.callbacks.GetInference()}
               />
             </>
           ) : (

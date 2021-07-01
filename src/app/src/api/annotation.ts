@@ -16,6 +16,7 @@ import {
   MODEL_TAGS,
   PREDICT_VIDEO,
   LOADED_MODELS,
+  CACHE_LIST,
 } from "@portal/constants/api";
 
 /* Annotation Type */
@@ -45,6 +46,7 @@ export interface AssetAPIObject {
   localPath: string;
   annotations: Array<AnnotationAPIObject>;
   type: string;
+  isCached: boolean;
   metadata: {
     height: number;
     width: number;
@@ -160,9 +162,10 @@ export function APIGetModelTags(modelKey: string): Promise<AxiosResponse<any>> {
   return axios.get(SERVER_ADDRESS + MODEL_TAGS(modelKey));
 }
 
-export function APIGetVideoPrediction(
+export function APIGetVideoInference(
   modelKey: string,
   filepath: string,
+  reanalyse: boolean,
   frameInterval: number,
   iou?: number,
   confidence?: number,
@@ -173,6 +176,7 @@ export function APIGetVideoPrediction(
   return axios.get(route, {
     params: {
       filepath,
+      reanalyse,
       frameInterval,
       ...(iou ? { iou } : {}),
       ...(confidence ? { confidence } : {}),
@@ -181,9 +185,10 @@ export function APIGetVideoPrediction(
   });
 }
 
-export function APIGetInferenceFlask(
+export function APIGetImageInference(
   modelKey: string,
   filepath: string,
+  reanalyse: boolean,
   iou?: number,
   format?: string,
   filter?: string
@@ -193,9 +198,20 @@ export function APIGetInferenceFlask(
   return axios.get(route, {
     params: {
       filepath,
+      reanalyse,
       ...(iou ? { iou } : {}),
       ...(format ? { format } : {}),
       ...(filter ? { filter } : {}),
     },
   });
+}
+
+export function APIGetCacheList(modelKey: string): Promise<AxiosResponse<any>> {
+  return axios.get(SERVER_ADDRESS + CACHE_LIST(modelKey));
+}
+
+export function APIDeleteCacheList(
+  modelKey: string
+): Promise<AxiosResponse<any>> {
+  return axios.delete(SERVER_ADDRESS + CACHE_LIST(modelKey));
 }

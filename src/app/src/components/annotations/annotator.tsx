@@ -24,11 +24,12 @@ import {
 
 import {
   AssetAPIObject,
-  APIGetInferenceFlask,
+  APIGetImageInference,
   APIGetImageData,
   APIGetAsset,
-  APIGetVideoPrediction,
+  APIGetVideoInference,
   APIGetModelTags,
+  APIGetCacheList,
 } from "@portal/api/annotation";
 
 import { invert, cloneDeep } from "lodash";
@@ -81,6 +82,8 @@ interface AnnotatorProps {
 interface AnnotatorState {
   /* Image List for Storing Project Files */
   assetList: Array<AssetAPIObject>;
+  /* List of files whose predictions are cached  */
+  cacheList: Array<string>;
   /* Tags for Project */
   tagInfo: {
     modelHash: string | undefined;
@@ -193,6 +196,7 @@ export default class Annotator extends Component<
       userEditState: "None",
       changesMade: false,
       assetList: [],
+      cacheList: [],
       tagInfo: {
         modelHash: undefined,
         tags: {},
@@ -362,6 +366,7 @@ export default class Annotator extends Component<
 
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
+      this.updateImage();
     }
 
     if (!this.props.loadedModel && this.state.tagInfo.modelHash !== undefined) {
@@ -550,7 +555,7 @@ export default class Annotator extends Component<
   /**
    * Centralized Handler to Perform predictions on both Video and Images
    */
-  private getInference() {
+  private async getInference(reanalyse = true) {
     /* Blocker to account for case where prediction is still running */
     if (this.state.predictDone !== 0 || this.state.uiState === "Predicting") {
       CreateGenericToast("Inference is already running", Intent.WARNING, 3000);
@@ -567,36 +572,33 @@ export default class Annotator extends Component<
 
     this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
     this.setState({ uiState: "Predicting" });
-    this.handleProgressToast();
-
+    if (reanalyse) {
+      this.handleProgressToast();
+    }
     if (this.currentAsset.type === "image") {
-      APIGetInferenceFlask(
+      await APIGetImageInference(
         loadedModelHash,
         this.currentAsset.localPath,
+        reanalyse,
         this.state.inferenceOptions.iou,
         "json"
       )
         .then(response => {
-          /* Only a single frame of Annotation required, unlike Video */
           this.updateAnnotations(response.data);
-
-          /* Once call is done, reset uiState and predictDone to perform additional predictions */
-          this.setState({ predictDone: 0, uiState: null });
         })
         .catch(error => {
           let message = `Failed to predict image. ${error}`;
           if (error.response) {
             message = `${error.response.data.error}: ${error.response.data.message}`;
           }
-
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
     }
-
     if (this.currentAsset.type === "video") {
-      APIGetVideoPrediction(
+      await APIGetVideoInference(
         loadedModelHash,
         this.currentAsset.localPath,
+        reanalyse,
         this.state.inferenceOptions.video.frameInterval,
         this.state.inferenceOptions.iou
       )
@@ -637,9 +639,6 @@ export default class Annotator extends Component<
             this.setState({ currAnnotationPlaybackId: videoId });
           };
 
-          /* Once call is done, reset uiState and predictDone to perform additional predictions */
-          this.setState({ predictDone: 0, uiState: null });
-
           if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
             (videoElement as any).requestVideoFrameCallback(videoFrameCallback);
           }
@@ -649,10 +648,11 @@ export default class Annotator extends Component<
           if (error.response) {
             message = `${error.response.data.error}: ${error.response.data.message}`;
           }
-
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
     }
+    await this.updateImage();
+    this.setState({ predictDone: 0, uiState: null });
   }
 
   /**
@@ -670,8 +670,8 @@ export default class Annotator extends Component<
       thumbnailUrl: this.currentAsset.thumbnailUrl,
       localPath: this.currentAsset.localPath,
       type: this.currentAsset.type,
+      isCached: this.currentAsset.isCached,
     };
-
     const currentAssetAnnotations: Array<PolylineObjectType> = RenderAssetAnnotations(
       this.map,
       this.annotationGroup,
@@ -699,22 +699,40 @@ export default class Annotator extends Component<
     this.filterAnnotationVisibility();
   };
 
-  private updateImage = () => {
+  /**
+   * Update ImageBar by reseting the cachelist and assetlist
+   */
+  private updateImage = async () => {
+    if (this.props.loadedModel) {
+      /**
+       * Get list of files that has its prediction cached
+       */
+      await APIGetCacheList(this.props.loadedModel.hash)
+        .then(res => {
+          this.setState({ cacheList: res.data });
+        })
+        .catch(() => {
+          /* Empty the cacheList since we can't get the list */
+          this.setState({ cacheList: [] });
+        });
+    }
+
     /* Get All Existing Registered Folder and Image Assets */
-    APIGetAsset().then(res => {
+    await APIGetAsset().then(res => {
       /* Generate New Asset List Based on Updated Data */
       const newImageAssets = res.data.map((encodedUri: string) => {
         const decodedUri = decodeURIComponent(encodedUri);
-        let seperator = "/";
-        let type = "image";
-        if (decodedUri.includes("\\")) seperator = "\\";
-        if (decodedUri.match(/\.(?:mov|mp4|wmv)/i)) type = "video";
+        const seperator = decodedUri.includes("\\") ? "\\" : "/";
+        const type = decodedUri.match(/\.(?:mov|mp4|wmv)/i) ? "video" : "image";
+        const isCached = this.state.cacheList.includes(encodedUri);
         return {
+          url: encodedUri,
           filename: decodedUri.split(seperator).pop(),
           assetUrl: APIGetImageData(encodedUri),
           thumbnailUrl: APIGetImageData(encodedUri),
           localPath: encodedUri,
           type,
+          isCached,
         };
       });
 
@@ -963,6 +981,8 @@ export default class Annotator extends Component<
           }, 150);
           /* Reset to Default Zoom */
           this.map.setMinZoom(-3);
+          /* Get inference if Image is Cached */
+          if (asset.isCached) this.getInference(false);
         }
 
         if (initialSelect) {
@@ -1023,6 +1043,8 @@ export default class Annotator extends Component<
             /** Set Focus */
             videoElement?.focus();
           }, 150);
+          /* Get inference if Video is Cached */
+          if (asset.isCached) this.getInference(false);
         } else {
           /** Set Focus */
           videoElement?.focus();
@@ -1144,13 +1166,13 @@ export default class Annotator extends Component<
           global={true}
           combo={"r"}
           label={"Re-Analyse"}
-          onKeyDown={this.getInference}
+          onKeyDown={() => this.getInference()}
         />
         <Hotkey
           global={true}
           combo={"b"}
           label={"Bulk Analysis"}
-          onKeyDown={this.getInference}
+          onKeyDown={() => this.getInference()}
         />
         <Hotkey
           global={true}
