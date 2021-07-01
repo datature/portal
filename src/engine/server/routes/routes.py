@@ -10,7 +10,8 @@ from flask_cors import cross_origin
 # pylint: disable=cyclic-import
 # pylint: disable=undefined-variable
 from server import app, global_store, server, wait_for_process
-from server.services import decode
+from server.services import decode, encode
+
 from server.services.errors import Errors, PortalError
 from server.services.filesystem.file import (
     allowed_image,
@@ -369,6 +370,7 @@ def predict_single_image(model_id: str) -> tuple:
     :QueryParam iou: (Optional) Intersection of Union for Bounding Boxes/Masks.
         Requires float in the range of [0.0,1.0]. Default is 0.8.
     :QueryParam filter: (Optional) Obtain the outputs of only the specified class.
+    :QueryParam reanalyse: (Optional) Flag to bypass cache and force reanalysis.
     :return: Jsonified tuple of (either json detections of image) and 200 if successful.
 
     Possible Errors:
@@ -393,21 +395,39 @@ def predict_single_image(model_id: str) -> tuple:
         if not allowed_image(image_directory):
             raise PortalError(Errors.INVALIDFILETYPE, image_directory)
 
-        format_arg, iou, _ = corrected_predict_query(
+        corrected_dict = corrected_predict_query(
             "format", "iou", request=request
         )
-        prediction_key = model_id + image_directory + format_arg + str(iou)
-
+        format_arg = corrected_dict["format"]
+        iou = corrected_dict["iou"]
+        reanalyse = corrected_dict["reanalyse"]
+        prediction_key = (
+            model_id,
+            image_directory,
+            format_arg + str(iou),
+        )
+        prediction_status = (
+            "predict_single_image_"
+            + model_id
+            + image_directory
+            + format_arg
+            + str(iou)
+        )
         # check if another atomic process / duplicate process exists
-        if global_store.set_status("predict_single_image_" + prediction_key):
+        if global_store.set_status(prediction_status):
             wait_for_process()
             return global_store.get_caught_response("predict_single_image")
-
-        if global_store.check_predictions(prediction_key):
+        # reanalyse needs to be false, and the prediction cache must
+        # contain the corresponding output, in order for the cache to be
+        # served. else, we continue prediction as per norma
+        if (
+            global_store.check_prediction_cache(prediction_key)
+            and reanalyse is False
+        ):
             output = global_store.get_predictions(prediction_key)
-        elif not global_store.get_loaded_model_keys():
-            raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
         else:
+            if not global_store.get_loaded_model_keys():
+                raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
             (
                 model,
                 label_map,
@@ -450,6 +470,7 @@ def predict_video_fn(model_id: str) -> tuple:
         Requires float in the range of [0.0,1.0]. Default is 0.8.
     :QueryParam filter: (Optional) Obtain the outputs of only the specified class.
     :QueryParam confidence: (Optional) The confidence threshold.
+    :QueryParam reanalyse: (Optional) Flag to bypass cache and force reanalysis.
     :return: Jsonified tuple of (either json detections of image) and 200 if successful.
 
     Possible Errors:
@@ -478,26 +499,40 @@ def predict_video_fn(model_id: str) -> tuple:
         if not allowed_video(video_directory):
             raise PortalError(Errors.INVALIDFILETYPE, video_directory)
 
-        _, iou, confidence = corrected_predict_query(
+        corrected_dict = corrected_predict_query(
             "iou", "confidence", request=request
         )
+        iou = corrected_dict["iou"]
+        confidence = corrected_dict["confidence"]
+        reanalyse = corrected_dict["reanalyse"]
         prediction_key = (
-            model_id
+            model_id,
+            video_directory,
+            str(frame_interval) + str(iou) + str(confidence),
+        )
+        prediction_status = (
+            "predict_single_image_"
+            + model_id
             + video_directory
             + str(frame_interval)
             + str(iou)
             + str(confidence)
         )
-
-        if global_store.set_status("predict_video_" + prediction_key):
+        if global_store.set_status(prediction_status):
             wait_for_process()
             return global_store.get_caught_response("predict_video")
 
-        if global_store.check_predictions(prediction_key):
+        # reanalyse needs to be false, and the prediction cache must
+        # contain the corresponding output, in order for the cache to be
+        # served. else, we continue prediction as per norma
+        if (
+            global_store.check_prediction_cache(prediction_key)
+            and reanalyse is False
+        ):
             output = global_store.get_predictions(prediction_key)
-        elif not global_store.get_loaded_model_keys():
-            raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
         else:
+            if not global_store.get_loaded_model_keys():
+                raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
             (
                 model,
                 label_map,
@@ -526,6 +561,27 @@ def predict_video_fn(model_id: str) -> tuple:
         raise PortalError(Errors.INVALIDMODELKEY, str(e)) from e
     except ValueError as e:
         raise PortalError(Errors.INVALIDQUERY, str(e)) from e
+
+
+@app.route("/api/model/<model_id>/cachelist", methods=["GET"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def get_cachelist(model_id) -> tuple:
+    """Obtain the list of images that has been successfully predicted."""
+    cachelist = [
+        encode(image_dir)
+        for image_dir in global_store.get_predicted_images(model_id)
+    ]
+    return (jsonify(cachelist), 200)
+
+
+@app.route("/api/model/<model_id>/cachelist", methods=["DELETE"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def clear_cachelist(model_id) -> tuple:
+    """Clear the cached list of predictions."""
+    global_store.clear_predicted_images(model_id)
+    return Response(status=200)
 
 
 @app.route("/api/project/register", methods=["POST"])

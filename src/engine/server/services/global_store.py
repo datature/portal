@@ -272,7 +272,10 @@ class GlobalStore:
         :param key: The model key.
         """
         self._loaded_model_list_.pop(key)
+        if key in self._store_["predictions"]:
+            self._store_["predictions"].pop(key)
         gc.collect()
+        self._save_store_()
 
     def get_all_model_attributes(self, key: str) -> tuple:
         """Retrieve the model, label map, height and width given the model key.
@@ -289,26 +292,47 @@ class GlobalStore:
         )
 
     # PREDICTIONS
-    def add_predictions(self, key: str, value: str) -> None:
+    def add_predictions(self, key: tuple, value: str) -> None:
         """Add predictions into the prediction cache.
 
         :param key: The prediction key.
         :param value: The predictions.
         """
-        self._store_["predictions"][key] = value
+        if key[0] not in self._store_["predictions"]:
+            self._store_["predictions"][key[0]] = {}
+        if key[1] not in self._store_["predictions"][key[0]]:
+            self._store_["predictions"][key[0]][key[1]] = {}
+        self._store_["predictions"][key[0]][key[1]][key[2]] = value
         self._save_store_()
 
-    def check_predictions(self, key: str) -> bool:
-        """Checks if a prediction key is in the prediction cache"""
-        return key in self._store_["predictions"]
+    def check_prediction_cache(self, key: tuple) -> bool:
+        """Check if a prediction key is in the prediction cache."""
+        return key[2] in list(
+            self._store_["predictions"].get(key[0], {}).get(key[1], {}).keys()
+        )
 
-    def get_predictions(self, key: str) -> Union[list, dict]:
-        """Gets the predictions given the prediction key.
+    def get_predicted_images(self, model_id: str) -> list:
+        """Return a list of all successfully predicted images."""
+        return list(self._store_["predictions"].get(model_id, {}).keys())
+
+    def clear_predicted_images(self, model_id: str) -> None:
+        """Clears the cache of predicted images of a model_id."""
+        self._store_["predictions"].pop(model_id)
+        gc.collect()
+        self._save_store_()
+
+    def get_predictions(self, key: tuple) -> Union[list, dict]:
+        """Get the predictions given the prediction key.
 
         :param key: The prediction key.
         :return: The predictions.
         """
-        return self._store_["predictions"].get(key, None)
+        return (
+            self._store_["predictions"]
+            .get(key[0], {})
+            .get(key[1], {})
+            .get(key[2], {})
+        )
 
     # IMAGE AND FOLDERS
     def add_targeted_folder(self, new_path):
