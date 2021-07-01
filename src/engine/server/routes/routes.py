@@ -413,7 +413,7 @@ def predict_single_image(model_id: str) -> tuple:
         # served. else, we continue prediction as per norma
         if (
             global_store.check_prediction_cache(prediction_key)
-            and reanalyse == False
+            and reanalyse is False
         ):
             output = global_store.get_predictions(prediction_key)
         else:
@@ -510,7 +510,7 @@ def predict_video_fn(model_id: str) -> tuple:
         # served. else, we continue prediction as per norma
         if (
             global_store.check_prediction_cache(prediction_key)
-            and reanalyse == False
+            and reanalyse is False
         ):
             output = global_store.get_predictions(prediction_key)
         else:
