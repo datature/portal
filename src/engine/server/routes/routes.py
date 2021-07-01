@@ -367,6 +367,7 @@ def predict_single_image(model_id: str) -> tuple:
     :QueryParam iou: (Optional) Intersection of Union for Bounding Boxes/Masks.
         Requires float in the range of [0.0,1.0]. Default is 0.8.
     :QueryParam filter: (Optional) Obtain the outputs of only the specified class.
+    :QueryParam reanalyse: (Optional) Flag to bypass cache and force reanalysis.
     :return: Jsonified tuple of (either json detections of image) and 200 if successful.
 
     Possible Errors:
@@ -395,12 +396,22 @@ def predict_single_image(model_id: str) -> tuple:
         if not allowed_image(image_directory):
             raise PortalError(Errors.INVALIDFILETYPE, image_directory)
 
-        format_arg, iou, _ = corrected_predict_query(
+        corrected_dict = corrected_predict_query(
             "format", "iou", request=request
         )
-        prediction_key = (model_id, image_directory, format_arg + str(iou))
+        format_arg = corrected_dict["format"]
+        iou = corrected_dict["iou"]
+        reanalyse = corrected_dict["reanalyse"]
+        prediction_key = (
+            model_id,
+            image_directory,
+            format_arg + str(iou),
+        )
 
-        if global_store.check_predictions(prediction_key):
+        if (
+            global_store.check_predictions(prediction_key)
+            and reanalyse == False
+        ):
             output = global_store.get_predictions(prediction_key)
         elif not global_store.get_loaded_model_keys():
             raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
@@ -447,6 +458,7 @@ def predict_video_fn(model_id: str) -> tuple:
         Requires float in the range of [0.0,1.0]. Default is 0.8.
     :QueryParam filter: (Optional) Obtain the outputs of only the specified class.
     :QueryParam confidence: (Optional) The confidence threshold.
+    :QueryParam reanalyse: (Optional) Flag to bypass cache and force reanalysis.
     :return: Jsonified tuple of (either json detections of image) and 200 if successful.
 
     Possible Errors:
@@ -478,15 +490,21 @@ def predict_video_fn(model_id: str) -> tuple:
         if not allowed_video(video_directory):
             raise PortalError(Errors.INVALIDFILETYPE, video_directory)
 
-        _, iou, confidence = corrected_predict_query(
+        corrected_dict = corrected_predict_query(
             "iou", "confidence", request=request
         )
+        iou = corrected_dict["iou"]
+        confidence = corrected_dict["confidence"]
+        reanalyse = corrected_dict["reanalyse"]
         prediction_key = (
             model_id,
             video_directory,
             str(frame_interval) + str(iou) + str(confidence),
         )
-        if global_store.check_predictions(prediction_key):
+        if (
+            global_store.check_predictions(prediction_key)
+            and reanalyse == False
+        ):
             output = global_store.get_predictions(prediction_key)
         elif not global_store.get_loaded_model_keys():
             raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")

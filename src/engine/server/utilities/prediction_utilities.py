@@ -12,7 +12,7 @@ from server import EPSILON_MULTIPLIER
 from server.services.global_store import PortalError, Errors
 
 
-def corrected_predict_query(*args, request):
+def corrected_predict_query(*args, request) -> dict:
     """Check if the query are correctly input.
 
     (Function to be used by the predict routes)
@@ -20,6 +20,7 @@ def corrected_predict_query(*args, request):
     :param model_key: The model key.
     :return: Tuple of the corrected predict query.
     """
+    corrected_dict = {}
     # Format check
     if "format" not in args:
         format_arg = None
@@ -31,7 +32,6 @@ def corrected_predict_query(*args, request):
                 Errors.INVALIDQUERY,
                 "Output format is not 'json' or 'image'.",
             )
-
     # Iou check
     if "iou" not in args:
         iou = None
@@ -59,7 +59,20 @@ def corrected_predict_query(*args, request):
                 Errors.INVALIDQUERY, "Confidence Query is not a float."
             ) from e
 
-    return format_arg, iou, confidence
+    reanalyse_string = request.args.get("reanalyse", "false")
+    if ["true", "false"] not in reanalyse_string:
+        raise PortalError(
+            Errors.INVALIDQUERY,
+            "Reanalyse Query is not one of 'true' or 'false'.",
+        )
+    else:
+        reanalyse = True if reanalyse_string == "true" else False
+
+    corrected_dict["format"] = format_arg
+    corrected_dict["iou"] = iou
+    corrected_dict["confidence"] = confidence
+    corrected_dict["reanalyse"] = reanalyse
+    return corrected_dict
 
 
 def _reframe_box_masks_to_image_masks(
