@@ -7,6 +7,7 @@ name = "pypi"
 flask-restful = "==0.3.9"
 flask = "==2.0.0"
 flask-cors = "==3.0.10"
+flask-socketio = "==5.1.0"
 numpy = "==1.18.5"
 tensorflow = "==2.3.0"
 opencv-python = "==4.5.1.48"
@@ -16,6 +17,7 @@ scandir = "==1.10.0"
 apscheduler = "==3.7.0"
 datature-hub = "==0.1.0"
 pillow = "==8.2.0"
+
 
 [dev-packages]
 pylint = "*"

@@ -44,39 +44,33 @@ def portal_function_handler(clear_status: bool) -> callable:
 
             # Error handling section
             try:
-                response = func(*args, **kwargs)
+                fn_output = func(*args, **kwargs)
+
+                # Handling simultaneous API calls
+                global_store.set_caught_response(func.__name__, fn_output)
+                if clear_status:
+                    global_store.clear_status()
+                response = fn_output
+
             except PortalError as e:
                 e.set_fail_location(
                     " - ".join([func.__module__, func.__name__])
                 )
                 if e.get_error() != "ATOMICERROR" and clear_status:
                     global_store.clear_status()
-                return e.output()
+                response = e.output()
             except Exception as e:  # pylint: disable=broad-except
 
                 if clear_status:
                     global_store.clear_status()
 
-                return PortalError(
+                response = PortalError(
                     Errors.UNKNOWN,
                     str(e),
                     " - ".join([func.__module__, func.__name__]),
                 ).output()
 
-            # Simultaneous API calls section
-            try:
-                global_store.set_caught_response(func.__name__, response)
-                if clear_status:
-                    global_store.clear_status()
-                return response
-            except Exception as e:  # pylint: disable=broad-except
-                if clear_status:
-                    global_store.clear_status()
-                return PortalError(
-                    Errors.FAILEDCAUGHTRESPONSE,
-                    str(e),
-                    " - ".join([func.__module__, func.__name__]),
-                ).output()
+            return response
 
         return wrapper
 
@@ -99,11 +93,8 @@ def shutdown():
     Shutdown the server
     """
     global_store.delete_cache()
-    func = request.environ.get("werkzeug.server.shutdown")
-    if func is None:
-        raise RuntimeError("Not running with the Werkzeug Server")
-    func()
-    return "Server shutting down..."
+    server.socket.stop()
+    return "Server shutting down...", 200
 
 
 @app.route("/heartbeat", methods=["GET"])
@@ -116,6 +107,17 @@ def heartbeat() -> tuple:
         "isCacheCalled": global_store.is_cache_called(),
     }
     return jsonify(output), 200
+
+
+@app.route("/api/model/predict/video/kill", methods=["POST"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def kill_video() -> Response:
+    """Stop the current video prediction route."""
+    status = global_store.get_status()
+    if status is not None and "predict_video_" in status:
+        global_store.set_stop()
+    return Response(status=200)
 
 
 @app.route("/cache", methods=["POST"])
@@ -378,10 +380,6 @@ def predict_single_image(model_id: str) -> tuple:
         NOTFOUND:           Image directory not found.
         INVALIDMODELKEY:    Model key is not in loaded model list.
     """
-    # check if another atomic process / duplicate process exists
-    if global_store.set_status("predict_single_image_" + model_id):
-        wait_for_process()
-        return global_store.get_caught_response("predict_single_image")
     try:
         if request.args.get("filepath") is None:
             raise PortalError(
@@ -408,6 +406,11 @@ def predict_single_image(model_id: str) -> tuple:
             format_arg + str(iou),
         )
 
+        # check if another atomic process / duplicate process exists
+        if global_store.set_status("predict_single_image_" + prediction_key):
+            wait_for_process()
+            return global_store.get_caught_response("predict_single_image")
+        
         # reanalyse needs to be false, and the prediction cache must
         # contain the corresponding output, in order for the cache to be
         # served. else, we continue prediction as per norma
@@ -472,9 +475,6 @@ def predict_video_fn(model_id: str) -> tuple:
         NOTFOUND:           Image directory not found.
         INVALIDMODELKEY:    Model key is not in loaded model list.
     """
-    if global_store.set_status("predict_video_" + model_id):
-        wait_for_process()
-        return global_store.get_caught_response("predict_video")
     try:
         if request.args.get("filepath") is None:
             raise PortalError(
@@ -504,6 +504,10 @@ def predict_video_fn(model_id: str) -> tuple:
             video_directory,
             str(frame_interval) + str(iou) + str(confidence),
         )
+
+        if global_store.set_status("predict_video_" + prediction_key):
+            wait_for_process()
+            return global_store.get_caught_response("predict_video")
 
         # reanalyse needs to be false, and the prediction cache must
         # contain the corresponding output, in order for the cache to be
