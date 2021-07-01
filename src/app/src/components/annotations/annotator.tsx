@@ -525,7 +525,7 @@ export default class Annotator extends Component<
     this.setState({ annotatedAssetsHidden: flag });
   }
 
-  private getInference(reanalyse: boolean) {
+  private getInference(reanalyse = true) {
     if (this.state.predictDone !== 0 || this.state.uiState === "Predicting") {
       CreateGenericToast("Inference is already running", Intent.WARNING, 3000);
       return;
@@ -932,10 +932,8 @@ export default class Annotator extends Component<
           }, 150);
           /* Reset to Default Zoom */
           this.map.setMinZoom(-3);
-          /** Get inference from cache */
-          if (asset.isCached) {
-            this.getInference(false);
-          }
+          /* Get inference if Image is Cached */
+          if (asset.isCached) this.getInference(false);
         }
 
         if (initialSelect) {
@@ -992,10 +990,8 @@ export default class Annotator extends Component<
             /** Set Focus */
             videoElement?.focus();
           }, 150);
-          /** Get inference from cache */
-          if (asset.isCached) {
-            this.getInference(false);
-          }
+          /* Get inference if Video is Cached */
+          if (asset.isCached) this.getInference(false);
         } else {
           /** Set Focus */
           videoElement?.focus();
@@ -1113,13 +1109,13 @@ export default class Annotator extends Component<
           global={true}
           combo={"r"}
           label={"Re-Analyse"}
-          onKeyDown={() => this.getInference(true)}
+          onKeyDown={() => this.getInference()}
         />
         <Hotkey
           global={true}
           combo={"b"}
           label={"Bulk Analysis"}
-          onKeyDown={() => this.getInference(true)}
+          onKeyDown={() => this.getInference()}
         />
         <Hotkey
           global={true}
