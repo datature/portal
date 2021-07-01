@@ -24,10 +24,10 @@ import {
 
 import {
   AssetAPIObject,
-  APIGetInferenceFlask,
+  APIGetImageInference,
   APIGetImageData,
   APIGetAsset,
-  APIGetVideoPrediction,
+  APIGetVideoInference,
   APIGetModelTags,
   APIGetCacheList,
 } from "@portal/api/annotation";
@@ -525,7 +525,7 @@ export default class Annotator extends Component<
     this.setState({ annotatedAssetsHidden: flag });
   }
 
-  private getInference() {
+  private getInference(reanalyse: boolean) {
     if (this.state.predictDone !== 0 || this.state.uiState === "Predicting") {
       CreateGenericToast("Inference is already running", Intent.WARNING, 3000);
       return;
@@ -540,15 +540,16 @@ export default class Annotator extends Component<
 
     this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
     this.setState({ uiState: "Predicting" });
-    if (!this.currentAsset.isCached) {
+    if (reanalyse) {
       this.handleProgressToast();
     }
     // dummy setTimeout to simulate prediction delay
     setTimeout(async () => {
       if (this.currentAsset.type === "image") {
-        await APIGetInferenceFlask(
+        await APIGetImageInference(
           loadedModelHash,
           this.currentAsset.localPath,
+          reanalyse,
           this.state.inferenceOptions.iou,
           "json"
         )
@@ -566,9 +567,10 @@ export default class Annotator extends Component<
       }
 
       if (this.currentAsset.type === "video") {
-        await APIGetVideoPrediction(
+        await APIGetVideoInference(
           loadedModelHash,
           this.currentAsset.localPath,
+          reanalyse,
           this.state.inferenceOptions.video.frameInterval,
           this.state.inferenceOptions.iou
         )
@@ -932,7 +934,7 @@ export default class Annotator extends Component<
           this.map.setMinZoom(-3);
           /** Get inference from cache */
           if (asset.isCached) {
-            this.getInference();
+            this.getInference(false);
           }
         }
 
@@ -992,7 +994,7 @@ export default class Annotator extends Component<
           }, 150);
           /** Get inference from cache */
           if (asset.isCached) {
-            this.getInference();
+            this.getInference(false);
           }
         } else {
           /** Set Focus */
@@ -1111,13 +1113,13 @@ export default class Annotator extends Component<
           global={true}
           combo={"r"}
           label={"Re-Analyse"}
-          onKeyDown={this.getInference}
+          onKeyDown={() => this.getInference(true)}
         />
         <Hotkey
           global={true}
           combo={"b"}
           label={"Bulk Analysis"}
-          onKeyDown={this.getInference}
+          onKeyDown={() => this.getInference(true)}
         />
         <Hotkey
           global={true}
