@@ -408,14 +408,17 @@ def predict_single_image(model_id: str) -> tuple:
             format_arg + str(iou),
         )
 
+        # reanalyse needs to be false, and the prediction cache must
+        # contain the corresponding output, in order for the cache to be
+        # served. else, we continue prediction as per norma
         if (
-            global_store.check_predictions(prediction_key)
+            global_store.check_prediction_cache(prediction_key)
             and reanalyse == False
         ):
             output = global_store.get_predictions(prediction_key)
-        elif not global_store.get_loaded_model_keys():
-            raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
         else:
+            if not global_store.get_loaded_model_keys():
+                raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
             (
                 model,
                 label_map,
@@ -501,14 +504,18 @@ def predict_video_fn(model_id: str) -> tuple:
             video_directory,
             str(frame_interval) + str(iou) + str(confidence),
         )
+
+        # reanalyse needs to be false, and the prediction cache must
+        # contain the corresponding output, in order for the cache to be
+        # served. else, we continue prediction as per norma
         if (
-            global_store.check_predictions(prediction_key)
+            global_store.check_prediction_cache(prediction_key)
             and reanalyse == False
         ):
             output = global_store.get_predictions(prediction_key)
-        elif not global_store.get_loaded_model_keys():
-            raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
         else:
+            if not global_store.get_loaded_model_keys():
+                raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
             (
                 model,
                 label_map,

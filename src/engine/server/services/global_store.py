@@ -286,7 +286,7 @@ class GlobalStore:
         self._store_["predictions"][key[0]][key[1]][key[2]] = value
         self._save_store_()
 
-    def check_predictions(self, key: tuple) -> bool:
+    def check_prediction_cache(self, key: tuple) -> bool:
         """Check if a prediction key is in the prediction cache."""
         return key[2] in list(
             self._store_["predictions"].get(key[0], {}).get(key[1], {}).keys()
