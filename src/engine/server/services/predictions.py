@@ -2,6 +2,7 @@
 import os
 import cv2
 import tensorflow as tf
+from server import server
 
 # pylint: disable=E0401, E0611
 from server.utilities.prediction_utilities import (
@@ -12,6 +13,7 @@ from server.utilities.prediction_utilities import (
     save_to_bytes,
 )
 from server.services.errors import PortalError, Errors
+from server import global_store
 
 # pylint: disable=R0913
 def _predict_single_image(
@@ -130,6 +132,13 @@ def predict_video(
     image_list = []
     count = 0
     while cap.isOpened():
+        if global_store.get_stop():
+            cap.release()
+            cv2.destroyAllWindows()
+            global_store.clear_stop()
+            raise PortalError(
+                Errors.STOPPEDPROCESS, "video prediction killed."
+            )
         # Capture frame-by-frame
         ret, frame = cap.read()
         if ret:
@@ -144,6 +153,11 @@ def predict_video(
     cv2.destroyAllWindows()
     output_dict = {"fps": fps, "frames": {}}
     for index, image in enumerate(image_list):
+        if global_store.get_stop():
+            global_store.clear_stop()
+            raise PortalError(
+                Errors.STOPPEDPROCESS, "video prediction killed."
+            )
         single_output = _predict_single_image(
             model=model,
             model_height=model_height,
