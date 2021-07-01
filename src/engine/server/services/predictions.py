@@ -2,7 +2,6 @@
 import os
 import cv2
 import tensorflow as tf
-from server import server
 
 # pylint: disable=E0401, E0611
 from server.utilities.prediction_utilities import (
