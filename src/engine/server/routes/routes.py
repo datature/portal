@@ -417,7 +417,6 @@ def predict_single_image(model_id: str) -> tuple:
         if global_store.set_status(prediction_status):
             wait_for_process()
             return global_store.get_caught_response("predict_single_image")
-
         # reanalyse needs to be false, and the prediction cache must
         # contain the corresponding output, in order for the cache to be
         # served. else, we continue prediction as per norma
