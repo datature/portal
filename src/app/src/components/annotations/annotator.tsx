@@ -668,12 +668,9 @@ export default class Annotator extends Component<
         .then(res => {
           this.setState({ cacheList: res.data });
         })
-        .catch(error => {
-          let message = `Failed to load cached predictions. ${error}`;
-          if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
-          }
-          CreateGenericToast(message, Intent.DANGER, 3000);
+        .catch(() => {
+          /* Empty the cacheList since we can't get the list */
+          this.setState({ cacheList: [] });
         });
     }
   };
@@ -686,11 +683,9 @@ export default class Annotator extends Component<
       /* Generate New Asset List Based on Updated Data */
       const newImageAssets = res.data.map((encodedUri: string) => {
         const decodedUri = decodeURIComponent(encodedUri);
-        let seperator = "/";
-        let type = "image";
+        const seperator = decodedUri.includes("\\") ? "\\" : "/";
+        const type = decodedUri.match(/\.(?:mov|mp4|wmv)/i) ? "video" : "image";
         const isCached = this.state.cacheList.includes(encodedUri);
-        if (decodedUri.includes("\\")) seperator = "\\";
-        if (decodedUri.match(/\.(?:mov|mp4|wmv)/i)) type = "video";
         return {
           url: encodedUri,
           filename: decodedUri.split(seperator).pop(),
