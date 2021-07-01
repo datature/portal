@@ -65,8 +65,8 @@ def corrected_predict_query(*args, request) -> dict:
             Errors.INVALIDQUERY,
             "Reanalyse Query is not one of 'true' or 'false'.",
         )
-    else:
-        reanalyse = True if reanalyse_string == "true" else False
+
+    reanalyse = reanalyse_string == "true"
 
     corrected_dict["format"] = format_arg
     corrected_dict["iou"] = iou
