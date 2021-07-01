@@ -251,6 +251,7 @@ export default class Annotator extends Component<
     this.selectAsset = this.selectAsset.bind(this);
     this.showToaster = this.showToaster.bind(this);
     this.renderProgress = this.renderProgress.bind(this);
+    this.singleAnalysis = this.singleAnalysis.bind(this);
     this.getInference = this.getInference.bind(this);
     this.bulkAnalysis = this.bulkAnalysis.bind(this);
     this.updateAnnotations = this.updateAnnotations.bind(this);
@@ -557,102 +558,38 @@ export default class Annotator extends Component<
 
   // eslint-disable-next-line react/sort-comp
   private async bulkAnalysis() {
+    /* Blocker to account for case where there is no model to perform prediction */
     if (!this.props.loadedModel) {
       CreateGenericToast("There is no model loaded", Intent.WARNING, 3000);
       return;
     }
-
-    const loadedModelHash = this.props.loadedModel.hash;
-
     this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
     this.setState({ uiState: "Predicting" });
     this.handleProgressToast();
 
     await Promise.all(
       this.state.assetList.map(async asset => {
-        if (
-          asset.type === "image" &&
-          this.state.inferenceOptions.bulkAnalysisStatus !== "video"
-        ) {
-          await APIGetImageInference(
-            loadedModelHash,
-            asset.localPath,
-            true,
-            this.state.inferenceOptions.iou,
-            "json"
-          )
-            .then(response => {
-              if (this.currentAsset.url === asset.url) {
-                this.updateAnnotations(response.data);
-              }
-            })
-            .catch(error => {
-              let message = `Failed to predict image. ${error}`;
-              if (error.response) {
-                message = `${error.response.data.error}: ${error.response.data.message}`;
-              }
-
-              CreateGenericToast(message, Intent.DANGER, 3000);
-            });
-        }
-
-        if (
-          asset.type === "video" &&
-          this.state.inferenceOptions.bulkAnalysisStatus !== "image"
-        ) {
-          await APIGetVideoInference(
-            loadedModelHash,
-            asset.localPath,
-            true,
-            this.state.inferenceOptions.video.frameInterval,
-            this.state.inferenceOptions.iou
-          )
-            .then(response => {
-              if (this.currentAsset.url === asset.url) {
-                const videoElement = this.videoOverlay.getElement();
-                const videoFrameCallback = (
-                  now: DOMHighResTimeStamp,
-                  metadata: VideoFrameMetadata
-                ) => {
-                  const secondsInterval =
-                    this.state.inferenceOptions.video.frameInterval /
-                    response.data.fps;
-                  const quotient = Math.floor(
-                    metadata.mediaTime / secondsInterval
-                  );
-
-                  const key = Math.floor(
-                    quotient * secondsInterval * 1000
-                  ).toString();
-
-                  if (response.data.frames[key]) {
-                    this.updateAnnotations(response.data.frames[key]);
-                  }
-
-                  (videoElement as any).requestVideoFrameCallback(
-                    videoFrameCallback
-                  );
-                };
-
-                if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
-                  (videoElement as any).requestVideoFrameCallback(
-                    videoFrameCallback
-                  );
-                }
-              }
-            })
-            .catch(error => {
-              let message = `Failed to predict video. ${error}`;
-              if (error.response) {
-                message = `${error.response.data.error}: ${error.response.data.message}`;
-              }
-
-              CreateGenericToast(message, Intent.DANGER, 3000);
-            });
-        }
+        await this.getInference(asset, true, false);
       })
     );
+    await this.updateImage();
+    this.setState({ predictDone: 0, uiState: null });
+  }
 
+  /**
+   * Perform single predictions fore either Video or Image
+   */
+  private async singleAnalysis(reanalyse = true) {
+    /* Blocker to account for case where prediction is still running */
+    if (this.state.predictDone !== 0 || this.state.uiState === "Predicting") {
+      CreateGenericToast("Inference is already running", Intent.WARNING, 3000);
+      return;
+    }
+
+    this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
+    this.setState({ uiState: "Predicting" });
+
+    await this.getInference(this.currentAsset, reanalyse);
     await this.updateImage();
     this.setState({ predictDone: 0, uiState: null });
   }
@@ -660,13 +597,11 @@ export default class Annotator extends Component<
   /**
    * Centralized Handler to Perform predictions on both Video and Images
    */
-  private async getInference(reanalyse = true) {
-    /* Blocker to account for case where prediction is still running */
-    if (this.state.predictDone !== 0 || this.state.uiState === "Predicting") {
-      CreateGenericToast("Inference is already running", Intent.WARNING, 3000);
-      return;
-    }
-
+  private async getInference(
+    asset: AssetAPIObject,
+    reanalyse = true,
+    singleAnalysis = true
+  ) {
     /* Blocker to account for case where there is no model to perform prediction */
     if (!this.props.loadedModel) {
       CreateGenericToast("There is no model loaded", Intent.WARNING, 3000);
@@ -675,21 +610,24 @@ export default class Annotator extends Component<
 
     const loadedModelHash = this.props.loadedModel.hash;
 
-    this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
-    this.setState({ uiState: "Predicting" });
-    if (reanalyse) {
+    if (reanalyse && singleAnalysis) {
       this.handleProgressToast();
     }
-    if (this.currentAsset.type === "image") {
+    if (
+      asset.type === "image" &&
+      (this.state.inferenceOptions.bulkAnalysisStatus !== "video" ||
+        singleAnalysis)
+    ) {
       await APIGetImageInference(
         loadedModelHash,
-        this.currentAsset.localPath,
+        asset.localPath,
         reanalyse,
         this.state.inferenceOptions.iou,
         "json"
       )
         .then(response => {
-          this.updateAnnotations(response.data);
+          if (this.currentAsset.url === asset.url)
+            this.updateAnnotations(response.data);
         })
         .catch(error => {
           let message = `Failed to predict image. ${error}`;
@@ -699,53 +637,61 @@ export default class Annotator extends Component<
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
     }
-    if (this.currentAsset.type === "video") {
+    if (
+      asset.type === "video" &&
+      (this.state.inferenceOptions.bulkAnalysisStatus !== "image" ||
+        singleAnalysis)
+    ) {
       await APIGetVideoInference(
         loadedModelHash,
-        this.currentAsset.localPath,
+        asset.localPath,
         reanalyse,
         this.state.inferenceOptions.video.frameInterval,
         this.state.inferenceOptions.iou
       )
         .then(response => {
-          const videoElement = this.videoOverlay.getElement();
-          /**
-           * Recursive Callback function that
-           * @param {DOMHighResTimeStamp} now
-           * @param {VideoFrameMetadata} metadata
-           */
-          const videoFrameCallback = (
-            now: DOMHighResTimeStamp,
-            metadata: VideoFrameMetadata
-          ) => {
-            /* Calculating the refresh rate of annotation rendering */
-            const secondsInterval =
-              this.state.inferenceOptions.video.frameInterval /
-              response.data.fps;
-            const quotient = Math.floor(metadata.mediaTime / secondsInterval);
-
-            /* Interval to determine the refresh-rate of annotation */
-            const key = Math.floor(
-              quotient * secondsInterval * 1000
-            ).toString();
-
-            if (response.data.frames[key]) {
-              this.updateAnnotations(response.data.frames[key]);
-            }
-
+          if (this.currentAsset.url === asset.url) {
+            const videoElement = this.videoOverlay.getElement();
             /**
-             * Id to track the current handler number so that this handler
-             * can be removed when selectAsset is called. more information
-             * on https://wicg.github.io/video-rvfc/
+             * Recursive Callback function that
+             * @param {DOMHighResTimeStamp} now
+             * @param {VideoFrameMetadata} metadata
              */
-            const videoId = (videoElement as any).requestVideoFrameCallback(
-              videoFrameCallback
-            );
-            this.setState({ currAnnotationPlaybackId: videoId });
-          };
+            const videoFrameCallback = (
+              now: DOMHighResTimeStamp,
+              metadata: VideoFrameMetadata
+            ) => {
+              /* Calculating the refresh rate of annotation rendering */
+              const secondsInterval =
+                this.state.inferenceOptions.video.frameInterval /
+                response.data.fps;
+              const quotient = Math.floor(metadata.mediaTime / secondsInterval);
 
-          if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
-            (videoElement as any).requestVideoFrameCallback(videoFrameCallback);
+              /* Interval to determine the refresh-rate of annotation */
+              const key = Math.floor(
+                quotient * secondsInterval * 1000
+              ).toString();
+
+              if (response.data.frames[key]) {
+                this.updateAnnotations(response.data.frames[key]);
+              }
+
+              /**
+               * Id to track the current handler number so that this handler
+               * can be removed when selectAsset is called. more information
+               * on https://wicg.github.io/video-rvfc/
+               */
+              const videoId = (videoElement as any).requestVideoFrameCallback(
+                videoFrameCallback
+              );
+              this.setState({ currAnnotationPlaybackId: videoId });
+            };
+
+            if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
+              (videoElement as any).requestVideoFrameCallback(
+                videoFrameCallback
+              );
+            }
           }
         })
         .catch(error => {
@@ -756,8 +702,6 @@ export default class Annotator extends Component<
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
     }
-    await this.updateImage();
-    this.setState({ predictDone: 0, uiState: null });
   }
 
   /**
@@ -1090,7 +1034,7 @@ export default class Annotator extends Component<
           /* Reset to Default Zoom */
           this.map.setMinZoom(-3);
           /* Get inference if Image is Cached */
-          if (asset.isCached) this.getInference(false);
+          if (asset.isCached) this.singleAnalysis(false);
         }
 
         if (initialSelect) {
@@ -1152,7 +1096,7 @@ export default class Annotator extends Component<
             videoElement?.focus();
           }, 150);
           /* Get inference if Video is Cached */
-          if (asset.isCached) this.getInference(false);
+          if (asset.isCached) this.singleAnalysis(false);
         } else {
           /** Set Focus */
           videoElement?.focus();
@@ -1274,7 +1218,7 @@ export default class Annotator extends Component<
           global={true}
           combo={"r"}
           label={"Re-Analyse"}
-          onKeyDown={() => this.getInference()}
+          onKeyDown={() => this.singleAnalysis()}
         />
         <Hotkey
           global={true}
@@ -1479,7 +1423,7 @@ export default class Annotator extends Component<
                 SetAnnotationTag: this.setAnnotationTag,
                 OpenAdvancedSettings: this.handleAdvancedSettingsOpen,
                 SetAnnotationVisibility: this.setAnnotationVisibility,
-                GetInference: this.getInference,
+                SingleAnalysis: this.singleAnalysis,
                 BulkAnalysis: this.bulkAnalysis,
                 ToggleConfidence: this.toggleConfidence,
                 /* Used by TagSelector */
