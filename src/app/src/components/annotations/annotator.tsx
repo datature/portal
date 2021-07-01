@@ -699,8 +699,14 @@ export default class Annotator extends Component<
     this.filterAnnotationVisibility();
   };
 
-  private updateCacheList = async () => {
+  /**
+   * Update ImageBar by reseting the cachelist and assetlist
+   */
+  private updateImage = async () => {
     if (this.props.loadedModel) {
+      /**
+       * Get list of files that has its prediction cached
+       */
       await APIGetCacheList(this.props.loadedModel.hash)
         .then(res => {
           this.setState({ cacheList: res.data });
@@ -710,10 +716,6 @@ export default class Annotator extends Component<
           this.setState({ cacheList: [] });
         });
     }
-  };
-
-  private updateImage = async () => {
-    await this.updateCacheList();
 
     /* Get All Existing Registered Folder and Image Assets */
     await APIGetAsset().then(res => {
