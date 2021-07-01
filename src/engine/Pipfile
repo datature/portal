@@ -18,7 +18,6 @@ apscheduler = "==3.7.0"
 datature-hub = "==0.1.0"
 pillow = "==8.2.0"
 
-
 [dev-packages]
 pylint = "*"
 isort = "*"
