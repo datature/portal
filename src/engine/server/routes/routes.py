@@ -9,10 +9,15 @@ from flask_cors import cross_origin
 # pylint: disable=E0401, E0611
 # pylint: disable=cyclic-import
 # pylint: disable=undefined-variable
-from server import app, global_store, wait_for_process
-from server.services import decode
+from server import app, global_store, server, wait_for_process
+from server.services import decode, encode
+
 from server.services.errors import Errors, PortalError
-from server.services.filesystem.file import allowed_image, allowed_video, generate_thumbnail
+from server.services.filesystem.file import (
+    allowed_image,
+    allowed_video,
+    generate_thumbnail,
+)
 from server.services.model_loader import load_local
 from server.services.model_register import (
     register_endpoint,
@@ -40,37 +45,33 @@ def portal_function_handler(clear_status: bool) -> callable:
 
             # Error handling section
             try:
-                response = func(*args, **kwargs)
+                fn_output = func(*args, **kwargs)
+
+                # Handling simultaneous API calls
+                global_store.set_caught_response(func.__name__, fn_output)
+                if clear_status:
+                    global_store.clear_status()
+                response = fn_output
+
             except PortalError as e:
-                e.set_fail_location(" - ".join([func.__module__, func.__name__]))
+                e.set_fail_location(
+                    " - ".join([func.__module__, func.__name__])
+                )
                 if e.get_error() != "ATOMICERROR" and clear_status:
                     global_store.clear_status()
-                return e.output()
+                response = e.output()
             except Exception as e:  # pylint: disable=broad-except
 
                 if clear_status:
                     global_store.clear_status()
 
-                return PortalError(
+                response = PortalError(
                     Errors.UNKNOWN,
                     str(e),
                     " - ".join([func.__module__, func.__name__]),
                 ).output()
 
-            # Simultaneous API calls section
-            try:
-                global_store.set_caught_response(func.__name__, response)
-                if clear_status:
-                    global_store.clear_status()
-                return response
-            except Exception as e:  # pylint: disable=broad-except
-                if clear_status:
-                    global_store.clear_status()
-                return PortalError(
-                    Errors.FAILEDCAUGHTRESPONSE,
-                    str(e),
-                    " - ".join([func.__module__, func.__name__]),
-                ).output()
+            return response
 
         return wrapper
 
@@ -93,11 +94,8 @@ def shutdown():
     Shutdown the server
     """
     global_store.delete_cache()
-    func = request.environ.get("werkzeug.server.shutdown")
-    if func is None:
-        raise RuntimeError("Not running with the Werkzeug Server")
-    func()
-    return "Server shutting down..."
+    server.socket.stop()
+    return "Server shutting down...", 200
 
 
 @app.route("/heartbeat", methods=["GET"])
@@ -105,9 +103,22 @@ def shutdown():
 @portal_function_handler(clear_status=False)
 def heartbeat() -> tuple:
     """Check if server is alive."""
-    output = {"hasCache": global_store.has_cache(),
-              "isCacheCalled": global_store.is_cache_called()}
+    output = {
+        "hasCache": global_store.has_cache(),
+        "isCacheCalled": global_store.is_cache_called(),
+    }
     return jsonify(output), 200
+
+
+@app.route("/api/model/predict/video/kill", methods=["POST"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def kill_video() -> Response:
+    """Stop the current video prediction route."""
+    status = global_store.get_status()
+    if status is not None and "predict_video_" in status:
+        global_store.set_stop()
+    return Response(status=200)
 
 
 @app.route("/cache", methods=["POST"])
@@ -205,7 +216,9 @@ def register_model() -> tuple:
             )
 
         if input_type == "endpoint":
-            register_endpoint(model_key=model_key, project_secret=project_secret)
+            register_endpoint(
+                model_key=model_key, project_secret=project_secret
+            )
 
         return (jsonify(global_store.get_registered_model_info()), 200)
 
@@ -357,6 +370,7 @@ def predict_single_image(model_id: str) -> tuple:
     :QueryParam iou: (Optional) Intersection of Union for Bounding Boxes/Masks.
         Requires float in the range of [0.0,1.0]. Default is 0.8.
     :QueryParam filter: (Optional) Obtain the outputs of only the specified class.
+    :QueryParam reanalyse: (Optional) Flag to bypass cache and force reanalysis.
     :return: Jsonified tuple of (either json detections of image) and 200 if successful.
 
     Possible Errors:
@@ -367,13 +381,11 @@ def predict_single_image(model_id: str) -> tuple:
         NOTFOUND:           Image directory not found.
         INVALIDMODELKEY:    Model key is not in loaded model list.
     """
-    # check if another atomic process / duplicate process exists
-    if global_store.set_status("predict_single_image_" + model_id):
-        wait_for_process()
-        return global_store.get_caught_response("predict_single_image")
     try:
         if request.args.get("filepath") is None:
-            raise PortalError(Errors.INVALIDQUERY, "Filepath is a compulsory query")
+            raise PortalError(
+                Errors.INVALIDQUERY, "Filepath is a compulsory query"
+            )
 
         image_directory = decode(request.args.get("filepath"))
         if not os.path.isfile(image_directory):
@@ -383,16 +395,39 @@ def predict_single_image(model_id: str) -> tuple:
         if not allowed_image(image_directory):
             raise PortalError(Errors.INVALIDFILETYPE, image_directory)
 
-        format_arg, iou, _ = corrected_predict_query(
+        corrected_dict = corrected_predict_query(
             "format", "iou", request=request
         )
-        prediction_key = model_id + image_directory + format_arg + str(iou)
-
-        if global_store.check_predictions(prediction_key):
+        format_arg = corrected_dict["format"]
+        iou = corrected_dict["iou"]
+        reanalyse = corrected_dict["reanalyse"]
+        prediction_key = (
+            model_id,
+            image_directory,
+            format_arg + str(iou),
+        )
+        prediction_status = (
+            "predict_single_image_"
+            + model_id
+            + image_directory
+            + format_arg
+            + str(iou)
+        )
+        # check if another atomic process / duplicate process exists
+        if global_store.set_status(prediction_status):
+            wait_for_process()
+            return global_store.get_caught_response("predict_single_image")
+        # reanalyse needs to be false, and the prediction cache must
+        # contain the corresponding output, in order for the cache to be
+        # served. else, we continue prediction as per norma
+        if (
+            global_store.check_prediction_cache(prediction_key)
+            and reanalyse is False
+        ):
             output = global_store.get_predictions(prediction_key)
-        elif not global_store.get_loaded_model_keys():
-            raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
         else:
+            if not global_store.get_loaded_model_keys():
+                raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
             (
                 model,
                 label_map,
@@ -435,6 +470,7 @@ def predict_video_fn(model_id: str) -> tuple:
         Requires float in the range of [0.0,1.0]. Default is 0.8.
     :QueryParam filter: (Optional) Obtain the outputs of only the specified class.
     :QueryParam confidence: (Optional) The confidence threshold.
+    :QueryParam reanalyse: (Optional) Flag to bypass cache and force reanalysis.
     :return: Jsonified tuple of (either json detections of image) and 200 if successful.
 
     Possible Errors:
@@ -445,9 +481,6 @@ def predict_video_fn(model_id: str) -> tuple:
         NOTFOUND:           Image directory not found.
         INVALIDMODELKEY:    Model key is not in loaded model list.
     """
-    if global_store.set_status("predict_video_" + model_id):
-        wait_for_process()
-        return global_store.get_caught_response("predict_video")
     try:
         if request.args.get("filepath") is None:
             raise PortalError(
@@ -466,21 +499,40 @@ def predict_video_fn(model_id: str) -> tuple:
         if not allowed_video(video_directory):
             raise PortalError(Errors.INVALIDFILETYPE, video_directory)
 
-        _, iou, confidence = corrected_predict_query(
+        corrected_dict = corrected_predict_query(
             "iou", "confidence", request=request
         )
+        iou = corrected_dict["iou"]
+        confidence = corrected_dict["confidence"]
+        reanalyse = corrected_dict["reanalyse"]
         prediction_key = (
-            model_id
+            model_id,
+            video_directory,
+            str(frame_interval) + str(iou) + str(confidence),
+        )
+        prediction_status = (
+            "predict_single_image_"
+            + model_id
             + video_directory
             + str(frame_interval)
             + str(iou)
             + str(confidence)
         )
-        if global_store.check_predictions(prediction_key):
+        if global_store.set_status(prediction_status):
+            wait_for_process()
+            return global_store.get_caught_response("predict_video")
+
+        # reanalyse needs to be false, and the prediction cache must
+        # contain the corresponding output, in order for the cache to be
+        # served. else, we continue prediction as per norma
+        if (
+            global_store.check_prediction_cache(prediction_key)
+            and reanalyse is False
+        ):
             output = global_store.get_predictions(prediction_key)
-        elif not global_store.get_loaded_model_keys():
-            raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
         else:
+            if not global_store.get_loaded_model_keys():
+                raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
             (
                 model,
                 label_map,
@@ -509,6 +561,27 @@ def predict_video_fn(model_id: str) -> tuple:
         raise PortalError(Errors.INVALIDMODELKEY, str(e)) from e
     except ValueError as e:
         raise PortalError(Errors.INVALIDQUERY, str(e)) from e
+
+
+@app.route("/api/model/<model_id>/cachelist", methods=["GET"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def get_cachelist(model_id) -> tuple:
+    """Obtain the list of images that has been successfully predicted."""
+    cachelist = [
+        encode(image_dir)
+        for image_dir in global_store.get_predicted_images(model_id)
+    ]
+    return (jsonify(cachelist), 200)
+
+
+@app.route("/api/model/<model_id>/cachelist", methods=["DELETE"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def clear_cachelist(model_id) -> tuple:
+    """Clear the cached list of predictions."""
+    global_store.clear_predicted_images(model_id)
+    return Response(status=200)
 
 
 @app.route("/api/project/register", methods=["POST"])
@@ -604,7 +677,9 @@ def get_image():
         path = request.args.get("filepath")
         decoded_path = decode(path)
         if not os.path.exists(decoded_path):
-            raise FileNotFoundError(f"File path {decoded_path} does not exists")
+            raise FileNotFoundError(
+                f"File path {decoded_path} does not exists"
+            )
         head, tail = os.path.split(decoded_path)
         return send_from_directory(head, tail)
 
@@ -625,7 +700,9 @@ def get_thumbnail():
         path = request.args.get("filepath")
         decoded_path = decode(path)
         if not os.path.exists(decoded_path):
-            raise FileNotFoundError(f"File path {decoded_path} does not exists")
+            raise FileNotFoundError(
+                f"File path {decoded_path} does not exists"
+            )
         # pylint: disable=unused-variable
         head, tail = os.path.split(decoded_path)
         image_bytes = generate_thumbnail(decoded_path, tail)

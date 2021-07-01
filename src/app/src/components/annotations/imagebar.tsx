@@ -1,5 +1,12 @@
 import React, { Component } from "react";
-import { Card, Tag, Icon, IconSize } from "@blueprintjs/core";
+import {
+  Card,
+  Tag,
+  Icon,
+  IconSize,
+  Tooltip,
+  Position,
+} from "@blueprintjs/core";
 import { AssetAPIObject } from "@portal/api/annotation";
 import VideoThumbnail from "react-video-thumbnail";
 import classes from "./imagebar.module.css";
@@ -34,10 +41,10 @@ function ThumbnailGenerator(
             />
             <div>
               <VideoThumbnail
+                width={150}
+                length={150}
                 snapshotAtTime={1}
                 videoUrl={asset.thumbnailUrl}
-                width={150}
-                height={100}
               />
             </div>
           </>
@@ -50,8 +57,16 @@ function ThumbnailGenerator(
           fill={true}
           style={{ backgroundColor: useDarkTheme ? "" : "#CED9E0" }}
           rightIcon={
-            (asset as any).status ? (
-              <Icon icon="tick" color={useDarkTheme ? "#0F9960" : "#3DCC91"} />
+            asset.isCached ? (
+              <Tooltip
+                content="Inference is Cached by Model"
+                position={Position.TOP}
+              >
+                <Icon
+                  icon="bookmark"
+                  color={useDarkTheme ? "#0F9960" : "#3DCC91"}
+                />
+              </Tooltip>
             ) : (
               false
             )

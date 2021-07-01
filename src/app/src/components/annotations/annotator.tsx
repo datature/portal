@@ -24,14 +24,15 @@ import {
 
 import {
   AssetAPIObject,
-  APIGetInferenceFlask,
+  APIGetImageInference,
   APIGetImageData,
   APIGetAsset,
-  APIGetVideoPrediction,
+  APIGetVideoInference,
   APIGetModelTags,
+  APIGetCacheList,
 } from "@portal/api/annotation";
 
-import { invert } from "lodash";
+import { invert, cloneDeep } from "lodash";
 
 import { CreateGenericToast } from "@portal/utils/ui/toasts";
 import AnnotatorInstanceSingleton from "./utils/annotator.singleton";
@@ -81,6 +82,8 @@ interface AnnotatorProps {
 interface AnnotatorState {
   /* Image List for Storing Project Files */
   assetList: Array<AssetAPIObject>;
+  /* List of files whose predictions are cached  */
+  cacheList: Array<string>;
   /* Tags for Project */
   tagInfo: {
     modelHash: string | undefined;
@@ -125,6 +128,12 @@ interface AnnotatorState {
       frameInterval: number;
     };
   };
+  /* Utility to toggle existing annotations */
+  annotationOptions: {
+    isOutlined: true;
+    opacity: number;
+  };
+  currAnnotationPlaybackId: number;
 }
 
 /**
@@ -135,10 +144,6 @@ interface AnnotationLayer extends L.Layer {
   editing: any;
   options: any;
 }
-
-/* const fire_message = () => {
-  console.log("7 is fired");
-} */
 
 /**
  * This Annotator class is a super class of the annotator controls, image select
@@ -181,12 +186,8 @@ export default class Annotator extends Component<
     toaster: (ref: Toaster) => (this.toaster = ref),
   };
 
-  /* Leaflet Draw Handlers - Functions that represents a set of actions
-     that will be passed into the menu for a separate callback trigger.
-  */
-
-  /* Reference to background image */
-  private backgroundImg: HTMLElement | null;
+  /* Reference to background Image or Video */
+  backgroundImg: HTMLElement | null;
 
   constructor(props: AnnotatorProps) {
     super(props);
@@ -196,6 +197,7 @@ export default class Annotator extends Component<
       userEditState: "None",
       changesMade: false,
       assetList: [],
+      cacheList: [],
       tagInfo: {
         modelHash: undefined,
         tags: {},
@@ -210,6 +212,10 @@ export default class Annotator extends Component<
       predictDone: 0,
       multiplier: 1,
       confidence: 0.5,
+      annotationOptions: {
+        isOutlined: true,
+        opacity: 0.3,
+      },
       filterArr: [],
       showSelected: true,
       inferenceOptions: {
@@ -220,6 +226,7 @@ export default class Annotator extends Component<
           frameInterval: 20,
         },
       },
+      currAnnotationPlaybackId: 0,
     };
 
     this.toaster = new Toaster({}, {});
@@ -229,7 +236,6 @@ export default class Annotator extends Component<
     this.project = this.props.project;
     this.menubarRef = React.createRef();
     this.menubarElement = undefined;
-    this.backgroundImg = null;
 
     /* Placeholder Value for Initialization */
     this.currentAsset = {} as AssetAPIObject;
@@ -240,6 +246,7 @@ export default class Annotator extends Component<
 
     /* Image Bar Reference to Track Which Image is Selected */
     this.imagebarRef = React.createRef();
+    this.backgroundImg = null;
 
     this.selectAsset = this.selectAsset.bind(this);
     this.showToaster = this.showToaster.bind(this);
@@ -273,6 +280,7 @@ export default class Annotator extends Component<
     this.filterAnnotationVisibility = this.filterAnnotationVisibility.bind(
       this
     );
+    this.setAnnotationOptions = this.setAnnotationOptions.bind(this);
     this.toggleShowSelected = this.toggleShowSelected.bind(this);
     this.setAnnotatedAssetsHidden = this.setAnnotatedAssetsHidden.bind(this);
   }
@@ -325,11 +333,7 @@ export default class Annotator extends Component<
     // eslint-disable-next-line no-new
     new AnnotatorInstanceSingleton(this.map, this);
 
-    /* Select background image in DOM */
-    this.backgroundImg = document.querySelector(
-      ".leaflet-pane.leaflet-overlay-pane img.leaflet-image-layer"
-    );
-
+    /* Slight delay so that all images can be reliably fetched from the server */
     setTimeout(() => this.updateImage(), 200);
   }
 
@@ -365,6 +369,7 @@ export default class Annotator extends Component<
 
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
+      this.updateImage();
     }
 
     if (!this.props.loadedModel && this.state.tagInfo.modelHash !== undefined) {
@@ -442,6 +447,33 @@ export default class Annotator extends Component<
   public setAnnotationTag(tagIndex: number): number {
     this.currentTag = tagIndex;
     return this.currentTag;
+  }
+
+  /**
+   * Updates the annotationOptions, handling both boolean
+   * and number case
+   * @param {boolean | number } newOption - updatedOptions
+   */
+  private setAnnotationOptions(newOption: boolean | number): void {
+    this.setState(
+      prevState => {
+        const config = prevState.annotationOptions;
+        switch (typeof newOption) {
+          case "boolean":
+            config.isOutlined = newOption
+              ? true
+              : (!prevState.annotationOptions.isOutlined as any);
+            break;
+          case "number":
+            config.opacity = newOption;
+            break;
+          default:
+            break;
+        }
+        return { annotationOptions: config };
+      },
+      () => this.filterAnnotationVisibility()
+    );
   }
 
   /**
@@ -542,9 +574,10 @@ export default class Annotator extends Component<
           asset.type === "image" &&
           this.state.inferenceOptions.bulkAnalysisStatus !== "video"
         ) {
-          await APIGetInferenceFlask(
+          await APIGetImageInference(
             loadedModelHash,
             asset.localPath,
+            true,
             this.state.inferenceOptions.iou,
             "json"
           )
@@ -567,9 +600,10 @@ export default class Annotator extends Component<
           asset.type === "video" &&
           this.state.inferenceOptions.bulkAnalysisStatus !== "image"
         ) {
-          await APIGetVideoPrediction(
+          await APIGetVideoInference(
             loadedModelHash,
             asset.localPath,
+            true,
             this.state.inferenceOptions.video.frameInterval,
             this.state.inferenceOptions.iou
           )
@@ -623,12 +657,17 @@ export default class Annotator extends Component<
     this.setState({ predictDone: 0, uiState: null });
   }
 
-  private getInference() {
+  /**
+   * Centralized Handler to Perform predictions on both Video and Images
+   */
+  private async getInference(reanalyse = true) {
+    /* Blocker to account for case where prediction is still running */
     if (this.state.predictDone !== 0 || this.state.uiState === "Predicting") {
       CreateGenericToast("Inference is already running", Intent.WARNING, 3000);
       return;
     }
 
+    /* Blocker to account for case where there is no model to perform prediction */
     if (!this.props.loadedModel) {
       CreateGenericToast("There is no model loaded", Intent.WARNING, 3000);
       return;
@@ -638,81 +677,94 @@ export default class Annotator extends Component<
 
     this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
     this.setState({ uiState: "Predicting" });
-    // dummy setTimeout to simulate prediction delay
-    this.handleProgressToast();
+    if (reanalyse) {
+      this.handleProgressToast();
+    }
+    if (this.currentAsset.type === "image") {
+      await APIGetImageInference(
+        loadedModelHash,
+        this.currentAsset.localPath,
+        reanalyse,
+        this.state.inferenceOptions.iou,
+        "json"
+      )
+        .then(response => {
+          this.updateAnnotations(response.data);
+        })
+        .catch(error => {
+          let message = `Failed to predict image. ${error}`;
+          if (error.response) {
+            message = `${error.response.data.error}: ${error.response.data.message}`;
+          }
+          CreateGenericToast(message, Intent.DANGER, 3000);
+        });
+    }
+    if (this.currentAsset.type === "video") {
+      await APIGetVideoInference(
+        loadedModelHash,
+        this.currentAsset.localPath,
+        reanalyse,
+        this.state.inferenceOptions.video.frameInterval,
+        this.state.inferenceOptions.iou
+      )
+        .then(response => {
+          const videoElement = this.videoOverlay.getElement();
+          /**
+           * Recursive Callback function that
+           * @param {DOMHighResTimeStamp} now
+           * @param {VideoFrameMetadata} metadata
+           */
+          const videoFrameCallback = (
+            now: DOMHighResTimeStamp,
+            metadata: VideoFrameMetadata
+          ) => {
+            /* Calculating the refresh rate of annotation rendering */
+            const secondsInterval =
+              this.state.inferenceOptions.video.frameInterval /
+              response.data.fps;
+            const quotient = Math.floor(metadata.mediaTime / secondsInterval);
 
-    setTimeout(async () => {
-      if (this.currentAsset.type === "image") {
-        await APIGetInferenceFlask(
-          loadedModelHash,
-          this.currentAsset.localPath,
-          this.state.inferenceOptions.iou,
-          "json"
-        )
-          .then(response => {
-            this.updateAnnotations(response.data);
-          })
-          .catch(error => {
-            let message = `Failed to predict image. ${error}`;
-            if (error.response) {
-              message = `${error.response.data.error}: ${error.response.data.message}`;
+            /* Interval to determine the refresh-rate of annotation */
+            const key = Math.floor(
+              quotient * secondsInterval * 1000
+            ).toString();
+
+            if (response.data.frames[key]) {
+              this.updateAnnotations(response.data.frames[key]);
             }
 
-            CreateGenericToast(message, Intent.DANGER, 3000);
-          });
-      }
+            /**
+             * Id to track the current handler number so that this handler
+             * can be removed when selectAsset is called. more information
+             * on https://wicg.github.io/video-rvfc/
+             */
+            const videoId = (videoElement as any).requestVideoFrameCallback(
+              videoFrameCallback
+            );
+            this.setState({ currAnnotationPlaybackId: videoId });
+          };
 
-      if (this.currentAsset.type === "video") {
-        await APIGetVideoPrediction(
-          loadedModelHash,
-          this.currentAsset.localPath,
-          this.state.inferenceOptions.video.frameInterval,
-          this.state.inferenceOptions.iou
-        )
-          .then(response => {
-            const videoElement = this.videoOverlay.getElement();
-            const videoFrameCallback = (
-              now: DOMHighResTimeStamp,
-              metadata: VideoFrameMetadata
-            ) => {
-              const secondsInterval =
-                this.state.inferenceOptions.video.frameInterval /
-                response.data.fps;
-              const quotient = Math.floor(metadata.mediaTime / secondsInterval);
-
-              const key = Math.floor(
-                quotient * secondsInterval * 1000
-              ).toString();
-
-              if (response.data.frames[key]) {
-                this.updateAnnotations(response.data.frames[key]);
-              }
-
-              (videoElement as any).requestVideoFrameCallback(
-                videoFrameCallback
-              );
-            };
-
-            if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
-              (videoElement as any).requestVideoFrameCallback(
-                videoFrameCallback
-              );
-            }
-          })
-          .catch(error => {
-            let message = `Failed to predict video. ${error}`;
-            if (error.response) {
-              message = `${error.response.data.error}: ${error.response.data.message}`;
-            }
-
-            CreateGenericToast(message, Intent.DANGER, 3000);
-          });
-      }
-
-      this.setState({ predictDone: 0, uiState: null });
-    }, 750);
+          if ("requestVideoFrameCallback" in HTMLVideoElement.prototype) {
+            (videoElement as any).requestVideoFrameCallback(videoFrameCallback);
+          }
+        })
+        .catch(error => {
+          let message = `Failed to predict video. ${error}`;
+          if (error.response) {
+            message = `${error.response.data.error}: ${error.response.data.message}`;
+          }
+          CreateGenericToast(message, Intent.DANGER, 3000);
+        });
+    }
+    await this.updateImage();
+    this.setState({ predictDone: 0, uiState: null });
   }
 
+  /**
+   * Atomic function that takes annotations generated from getInference
+   * and renders the annotations on the Leaflet Layer
+   * @param {any} annotations
+   */
   private updateAnnotations = (annotations: any) => {
     const res = {
       metadata: this.currentAsset.metadata,
@@ -723,11 +775,8 @@ export default class Annotator extends Component<
       thumbnailUrl: this.currentAsset.thumbnailUrl,
       localPath: this.currentAsset.localPath,
       type: this.currentAsset.type,
-      /* useless properties but deleting them will cause lots
-      of type conflicts. decided to use dummy values instead
-      */
+      isCached: this.currentAsset.isCached,
     };
-
     const currentAssetAnnotations: Array<PolylineObjectType> = RenderAssetAnnotations(
       this.map,
       this.annotationGroup,
@@ -755,16 +804,32 @@ export default class Annotator extends Component<
     this.filterAnnotationVisibility();
   };
 
-  private updateImage = () => {
+  /**
+   * Update ImageBar by reseting the cachelist and assetlist
+   */
+  private updateImage = async () => {
+    if (this.props.loadedModel) {
+      /**
+       * Get list of files that has its prediction cached
+       */
+      await APIGetCacheList(this.props.loadedModel.hash)
+        .then(res => {
+          this.setState({ cacheList: res.data });
+        })
+        .catch(() => {
+          /* Empty the cacheList since we can't get the list */
+          this.setState({ cacheList: [] });
+        });
+    }
+
     /* Get All Existing Registered Folder and Image Assets */
-    APIGetAsset().then(res => {
+    await APIGetAsset().then(res => {
       /* Generate New Asset List Based on Updated Data */
       const newImageAssets = res.data.map((encodedUri: string) => {
         const decodedUri = decodeURIComponent(encodedUri);
-        let seperator = "/";
-        let type = "image";
-        if (decodedUri.includes("\\")) seperator = "\\";
-        if (decodedUri.match(/\.(?:mov|mp4|wmv)/i)) type = "video";
+        const seperator = decodedUri.includes("\\") ? "\\" : "/";
+        const type = decodedUri.match(/\.(?:mov|mp4|wmv)/i) ? "video" : "image";
+        const isCached = this.state.cacheList.includes(encodedUri);
         return {
           url: encodedUri,
           filename: decodedUri.split(seperator).pop(),
@@ -772,6 +837,7 @@ export default class Annotator extends Component<
           thumbnailUrl: APIGetImageData(encodedUri),
           localPath: encodedUri,
           type,
+          isCached,
         };
       });
 
@@ -920,7 +986,16 @@ export default class Annotator extends Component<
       )
       .forEach((confidentAnnotation: any) => {
         /* Add It Onto Leaflet */
-        this.annotationGroup.addLayer(confidentAnnotation);
+        const annotationToCommit = cloneDeep(confidentAnnotation);
+        /* Customize Annotation Opacity */
+        annotationToCommit.options.fillOpacity = this.state.annotationOptions.opacity;
+        /* Customize Annotation Outline Toggle */
+        annotationToCommit.options.weight = !this.state.annotationOptions
+          .isOutlined
+          ? 0
+          : confidentAnnotation.options.weight;
+
+        this.annotationGroup.addLayer(annotationToCommit);
       });
   }
 
@@ -948,12 +1023,18 @@ export default class Annotator extends Component<
     /* Checks if there is AssetReselection */
     const isAssetReselection = !(asset.assetUrl !== this.currentAsset.assetUrl);
 
+    const videoElement = this.videoOverlay.getElement();
     if (!isAssetReselection) {
       this.setState({ currentAssetAnnotations: [] });
       this.annotationGroup.eachLayer(layer => {
         this.annotationGroup.removeLayer(layer);
       });
       this.updateMenuBarAnnotations();
+      if (videoElement) {
+        (videoElement as any).cancelVideoFrameCallback(
+          this.state.currAnnotationPlaybackId
+        );
+      }
     }
 
     const initialSelect = Object.keys(this.currentAsset).length === 0;
@@ -1008,12 +1089,19 @@ export default class Annotator extends Component<
           }, 150);
           /* Reset to Default Zoom */
           this.map.setMinZoom(-3);
+          /* Get inference if Image is Cached */
+          if (asset.isCached) this.getInference(false);
         }
 
         if (initialSelect) {
           this.setState({});
         }
       };
+
+      /* Select background image in DOM */
+      this.backgroundImg = document.querySelector(
+        ".leaflet-pane.leaflet-overlay-pane img.leaflet-image-layer"
+      );
     }
     if (asset.type === "video") {
       if (!this.map.hasLayer(this.videoOverlay)) {
@@ -1042,7 +1130,6 @@ export default class Annotator extends Component<
           },
         };
 
-        const videoElement = this.videoOverlay.getElement();
         if (videoElement) {
           videoElement.controls = true;
           videoElement.setAttribute("controlsList", "nofullscreen nodownload");
@@ -1064,6 +1151,8 @@ export default class Annotator extends Component<
             /** Set Focus */
             videoElement?.focus();
           }, 150);
+          /* Get inference if Video is Cached */
+          if (asset.isCached) this.getInference(false);
         } else {
           /** Set Focus */
           videoElement?.focus();
@@ -1072,6 +1161,10 @@ export default class Annotator extends Component<
           this.setState({});
         }
       };
+
+      this.backgroundImg = document.querySelector(
+        ".leaflet-pane.leaflet-overlay-pane video.leaflet-image-layer"
+      );
     }
   }
 
@@ -1181,7 +1274,7 @@ export default class Annotator extends Component<
           global={true}
           combo={"r"}
           label={"Re-Analyse"}
-          onKeyDown={this.getInference}
+          onKeyDown={() => this.getInference()}
         />
         <Hotkey
           global={true}
@@ -1356,9 +1449,10 @@ export default class Annotator extends Component<
               {this.backgroundImg ? (
                 <div className="annotator-settings-button">
                   <AnnotatorSettings
-                    image={this.backgroundImg}
+                    annotationOptions={this.state.annotationOptions}
                     callbacks={{
                       setAnnotatedAssetsHidden: this.setAnnotatedAssetsHidden,
+                      setAnnotationOptions: this.setAnnotationOptions,
                     }}
                   />
                 </div>
@@ -1376,7 +1470,6 @@ export default class Annotator extends Component<
               predictTotal={this.state.predictTotal}
               hiddenAnnotations={this.state.hiddenAnnotations}
               confidence={this.state.confidence}
-              // temporary since TagSelector uses this
               filterArr={this.state.filterArr}
               showSelected={this.state.showSelected}
               useDarkTheme={this.props.useDarkTheme}
