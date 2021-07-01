@@ -64,10 +64,10 @@ class Folder:
             self._folders_ = []
             self._crawl_for_allowed_files_()
         else:
-            for i in range(len(self._folders_)):
-                folder = self._folders_[i]
+            for index, item in enumerate(self._folders_):
+                folder = item
                 if path.startswith(folder.get_path()):
-                    self._folders_[i] = folder.update_folder(
+                    self._folders_[index] = folder.update_folder(
                         path, datetime.datetime.utcnow()
                     )
         return self
@@ -101,7 +101,12 @@ class Folder:
             )
             child_nodes.append(tree)
 
-        return {"name": name, "path": path, "images": images, "folders": child_nodes}
+        return {
+            "name": name,
+            "path": path,
+            "images": images,
+            "folders": child_nodes,
+        }
 
     def _crawl_for_allowed_files_(self):
         """
@@ -117,14 +122,22 @@ class Folder:
         try:
             # pylint: disable=unused-variable
             for file in os.listdir(decoded_path):
-                folder_path = os.path.normpath(os.path.join(decoded_path, file))
+                folder_path = os.path.normpath(
+                    os.path.join(decoded_path, file)
+                )
                 if os.path.isdir(folder_path):
                     self._folders_.append(
-                        Folder(encode(folder_path), file, datetime.datetime.utcnow())
+                        Folder(
+                            encode(folder_path),
+                            file,
+                            datetime.datetime.utcnow(),
+                        )
                     )
                 else:
                     if allowed_file(file):
-                        file_path = os.path.normpath(os.path.join(decoded_path, file))
+                        file_path = os.path.normpath(
+                            os.path.join(decoded_path, file)
+                        )
                         self._files_.append(File(encode(file_path), file))
 
         except OSError as error:
