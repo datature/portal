@@ -132,6 +132,14 @@
             "index": "pypi",
             "version": "==0.3.9"
         },
+		"flask-socketio": {
+			"hashes": [
+				"sha256:68ae373a41d906819f5129d4d28ad062fcf0085dd06424753a79ca47de509ab5",
+				"sha256:b41b9f6fb0d7f3fcadd54c44653307a9b96e985c7da73f92779480248b5b6874"
+			],
+			"index": "pypi",
+			"version": "==5.1.0"
+		},
         "gast": {
             "hashes": [
                 "sha256:8f46f5be57ae6889a4e16e2ca113b1703ef17f2b0abceb83793eaba9e1351a45",

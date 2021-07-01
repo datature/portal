@@ -130,6 +130,19 @@ class GlobalStore:
         """Getter for self._op_atomic_"""
         return self._op_atomic_
 
+    def set_stop(self) -> None:
+        """Set the process_stop flag (Currently only for videos)"""
+        if self._op_atomic_:
+            self._process_stop_ = True
+
+    def clear_stop(self) -> None:
+        """Clear the process_stop flag"""
+        self._process_stop_ = False
+
+    def get_stop(self) -> bool:
+        """Get the value of the process_stop flag"""
+        return self._process_stop_
+
     def set_status(self, status: str) -> bool:
         """Set the status when an atomic function is running.
 
@@ -142,7 +155,13 @@ class GlobalStore:
             return False
         if self._op_status_["status"] == status:
             return True
-        raise PortalError(Errors.ATOMICERROR, "")
+        raise PortalError(
+            Errors.ATOMICERROR, "Another atomic process is already running."
+        )
+
+    def get_status(self) -> None:
+        """Acquire the status of the atomic function."""
+        return self._op_status_["status"]
 
     def clear_status(self) -> None:
         """Reset the status attribute."""
