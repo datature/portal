@@ -128,9 +128,11 @@ def predict_video(
     """
     cap = cv2.VideoCapture(os.path.join(video_directory))
     fps = cap.get(cv2.cv2.CAP_PROP_FPS)
-    image_list = []
+    output_dict = {"fps": fps, "frames": {}}
     count = 0
     while cap.isOpened():
+        # check between each iteration if the process-stop flag is set.
+        # kills the video prediction if it has been set.
         if global_store.get_stop():
             cap.release()
             cv2.destroyAllWindows()
@@ -142,33 +144,24 @@ def predict_video(
         ret, frame = cap.read()
         if ret:
             cap.set(1, count)
-            # Saves image of the current frame into jpg file
-            image_list.append(frame)
+            # make inference the frame
+            single_output = _predict_single_image(
+                model=model,
+                model_height=model_height,
+                model_width=model_width,
+                label_map=label_map,
+                format_arg="json",
+                iou=iou,
+                image_array=frame,
+                confidence=confidence,
+            )
+            # add the inferences into the dictionary
+            output_dict["frames"][int(count / fps * 1000)] = single_output
+            # move on to the next frame
             count += frame_interval
-
         else:
             cap.release()
             break
     cv2.destroyAllWindows()
-    output_dict = {"fps": fps, "frames": {}}
-    for index, image in enumerate(image_list):
-        if global_store.get_stop():
-            global_store.clear_stop()
-            raise PortalError(
-                Errors.STOPPEDPROCESS, "video prediction killed."
-            )
-        single_output = _predict_single_image(
-            model=model,
-            model_height=model_height,
-            model_width=model_width,
-            label_map=label_map,
-            format_arg="json",
-            iou=iou,
-            image_array=image,
-            confidence=confidence,
-        )
-        output_dict["frames"][
-            int((index * frame_interval) / fps * 1000)
-        ] = single_output
 
     return output_dict
