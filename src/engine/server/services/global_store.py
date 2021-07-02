@@ -277,14 +277,18 @@ class GlobalStore:
     def add_predictions(self, key: tuple, value: str) -> None:
         """Add predictions into the prediction cache.
 
-        :param key: The prediction key.
+        :param key: The prediction key as a tuple of:
+            (model_id, image/video directory, additional_parameters)
         :param value: The predictions.
         """
-        if key[0] not in self._store_["predictions"]:
-            self._store_["predictions"][key[0]] = {}
-        if key[1] not in self._store_["predictions"][key[0]]:
-            self._store_["predictions"][key[0]][key[1]] = {}
-        self._store_["predictions"][key[0]][key[1]][key[2]] = value
+        model_id = key[0]
+        img_vid_dir = key[1]
+        params = key[2]
+        if model_id not in self._store_["predictions"]:
+            self._store_["predictions"][model_id] = {}
+        if img_vid_dir not in self._store_["predictions"][model_id]:
+            self._store_["predictions"][model_id][img_vid_dir] = {}
+        self._store_["predictions"][model_id][img_vid_dir][params] = value
         self._save_store_()
 
     def check_prediction_cache(self, key: tuple) -> bool:
