@@ -43,7 +43,7 @@ class ServerThread(threading.Thread):
 
     def shutdown(self):
         print("Shutting down server")
-        self.socket.stop()
+        os._exit(0)
 
 
 # pylint: disable=invalid-name
