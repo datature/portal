@@ -1,17 +1,19 @@
 """Set up the Flask app and import the routes."""
+import os
 import atexit
 import threading
 import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask import Flask
-from flask_cors import CORS
-from werkzeug.serving import make_server
+from flask_socketio import SocketIO
 
 # pylint: disable=E0401, E0611
 from server.services.global_store import GlobalStore
 
 # Environment constants
+
+os.environ["WERKZEUG_RUN_MAIN"] = "true"
 MODEL_LOAD_LIMIT = 1
 CACHE_OPTION = True
 EPSILON_MULTIPLIER = 0.001
@@ -26,25 +28,18 @@ class ServerThread(threading.Thread):
     # pylint: disable=redefined-outer-name
     def __init__(self, app):
         """Initialise apps with CORS and run it."""
-        CORS(app)
-        app.config["CORS_HEADERS"] = "Content-Type"
+
         threading.Thread.__init__(self)
-        self.srv = make_server("127.0.0.1", 5000, app)
-        self.ctx = app.app_context()
-        self.ctx.push()
+        self.socket = SocketIO(
+            app,
+            async_mode="threading",
+            cors_allowed_origins="*",
+            use_debugger=False,
+            use_reloader=False,
+        )
 
     def run(self):
-        server_name = app.config.get("SERVER_NAME")
-        print(
-            f'\t* Running on {server_name if server_name is not None else "127.0.0.1:5000"}'
-            f'\n\t* Environment: {app.config.get("ENV")}\n\t* Debug Mode: {app.config.get("DEBUG")}'
-            f'\n\t* Testing Mode: {app.config.get("TESTING}")}'
-        )
-        self.srv.serve_forever()
-
-    def shutdown(self):
-        print("Shutting down server")
-        self.srv.shutdown()
+        self.socket.run(app, use_debugger=False, use_reloader=False)
 
 
 # pylint: disable=invalid-name
@@ -62,7 +57,7 @@ def wait_for_process() -> None:
 
 def shutdown_server() -> None:
     """Shutdown the server."""
-    server.shutdown()
+    os._exit(0)  # pylint: disable=W0212
 
 
 def schedule_shutdown():

@@ -1,6 +1,7 @@
 Flask-RESTful==0.3.8
 Flask==2.0.0
 Flask-Cors==3.0.10
+Flask-SocketIO==5.1.0
 pyinstaller
 pylint
 black
@@ -13,4 +14,4 @@ dirhash==0.2.1
 scantree==0.0.1
 scandir==1.10.0
 apscheduler==3.7.0
-datature-hub==0.1.0
+datature-hub==0.2.0
