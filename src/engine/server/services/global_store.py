@@ -243,7 +243,8 @@ class GlobalStore:
         """Add a model into the loaded model list.
 
         :param key: The model key.
-        :param model_dict: The information of the model.
+        :param model_dict: A dictionary of the loaded model
+            and its model class.
         """
         self._loaded_model_list_[key] = model_dict
 
@@ -266,7 +267,7 @@ class GlobalStore:
         """Retrieve the model, label map, height and width given the model key.
 
         :param key: The model key.
-        :return: A tuple represented by (model, label map, height, width).
+        :return: A dictionary of the loaded model and its model class.
         """
         return self._loaded_model_list_[key]
 

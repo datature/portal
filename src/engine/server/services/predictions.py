@@ -25,11 +25,7 @@ def _predict_single_image(
 ):
     """Make predictions on a single image.
 
-    :param model: The loaded model.
-    :param model_type: The type of the model.
-    :param model_height: The height of the images that the model accepts.
-    :param model_width: The width of the images that the model accepts.
-    :param label_map: The label maps showing the labels accepted by the model.
+    :param model_dict: A dictionary of the loaded model and its model class.
     :param format_arg: The output format.
     :param iou: The intersection of union threshold.
     :param image_array: The single image as an array.
@@ -74,10 +70,7 @@ def predict_image(
 ):
     """Make predictions on a single image.
 
-    :param model: The loaded model.
-    :param model_height: The height of the images that the model accepts.
-    :param model_width: The width of the images that the model accepts.
-    :param label_map: The label maps showing the labels accepted by the model.
+    :param model_dict: A dictionary of the loaded model and its model class.
     :param format_arg: The output format.
     :param iou: The intersection of union threshold.
     :param image_directory: The directory of the single image.
@@ -102,10 +95,7 @@ def predict_video(
 ):
     """Make predictions on a multiple images within the video.
 
-    :param model: The loaded model.
-    :param model_height: The height of the images that the model accepts.
-    :param model_width: The width of the images that the model accepts.
-    :param label_map: The label maps showing the labels accepted by the model.
+    :param model_dict: A dictionary of the loaded model and its model class.
     :param iou: The intersection of union threshold.
     :param video_directory: The directory of the video.
     :param frame_interval: The sampling interval of the video.
