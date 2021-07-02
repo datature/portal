@@ -112,12 +112,12 @@ class DarknetModel(BaseModel):
                     scores = detection[5:]
                     classID = np.argmax(scores)
                     confidence = scores[classID]
-                    box = detection[0:4] * np.array([W, H, W, H])
-                    (centerX, centerY, width, height) = box.astype("int")
-                    xmin = int(centerX - (width / 2))
-                    ymin = int(centerY - (height / 2))
-                    xmax = int(xmin + width)
-                    ymax = int(ymin + height)
+                    box = detection[0:4]
+                    (centerX, centerY, width, height) = box
+                    xmin = centerX - (width / 2)
+                    ymin = centerY - (height / 2)
+                    xmax = xmin + width
+                    ymax = ymin + height
                     boxes.append([ymin, xmin, ymax, xmax])
                     confidences.append(float(confidence))
                     classIDs.append(classID)
