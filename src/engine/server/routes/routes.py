@@ -296,7 +296,7 @@ def deregister_model(model_id: str) -> Response:
         raise PortalError(Errors.INVALIDMODELKEY, str(e)) from e
 
 
-@app.route("/api/model/", methods=["GET"])
+@app.route("/api/model", methods=["GET"])
 @cross_origin()
 @portal_function_handler(clear_status=False)
 def get_registry() -> tuple:
