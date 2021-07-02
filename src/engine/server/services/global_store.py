@@ -216,7 +216,9 @@ class GlobalStore:
         :param key: The model key.
         :return: The model as a Model class.
         """
-        return jsonpickle.decode(self._store_["registry"][key])
+        if key in self._store_["registry"]:
+            return jsonpickle.decode(self._store_["registry"][key])
+        raise PortalError(Errors.INVALIDMODELKEY, "Model not registered.")
 
     def get_registered_model_info(self) -> str:
         """Retrieve directory, description, name of all registered models"""

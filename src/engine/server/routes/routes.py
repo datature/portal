@@ -26,7 +26,6 @@ from server.services.model_register import (
 )
 
 from server.services.predictions import predict_image, predict_video
-from server.utilities.label_map_loader import load_label_map
 from server.utilities.prediction_utilities import corrected_predict_query
 
 
@@ -253,14 +252,8 @@ def get_tag(model_id: str) -> tuple:
         UNINITIALIZED: There are no registered models.
     """
     try:
-        registered_model_list = global_store.get_registered_model_list()
-        if not registered_model_list:
-            raise PortalError(
-                Errors.UNINITIALIZED,
-                "No Registered Models.",
-            )
-        directory = registered_model_list[model_id]
-        label_map = load_label_map(directory)
+        registered_model = global_store.get_registered_model(model_id)
+        label_map = registered_model.get_label_map()
         output = {value["name"]: value["id"] for _, value in label_map.items()}
 
         return (jsonify(output), 200)
@@ -540,7 +533,7 @@ def predict_video_fn(model_id: str) -> tuple:
                 raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
             if model_id not in global_store.get_loaded_model_keys():
                 raise PortalError(Errors.NOTFOUND, "model_id not loaded.")
-            model_dict = global_store.get_all_model_attributes(model_id)
+            model_dict = global_store.get_model_dict(model_id)
 
             output = predict_video(
                 model_dict,
