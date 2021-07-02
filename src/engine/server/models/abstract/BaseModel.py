@@ -52,7 +52,10 @@ class BaseModel:
             }
         2. Save this dictionary into self._label_map_.
         """
-        pass
+        raise NotImplementedError(
+            "Using the BaseModel implementation of _load_label_map_."
+            "Please also implement this in your custom model class."
+        )
 
     @classmethod
     def register(self):
@@ -68,7 +71,10 @@ class BaseModel:
             self._key_ = get_hash(self._directory_)
         5. return (self._key_, self) as a tuple.
         """
-        pass
+        raise NotImplementedError(
+            "Using the BaseModel implementation of register."
+            "Please also implement this in your custom model class."
+        )
 
     @classmethod
     def load(self):
@@ -80,7 +86,10 @@ class BaseModel:
             loaded_model = load_the_model(<model_path>)
             return loaded_model
         """
-        pass
+        raise NotImplementedError(
+            "Using the BaseModel implementation of load."
+            "Please also implement this in your custom model class."
+        )
 
     @classmethod
     def predict(self, model, image_array):
@@ -103,4 +112,7 @@ class BaseModel:
         ** self._height_ and self._width_ can be used here for inputs of the
             model-accepted height and width. **
         """
-        pass
+        raise NotImplementedError(
+            "Using the BaseModel implementation of predict."
+            "Please also implement this in your custom model class."
+        )
