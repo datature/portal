@@ -121,6 +121,7 @@ export function APIGetRegisteredModels(): Promise<AxiosResponse<any>> {
 
 export function APIRegisterModel(
   type: string,
+  modelType: string,
   name: string,
   description: string,
   directory: string,
@@ -129,6 +130,7 @@ export function APIRegisterModel(
 ): Promise<AxiosResponse<any>> {
   const config = {
     type,
+    modelType,
     name,
     description,
     credentials: {

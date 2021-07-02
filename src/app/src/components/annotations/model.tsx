@@ -61,6 +61,7 @@ export type FormData = {
   directory: string;
   modelKey: string;
   projectSecret: string;
+  modelType: string;
 };
 
 interface ModelProps {
@@ -109,6 +110,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       projectTags: {},
       formData: {
         type: "local",
+        modelType: "tensorflow",
         name: "",
         description: "",
         directory: "",
@@ -151,6 +153,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     } else {
       await APIRegisterModel(
         this.state.formData.type,
+        this.state.formData.modelType,
         this.state.formData.name,
         this.state.formData.description,
         this.state.formData.directory,
@@ -345,7 +348,11 @@ export default class Model extends React.Component<ModelProps, ModelState> {
   private handleChangeForm = (event: any) => {
     // eslint-disable-next-line react/no-access-state-in-setstate, prefer-const
     let form: any = this.state.formData;
-    form[event.target.name] = event.target.value;
+    if (event.target.name) {
+      form[event.target.name] = event.target.value;
+    } else if (event.currentTarget.id) {
+      form[event.currentTarget.id] = event.currentTarget.text;
+    }
     this.setState({ formData: form });
   };
 
@@ -438,6 +445,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     this.setState({
       formData: {
         type: tabId.toString(),
+        modelType: tabId.toString() === "local" ? "tensorflow" : "",
         name: "",
         description: "",
         directory: "",
@@ -546,7 +554,38 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               />{" "}
             </FormGroup>
           </>
-        ) : null}
+        ) : (
+          <>
+            <FormGroup label="Model Type" labelFor="label-input">
+              <Popover
+                minimal
+                content={
+                  // eslint-disable-next-line react/jsx-wrap-multilines
+                  <Menu>
+                    <Menu.Item
+                      onClick={this.handleChangeForm}
+                      id="modelType"
+                      key="tensorflow"
+                      text="tensorflow"
+                    />
+                    <Menu.Item
+                      onClick={this.handleChangeForm}
+                      id="modelType"
+                      key="darknet"
+                      text="darknet"
+                    />
+                  </Menu>
+                }
+                placement="bottom"
+              >
+                <Button
+                  text={this.state.formData.modelType}
+                  rightIcon="double-caret-vertical"
+                />
+              </Popover>
+            </FormGroup>
+          </>
+        )}
         <FormGroup label="Name" labelFor="label-input">
           <InputGroup
             id="name"
@@ -797,6 +836,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
 
               formData: {
                 type: "local",
+                modelType: "tensorflow",
                 name: "",
                 description: "",
                 directory: "",
