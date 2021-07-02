@@ -94,11 +94,11 @@
         },
         "datature-hub": {
             "hashes": [
-                "sha256:3ce0d674fd8d5139cc2c305c0921610a7a9d7153a01828f4c16b4f70be68f114",
-                "sha256:51336790414f6057a5ccb65e5d99235572b300cb5a1dd4ce5116b987b9254a2f"
+                "sha256:da54b4d57cd369b282b59b803ea3e971d12a18583fb5a11391e9e38cc2f88361",
+                "sha256:3c6ba49676196aab9eb40f4d5fe07c0e1a24ed58b6d1aabf47de018b385af5ce"
             ],
             "index": "pypi",
-            "version": "==0.1.0"
+            "version": "==0.2.0"
         },
         "dirhash": {
             "hashes": [
