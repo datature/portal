@@ -41,10 +41,6 @@ class ServerThread(threading.Thread):
     def run(self):
         self.socket.run(app, use_debugger=False, use_reloader=False)
 
-    def shutdown(self):
-        print("Shutting down server")
-        self.socket.stop()
-
 
 # pylint: disable=invalid-name
 app = Flask(__name__)
@@ -61,7 +57,7 @@ def wait_for_process() -> None:
 
 def shutdown_server() -> None:
     """Shutdown the server."""
-    server.shutdown()
+    os._exit(0)  # pylint: disable=W0212
 
 
 def schedule_shutdown():

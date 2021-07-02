@@ -11,7 +11,7 @@ fi
 echo "Installing Pyinstaller..."
 pip install --upgrade pyinstaller
 echo "Creating flask executable..."
-pyinstaller -F run.py --hidden-import datature-hub --distpath ../../dist
+pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ../../dist
 echo "Removing extra files - run.spec and build"
 rm -r run.spec build
 cd ../..

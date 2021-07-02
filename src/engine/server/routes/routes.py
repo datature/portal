@@ -511,7 +511,7 @@ def predict_video_fn(model_id: str) -> tuple:
             str(frame_interval) + str(iou) + str(confidence),
         )
         prediction_status = (
-            "predict_single_image_"
+            "predict_video_"
             + model_id
             + video_directory
             + str(frame_interval)
