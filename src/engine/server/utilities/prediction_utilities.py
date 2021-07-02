@@ -455,7 +455,6 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
         contours = None
 
     output = []
-    print(category_map)
     for each_class, _ in enumerate(classes):
         class_name = category_map[str(classes[each_class])]
         item = {}

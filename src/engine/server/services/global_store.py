@@ -180,7 +180,7 @@ class GlobalStore:
     def add_registered_model(
         self,
         key: str,
-        model: Model,
+        model: BaseModel,
     ) -> None:
         """Add or update a model into the registry.
 
@@ -191,7 +191,7 @@ class GlobalStore:
         self._store_["registry"][key] = serialized_model_class
         self._save_store_()
 
-    def get_registered_model(self, key: str) -> Model:
+    def get_registered_model(self, key: str) -> BaseModel:
         """Retrieve the model given its model key
 
         :param key: The model key.

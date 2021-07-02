@@ -6,7 +6,7 @@ import numpy as np
 from server.services.errors import Errors, PortalError
 from server.services.hashing import get_hash
 
-from server.models._BaseModel import BaseModel
+from server.models.abstract.BaseModel import BaseModel
 
 
 class DarknetModel(BaseModel):
