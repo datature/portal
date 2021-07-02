@@ -14,4 +14,4 @@ dirhash==0.2.1
 scantree==0.0.1
 scandir==1.10.0
 apscheduler==3.7.0
-datature-hub==0.1.0
+datature-hub==0.2.0
