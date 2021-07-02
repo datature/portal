@@ -61,7 +61,7 @@ export type FormData = {
   directory: string;
   modelKey: string;
   projectSecret: string;
-  modelType: string;
+  modelType: "tensorflow" | "darknet" | "";
 };
 
 interface ModelProps {
@@ -348,11 +348,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
   private handleChangeForm = (event: any) => {
     // eslint-disable-next-line react/no-access-state-in-setstate, prefer-const
     let form: any = this.state.formData;
-    if (event.target.name) {
-      form[event.target.name] = event.target.value;
-    } else if (event.currentTarget.id) {
-      form[event.currentTarget.id] = event.currentTarget.text;
-    }
+    form[event.target.name] = event.target.value;
     this.setState({ formData: form });
   };
 
@@ -532,6 +528,10 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       </Menu>
     );
 
+    const modelTypes = {
+      tensorflow: "TensorFlow 2.0",
+      darknet: "DarkNet (YOLO v3, YOLO v4)",
+    };
     const registerModelForm = (
       <div className={classes.RegistrationForm}>
         {this.state.registrationTabId === "hub" ? (
@@ -565,24 +565,34 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   <Menu>
                     <Menu.Item
                       shouldDismissPopover={false}
-                      onClick={this.handleChangeForm}
-                      id="modelType"
-                      key="tensorflow"
-                      text="tensorflow"
+                      text={modelTypes.tensorflow}
+                      onClick={() => {
+                        const event = {
+                          target: { name: "modelType", value: "tensorflow" },
+                        };
+                        this.handleChangeForm(event);
+                      }}
                     />
                     <Menu.Item
                       shouldDismissPopover={false}
-                      onClick={this.handleChangeForm}
-                      id="modelType"
-                      key="darknet"
-                      text="darknet"
+                      text={modelTypes.darknet}
+                      onClick={() => {
+                        const event = {
+                          target: { name: "modelType", value: "darknet" },
+                        };
+                        this.handleChangeForm(event);
+                      }}
                     />
                   </Menu>
                 }
                 placement="bottom"
               >
                 <Button
-                  text={this.state.formData.modelType}
+                  text={
+                    this.state.formData.modelType !== ""
+                      ? modelTypes[this.state.formData.modelType]
+                      : "None selected"
+                  }
                   rightIcon="double-caret-vertical"
                 />
               </Popover>
@@ -824,7 +834,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                     renderActiveTabPanelOnly={true}
                   >
                     <Tab id="local" title="Local" />
-                    <Tab id="hub" title="Hub" />
+                    <Tab id="hub" title="Datature Hub" />
                     <Tabs.Expander />
                   </Tabs>
                 </NavbarGroup>{" "}
