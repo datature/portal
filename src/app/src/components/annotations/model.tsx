@@ -585,7 +585,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                     />
                   </Menu>
                 }
-                placement="bottom"
+                placement="bottom-start"
               >
                 <Button
                   text={
