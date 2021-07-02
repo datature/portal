@@ -419,6 +419,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       );
       return (
         <MenuItem
+          shouldDismissPopover={false}
           text={this.formatLongStringName(model.name, 35)}
           id={model.hash}
           key={model.hash}
@@ -563,12 +564,14 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   // eslint-disable-next-line react/jsx-wrap-multilines
                   <Menu>
                     <Menu.Item
+                      shouldDismissPopover={false}
                       onClick={this.handleChangeForm}
                       id="modelType"
                       key="tensorflow"
                       text="tensorflow"
                     />
                     <Menu.Item
+                      shouldDismissPopover={false}
                       onClick={this.handleChangeForm}
                       id="modelType"
                       key="darknet"
