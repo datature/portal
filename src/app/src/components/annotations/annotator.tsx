@@ -567,11 +567,14 @@ export default class Annotator extends Component<
     this.setState({ uiState: "Predicting" });
     this.handleProgressToast();
 
-    await Promise.all(
-      this.state.assetList.map(async asset => {
-        await this.getInference(asset, true, false);
-      })
-    );
+    const lastAsset = this.state.assetList[this.state.assetList.length - 1];
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const asset of this.state.assetList) {
+      this.selectAsset(asset, false);
+      // eslint-disable-next-line no-await-in-loop
+      await this.getInference(asset, true, asset.url === lastAsset.url);
+    }
     await this.updateImage();
     this.setState({ predictDone: 0, uiState: null });
   }
@@ -586,9 +589,14 @@ export default class Annotator extends Component<
       return;
     }
 
+    if (!this.props.loadedModel) {
+      CreateGenericToast("There is no model loaded", Intent.WARNING, 3000);
+      return;
+    }
+
     this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
     this.setState({ uiState: "Predicting" });
-
+    this.handleProgressToast();
     await this.getInference(this.currentAsset, reanalyse);
     await this.updateImage();
     this.setState({ predictDone: 0, uiState: null });
@@ -604,15 +612,11 @@ export default class Annotator extends Component<
   ) {
     /* Blocker to account for case where there is no model to perform prediction */
     if (!this.props.loadedModel) {
-      CreateGenericToast("There is no model loaded", Intent.WARNING, 3000);
       return;
     }
 
     const loadedModelHash = this.props.loadedModel.hash;
 
-    if (reanalyse && singleAnalysis) {
-      this.handleProgressToast();
-    }
     if (
       asset.type === "image" &&
       (this.state.inferenceOptions.bulkAnalysisStatus !== "video" ||
@@ -626,7 +630,7 @@ export default class Annotator extends Component<
         "json"
       )
         .then(response => {
-          if (this.currentAsset.url === asset.url)
+          if (this.currentAsset.url === asset.url && singleAnalysis)
             this.updateAnnotations(response.data);
         })
         .catch(error => {
@@ -650,7 +654,7 @@ export default class Annotator extends Component<
         this.state.inferenceOptions.iou
       )
         .then(response => {
-          if (this.currentAsset.url === asset.url) {
+          if (this.currentAsset.url === asset.url && singleAnalysis) {
             const videoElement = this.videoOverlay.getElement();
             /**
              * Recursive Callback function that
@@ -958,7 +962,7 @@ export default class Annotator extends Component<
    * as well as renders user-defined (if-any) annotation as LeafletLayerObjects
    * @param filename - URL of Asset
    */
-  public selectAsset(asset: AssetAPIObject): void {
+  public selectAsset(asset: AssetAPIObject, singleAnalysis = true): void {
     /**
      * Check if there has been a reselection of asset, if so, we avoid
      * rescaling or map-fitting the current viewport to improve QoL
@@ -1034,7 +1038,7 @@ export default class Annotator extends Component<
           /* Reset to Default Zoom */
           this.map.setMinZoom(-3);
           /* Get inference if Image is Cached */
-          if (asset.isCached) this.singleAnalysis(false);
+          if (asset.isCached && singleAnalysis) this.singleAnalysis(false);
         }
 
         if (initialSelect) {
@@ -1096,7 +1100,7 @@ export default class Annotator extends Component<
             videoElement?.focus();
           }, 150);
           /* Get inference if Video is Cached */
-          if (asset.isCached) this.singleAnalysis(false);
+          if (asset.isCached && singleAnalysis) this.singleAnalysis(false);
         } else {
           /** Set Focus */
           videoElement?.focus();
