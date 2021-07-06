@@ -507,9 +507,7 @@ def visualize(
         key: value[0, :num_detections].numpy()
         for key, value in detections_output.items()
     }
-
     detections["num_detections"] = num_detections
-
     # Extract predictions
     bboxes = detections["detection_boxes"]
     classes = detections["detection_classes"].astype(np.int64)
@@ -550,12 +548,11 @@ def visualize(
             color,
             -1,
         )
-
         ## Insert label class & score
         cv2.putText(
             img_arr,
             "Class: {}, Score: {}".format(
-                str(category_index[classes[idx]]["name"]),
+                str(category_index[str(classes[idx])]["name"]),
                 str(round(scores[idx], 2)),
             ),
             (
