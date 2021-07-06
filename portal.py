@@ -1,12 +1,6 @@
 import sys
-import builtins
 import webbrowser
 import os
-import subprocess
-
-VALID_ARGUMENTS = [
-    "--electron"
-]
 
 # If false means run locally
 is_electron = False
@@ -42,8 +36,6 @@ else:
     else:
         # Run via global environment
         os.system("python3 -m run")
-        
    
     os.chdir("..")
-
 print("End of portal.py. Bye!")
