@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Intent, Position, Toaster } from "@blueprintjs/core";
 import { APIIsAlive } from "@portal/api/general";
+import isElectron from "is-electron";
 
 let toaster = typeof window !== "undefined" ? Toaster.create({}) : null;
 
@@ -32,21 +33,30 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
         if (isRestart) setIsRestart(false);
       })
       .catch(() => {
-        toaster?.show({
-          action: {
-            onClick: () => {
-              setIsRestart(true);
-              toaster?.clear();
-              const { ipcRenderer } = window.require("electron");
-              ipcRenderer.send("restart-server");
+        if (isElectron()) {
+          toaster?.show({
+            action: {
+              onClick: () => {
+                setIsRestart(true);
+                toaster?.clear();
+                const { ipcRenderer } = window.require("electron");
+                ipcRenderer.send("restart-server");
+              },
+              text: "Restart?",
             },
-            text: "Restart?",
-          },
-          timeout: 25000,
-          icon: "outdated",
-          intent: Intent.WARNING,
-          message: "Portal runtime is unresponsive.",
-        });
+            timeout: 25000,
+            icon: "outdated",
+            intent: Intent.WARNING,
+            message: "Portal runtime is unresponsive.",
+          });
+        } else {
+          toaster?.show({
+            timeout: 25000,
+            icon: "outdated",
+            intent: Intent.WARNING,
+            message: "Portal runtime is unresponsive. Please wait for a while",
+          });
+        }
       });
   };
 
