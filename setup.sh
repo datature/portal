@@ -21,8 +21,14 @@ cp ./src/engine/run.py ./portal-build
 
 cd ./src/engine
 echo "Installing Python Environment in portal-build..."
+echo "$OSTYPE"
+if [[ "$OSTYPE" == "msys" ]]; then
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+else
 python3 -m pip install --upgrade pip
 python3 -m pip install -r requirements.txt
+fi
 
 cd ../..
 
