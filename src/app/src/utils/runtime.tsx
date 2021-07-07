@@ -5,6 +5,7 @@ import isElectron from "is-electron";
 import {
   CreateGenericToast,
   ClearAllGenericToast,
+  DissmissToast,
 } from "@portal/utils/ui/toasts";
 
 interface RunTimeProps {
@@ -23,8 +24,9 @@ interface RunTimeProps {
 // eslint-disable-next-line import/prefer-default-export
 export function RuntimeChecker(props: RunTimeProps): JSX.Element {
   const [isRestart, setIsRestart] = useState(false);
-  const threshold = 1;
   let heartbeatCounts = 0;
+  const threshold = 1;
+  let toastKey: string | undefined;
 
   const checkForHeartbeat = () => {
     APIIsAlive()
@@ -32,19 +34,20 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
         const askForCache = result.data.hasCache && !result.data.isCacheCalled;
         props.callbacks.HandleHasCache(askForCache);
         if (!props.isConnected) props.callbacks.HandleIsConnected(true);
+        if (toastKey) DissmissToast(toastKey);
         heartbeatCounts = 0;
         if (isRestart) setIsRestart(false);
       })
       .catch(() => {
-        if (heartbeatCounts < threshold) {
+        if (heartbeatCounts === 0) {
           const message = "Waiting for runtime to load";
           const icon = (
             <>
               <Spinner size={SpinnerSize.SMALL} className={"bp3-icon"} />
             </>
           );
-          CreateGenericToast(message, Intent.PRIMARY, 25000, icon);
-        } else if (isElectron()) {
+          toastKey = CreateGenericToast(message, Intent.PRIMARY, 0, icon);
+        } else if (heartbeatCounts >= threshold && isElectron()) {
           const message = "Portal runtime is unresponsive.";
           const icon = "outdated";
           const action = {
@@ -56,13 +59,8 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
             },
             text: "Restart?",
           };
+          if (toastKey) DissmissToast(toastKey);
           CreateGenericToast(message, Intent.WARNING, 25000, icon, action);
-        } else {
-          const message =
-            "Portal runtime is unresponsive. Please restart the server.";
-
-          const icon = "outdated";
-          CreateGenericToast(message, Intent.WARNING, 25000, icon);
         }
         heartbeatCounts += 1;
         if (props.isConnected) props.callbacks.HandleIsConnected(false);

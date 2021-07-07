@@ -22,7 +22,7 @@ export function CreateGenericToast(
     });
 
   /* Render Toast */
-  (CreateGenericToast as any)._ToasterInstance.show({
+  return (CreateGenericToast as any)._ToasterInstance.show({
     message,
     intent,
     timeout,
@@ -33,4 +33,8 @@ export function CreateGenericToast(
 
 export function ClearAllGenericToast() {
   (CreateGenericToast as any)._ToasterInstance.clear();
+}
+
+export function DissmissToast(key: string) {
+  (CreateGenericToast as any)._ToasterInstance.dismiss(key);
 }
