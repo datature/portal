@@ -363,41 +363,41 @@ export default class AnnotationMenu extends Component {
             }
             onClick={this.props.callbacks.OpenFileManagement}
           />
-          <ControlGroup>
-            <MenuDivider title="Inference" />
+          <MenuDivider title="Inference" />
+
+          {this.props.predictDone === 0 ? (
             <Tooltip
               content="Load model before analysing"
               position={Position.TOP}
+              disabled={this.props.isConnected && this.props.loadedModel}
             >
-              <Icon icon="help" className={classes.Icon} iconSize={14} />
+              <div className={classes.InferenceMenuItem}>
+                <MenuItem
+                  disabled={!this.props.isConnected || !this.props.loadedModel}
+                  icon="redo"
+                  text="Re-Analyse"
+                  label={<KeyCombo combo="R" />}
+                  className={
+                    this.props.userEditState === "Re-Analyse"
+                      ? "bp3-active"
+                      : ""
+                  }
+                  onClick={() => this.props.callbacks.GetInference()}
+                />
+                <MenuItem
+                  disabled={!this.props.isConnected || !this.props.loadedModel}
+                  icon="heat-grid"
+                  text="Bulk Analysis"
+                  label={<KeyCombo combo="B" />}
+                  className={
+                    this.props.userEditState === "Bulk Analysis"
+                      ? "bp3-active"
+                      : ""
+                  }
+                  onClick={() => this.props.callbacks.GetInference()}
+                />
+              </div>
             </Tooltip>
-          </ControlGroup>
-
-          {this.props.predictDone === 0 ? (
-            <>
-              <MenuItem
-                disabled={!this.props.isConnected}
-                icon="redo"
-                text="Re-Analyse"
-                label={<KeyCombo combo="R" />}
-                className={
-                  this.props.userEditState === "Re-Analyse" ? "bp3-active" : ""
-                }
-                onClick={() => this.props.callbacks.GetInference()}
-              />
-              <MenuItem
-                disabled={!this.props.isConnected}
-                icon="heat-grid"
-                text="Bulk Analysis"
-                label={<KeyCombo combo="B" />}
-                className={
-                  this.props.userEditState === "Bulk Analysis"
-                    ? "bp3-active"
-                    : ""
-                }
-                onClick={() => this.props.callbacks.GetInference()}
-              />
-            </>
           ) : (
             <Spinner size={30} className={classes.Spin} />
           )}

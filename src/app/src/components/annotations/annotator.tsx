@@ -1367,6 +1367,7 @@ export default class Annotator extends Component<
               showSelected={this.state.showSelected}
               useDarkTheme={this.props.useDarkTheme}
               isConnected={this.props.isConnected}
+              loadedModel={this.props.loadedModel}
               callbacks={{
                 ResetControls: this.resetControls,
                 OpenFileManagement: this.handleFileManagementOpen,
