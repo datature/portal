@@ -43,7 +43,7 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
           const message = "Waiting for runtime to load";
           const icon = (
             <>
-              <Spinner size={SpinnerSize.SMALL} className={"bp3-icon"} />
+              <Spinner size={15} className={"bp3-icon"} />
             </>
           );
           toastKey = CreateGenericToast(message, Intent.PRIMARY, 0, icon);
