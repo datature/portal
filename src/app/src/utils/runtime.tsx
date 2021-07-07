@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Intent, Position, Toaster } from "@blueprintjs/core";
+import { Intent, Spinner, SpinnerSize } from "@blueprintjs/core";
 import { APIIsAlive } from "@portal/api/general";
 import isElectron from "is-electron";
-
-let toaster = typeof window !== "undefined" ? Toaster.create({}) : null;
+import {
+  CreateGenericToast,
+  ClearAllGenericToast,
+} from "@portal/utils/ui/toasts";
 
 interface RunTimeProps {
+  isConnected: boolean;
   callbacks: {
     HandleHasCache: (hasCache: boolean) => void;
+    HandleIsConnected: (isConnected: boolean) => void;
   };
 }
 
@@ -18,45 +22,50 @@ interface RunTimeProps {
  */
 // eslint-disable-next-line import/prefer-default-export
 export function RuntimeChecker(props: RunTimeProps): JSX.Element {
-  const refHandlers = {
-    // eslint-disable-next-line no-return-assign
-    toaster: (ref: Toaster) => (toaster = ref),
-  };
-
   const [isRestart, setIsRestart] = useState(false);
+  const threshold = 1;
+  let heartbeatCounts = 0;
 
   const checkForHeartbeat = () => {
     APIIsAlive()
       .then(result => {
         const askForCache = result.data.hasCache && !result.data.isCacheCalled;
         props.callbacks.HandleHasCache(askForCache);
+        if (!props.isConnected) props.callbacks.HandleIsConnected(true);
+        heartbeatCounts = 0;
         if (isRestart) setIsRestart(false);
       })
       .catch(() => {
-        if (isElectron()) {
-          toaster?.show({
-            action: {
-              onClick: () => {
-                setIsRestart(true);
-                toaster?.clear();
-                const { ipcRenderer } = window.require("electron");
-                ipcRenderer.send("restart-server");
-              },
-              text: "Restart?",
+        if (heartbeatCounts < threshold) {
+          const message = "Waiting for runtime to load";
+          const icon = (
+            <>
+              <Spinner size={SpinnerSize.SMALL} className={"bp3-icon"} />
+            </>
+          );
+          CreateGenericToast(message, Intent.PRIMARY, 25000, icon);
+        } else if (isElectron()) {
+          const message = "Portal runtime is unresponsive.";
+          const icon = "outdated";
+          const action = {
+            onClick: () => {
+              setIsRestart(true);
+              ClearAllGenericToast();
+              const { ipcRenderer } = window.require("electron");
+              ipcRenderer.send("restart-server");
             },
-            timeout: 25000,
-            icon: "outdated",
-            intent: Intent.WARNING,
-            message: "Portal runtime is unresponsive.",
-          });
+            text: "Restart?",
+          };
+          CreateGenericToast(message, Intent.WARNING, 25000, icon, action);
         } else {
-          toaster?.show({
-            timeout: 25000,
-            icon: "outdated",
-            intent: Intent.WARNING,
-            message: "Portal runtime is unresponsive. Please wait for a while",
-          });
+          const message =
+            "Portal runtime is unresponsive. Please restart the server.";
+
+          const icon = "outdated";
+          CreateGenericToast(message, Intent.WARNING, 25000, icon);
         }
+        heartbeatCounts += 1;
+        if (props.isConnected) props.callbacks.HandleIsConnected(false);
       });
   };
 
@@ -67,5 +76,5 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
     return () => clearInterval(interval);
   }, [isRestart]);
 
-  return <Toaster position={Position.BOTTOM_RIGHT} ref={refHandlers.toaster} />;
+  return <></>;
 }

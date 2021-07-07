@@ -24,8 +24,9 @@ class Annotation extends React.Component {
 
     /* Global Setting / Styling State */
     this.state = {
-      useDarkTheme: false,
+      useDarkTheme: true,
       loadedModel: undefined,
+      isConnected: false,
     };
 
     /* Grid Layout Configuration */
@@ -76,11 +77,14 @@ class Annotation extends React.Component {
           <HeaderNav
             active={"Annotations"}
             useDarkTheme={this.state.useDarkTheme}
+            isConnected={this.state.isConnected}
             GlobalSetting={this.state}
             GlobalSettingCallback={this.setTheme}
-            {...this.props}
             handleModelChange={loadedModel => {
               this.setState({ loadedModel });
+            }}
+            handleIsConnected={isConnected => {
+              this.setState({ isConnected });
             }}
           />
 

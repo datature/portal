@@ -77,6 +77,7 @@ interface AnnotatorProps {
   user: any;
   useDarkTheme: boolean;
   loadedModel: RegisteredModel | undefined;
+  isConnected: boolean;
 }
 
 interface AnnotatorState {
@@ -1365,6 +1366,7 @@ export default class Annotator extends Component<
               filterArr={this.state.filterArr}
               showSelected={this.state.showSelected}
               useDarkTheme={this.props.useDarkTheme}
+              isConnected={this.props.isConnected}
               callbacks={{
                 ResetControls: this.resetControls,
                 OpenFileManagement: this.handleFileManagementOpen,

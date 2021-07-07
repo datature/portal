@@ -119,10 +119,12 @@ export default class HeaderNav extends React.Component {
           </NavbarGroup>
         </Navbar>
         <RuntimeChecker
+          isConnected={this.props.isConnected}
           callbacks={{
             HandleHasCache: hasCache => {
               this.setState({ hasCache });
             },
+            HandleIsConnected: this.props.handleIsConnected,
           }}
         />
         <Alert
