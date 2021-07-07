@@ -363,7 +363,7 @@ export default class AnnotationMenu extends Component {
           {this.props.predictDone === 0 ? (
             <>
               <MenuItem
-                disabled={this.props.isConnected}
+                disabled={!this.props.isConnected}
                 icon="redo"
                 text="Re-Analyse"
                 label={<KeyCombo combo="R" />}
@@ -373,7 +373,7 @@ export default class AnnotationMenu extends Component {
                 onClick={() => this.props.callbacks.GetInference()}
               />
               <MenuItem
-                disabled={this.props.isConnected}
+                disabled={!this.props.isConnected}
                 icon="heat-grid"
                 text="Bulk Analysis"
                 label={<KeyCombo combo="B" />}
