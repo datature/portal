@@ -23,3 +23,7 @@
 .Slider > bp3-slider-axis {
   display: none;
 }
+
+.Icon {
+  margin-top: 7px;
+}
