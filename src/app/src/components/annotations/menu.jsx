@@ -18,6 +18,10 @@ import {
   InputGroup,
   TagInput,
   Button,
+  Tooltip,
+  Position,
+  ControlGroup,
+  IconSize,
 } from "@blueprintjs/core";
 
 import { TagColours } from "@portal/constants/annotation";
@@ -359,7 +363,16 @@ export default class AnnotationMenu extends Component {
             }
             onClick={this.props.callbacks.OpenFileManagement}
           />
-          <MenuDivider title="Inference" />
+          <ControlGroup>
+            <MenuDivider title="Inference" />
+            <Tooltip
+              content="Load model before analysing"
+              position={Position.TOP}
+            >
+              <Icon icon="help" className={classes.Icon} iconSize={14} />
+            </Tooltip>
+          </ControlGroup>
+
           {this.props.predictDone === 0 ? (
             <>
               <MenuItem
