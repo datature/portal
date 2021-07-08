@@ -28,7 +28,6 @@ import {
   Navbar,
   NavbarGroup,
   IconSize,
-  ControlGroup,
   PopoverInteractionKind,
   Tooltip,
 } from "@blueprintjs/core";
