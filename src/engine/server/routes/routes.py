@@ -139,6 +139,36 @@ def reject_cache() -> Response:
     return Response(status=200)
 
 
+@app.route("/set_gpu", methods=["POST"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def set_gpu() -> Response:
+    """Set the GPU flag to true."""
+    with open("./use_gpu", "w") as gpu_flag:
+        gpu_flag.write("0")
+    return Response(status=200)
+
+
+@app.route("/clear_gpu", methods=["POST"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def clear_gpu() -> Response:
+    """Clear the GPU flag."""
+    with open("./use_gpu", "w") as gpu_flag:
+        gpu_flag.write("-1")
+    return Response(status=200)
+
+
+@app.route("/get_gpu", methods=["GET"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def get_gpu() -> Response:
+    """Get the GPU flag."""
+    with open("./use_gpu", "r") as gpu_flag:
+        flag_value = gpu_flag.read()
+    return Response(status=200, response=flag_value)
+
+
 @app.route("/api/model/register", methods=["POST"])
 @cross_origin()
 @portal_function_handler(clear_status=True)

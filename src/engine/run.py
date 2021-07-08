@@ -1,8 +1,5 @@
 """Main file to run the flask app."""
-
-# Ignore due to Pyshell
-# pylint: disable=E0401, E0611
-from server import server
+import os
 
 
 def initialize() -> None:
@@ -10,4 +7,15 @@ def initialize() -> None:
 
 
 if __name__ == "__main__":
+    with open("./use_gpu", "r") as gpu_flag:
+        use_gpu = gpu_flag.read()
+        if use_gpu == "-1":
+            os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+            os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+    # Ignore due to Pyshell
+    # pylint: disable=E0401, E0611
+    # pylint: disable=wrong-import-position
+    from server import server
+
     initialize()
