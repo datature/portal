@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Intent, Spinner, SpinnerSize } from "@blueprintjs/core";
+import { Intent, Spinner } from "@blueprintjs/core";
 import { APIIsAlive } from "@portal/api/general";
 import isElectron from "is-electron";
 import {
