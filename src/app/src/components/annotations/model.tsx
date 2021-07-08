@@ -772,6 +772,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               className={classes.PopOver}
               content={menuOfModels}
               placement="bottom"
+              isOpen={this.state.isOpenDrawer ? false : undefined}
             >
               <Button
                 style={{ minWidth: "140px", alignContent: "left" }}
