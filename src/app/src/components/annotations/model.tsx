@@ -731,35 +731,37 @@ export default class Model extends React.Component<ModelProps, ModelState> {
             {this.state.drawerTabId === "details" ? detailsPanel : null}
           </div>
         </div>
-        <div>
-          <ControlGroup className={classes.Right}>
+        <div
+          className={[
+            Classes.DIALOG_FOOTER_ACTIONS,
+            Classes.DRAWER_FOOTER,
+          ].join(" ")}
+        >
+          <Button
+            type="button"
+            text="Unload"
+            disabled={
+              this.state.chosenModel?.hash !== this.state.currentModel?.hash ||
+              this.state.isUnloadModelAPI
+            }
+            onClick={() => {
+              this.setState({ isConfirmUnload: true });
+            }}
+          />
+          <Popover
+            interactionKind={PopoverInteractionKind.HOVER}
+            content={<div className={classes.Section}>Delete</div>}
+          >
             <Button
-              minimal
               type="button"
-              text="Unload"
-              disabled={
-                this.state.chosenModel?.hash !==
-                  this.state.currentModel?.hash || this.state.isUnloadModelAPI
-              }
+              intent={Intent.DANGER}
+              disabled={this.state.isAPIcalled}
+              icon="trash"
               onClick={() => {
-                this.setState({ isConfirmUnload: true });
+                this.setState({ isConfirmDelete: true });
               }}
             />
-            <Popover
-              interactionKind={PopoverInteractionKind.HOVER}
-              content={<div className={classes.Section}>Delete</div>}
-            >
-              <Button
-                minimal
-                type="button"
-                disabled={this.state.isAPIcalled}
-                icon="trash"
-                onClick={() => {
-                  this.setState({ isConfirmDelete: true });
-                }}
-              />
-            </Popover>
-          </ControlGroup>
+          </Popover>
         </div>
       </Drawer>
     );
