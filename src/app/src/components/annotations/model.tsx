@@ -84,6 +84,7 @@ interface ModelState {
   isAPIcalled: boolean;
   isGetTagAPI: boolean;
   isOpenDrawer: boolean;
+  hasAcknowledgedPopOver: boolean;
   formData: FormData;
   drawerTabId: TabId;
   registrationTabId: TabId;
@@ -106,6 +107,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       isLoadModelAPI: false,
       isGetTagAPI: false,
       isOpenDrawer: false,
+      hasAcknowledgedPopOver: false,
       generalIcon: undefined,
       projectTags: {},
       formData: {
@@ -531,9 +533,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
 
     const menuOfModels = (
       <Menu className={classes.PopOverMenu}>
-        {Object.keys(this.state.registeredModelList).length > 0 ? (
-          this.createMenuItems()
-        ) : (
+        {Object.keys(this.state.registeredModelList).length === 0 ? (
           <div className={classes.NonIdealPopOver}>
             <div className="bp3-non-ideal-state">
               <div className="bp3-non-ideal-state-visual">
@@ -544,6 +544,19 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               </h5>
             </div>
           </div>
+        ) : !this.state.hasAcknowledgedPopOver ? (
+          <div className={classes.NonIdealPopOver}>
+            <div className="bp3-non-ideal-state">
+              <div className="bp3-non-ideal-state-visual">
+                <Icon icon="predictive-analysis" iconSize={IconSize.LARGE} />
+              </div>
+              <h5 className="bp3-heading bp3-text-muted">
+                Select a model to load
+              </h5>
+            </div>
+          </div>
+        ) : (
+          this.createMenuItems()
         )}
       </Menu>
     );
@@ -772,9 +785,18 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               className={classes.PopOver}
               content={menuOfModels}
               placement="bottom"
-              isOpen={this.state.isOpenDrawer ? false : undefined}
+              defaultIsOpen={!this.state.currentModel ? true : undefined}
+              isOpen={
+                this.state.isOpenDrawer
+                  ? false
+                  : !this.state.hasAcknowledgedPopOver &&
+                    !this.state.currentModel
+                  ? true
+                  : undefined
+              }
             >
               <Button
+                onClick={() => this.setState({ hasAcknowledgedPopOver: true })}
                 style={{ minWidth: "140px", alignContent: "left" }}
                 alignText={Alignment.LEFT}
                 minimal
@@ -785,7 +807,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                         this.state.currentModel.name,
                         15
                       )
-                    : "Choose Model.."
+                    : "Load Model.."
                 }
               />
             </Popover>
@@ -831,9 +853,19 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               },
               registrationTabId: "local",
             });
+
+            if (Object.keys(this.state.registeredModelList).length > 0)
+              this.setState({ hasAcknowledgedPopOver: false });
           }}
         >
-          <Button minimal icon="plus" />
+          <Button
+            minimal
+            icon="plus"
+            onPointerDown={() => {
+              if (Object.keys(this.state.registeredModelList).length === 0)
+                this.setState({ hasAcknowledgedPopOver: true });
+            }}
+          />
         </Popover>
 
         {drawer}
