@@ -84,7 +84,7 @@ interface ModelState {
   isAPIcalled: boolean;
   isGetTagAPI: boolean;
   isOpenDrawer: boolean;
-  hasAcknowledgedPopOver: boolean;
+  isOpenRegistraionForm: boolean;
   formData: FormData;
   drawerTabId: TabId;
   registrationTabId: TabId;
@@ -107,7 +107,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       isLoadModelAPI: false,
       isGetTagAPI: false,
       isOpenDrawer: false,
-      hasAcknowledgedPopOver: false,
+      isOpenRegistraionForm: false,
       generalIcon: undefined,
       projectTags: {},
       formData: {
@@ -544,17 +544,6 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               </h5>
             </div>
           </div>
-        ) : !this.state.hasAcknowledgedPopOver ? (
-          <div className={classes.NonIdealPopOver}>
-            <div className="bp3-non-ideal-state">
-              <div className="bp3-non-ideal-state-visual">
-                <Icon icon="predictive-analysis" iconSize={IconSize.LARGE} />
-              </div>
-              <h5 className="bp3-heading bp3-text-muted">
-                Select a model to load
-              </h5>
-            </div>
-          </div>
         ) : (
           this.createMenuItems()
         )}
@@ -785,31 +774,38 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               className={classes.PopOver}
               content={menuOfModels}
               placement="bottom"
-              defaultIsOpen={!this.state.currentModel ? true : undefined}
-              isOpen={
-                this.state.isOpenDrawer
-                  ? false
-                  : !this.state.hasAcknowledgedPopOver &&
-                    !this.state.currentModel
-                  ? true
-                  : undefined
-              }
+              isOpen={this.state.isOpenDrawer ? false : undefined}
             >
-              <Button
-                onClick={() => this.setState({ hasAcknowledgedPopOver: true })}
-                style={{ minWidth: "140px", alignContent: "left" }}
-                alignText={Alignment.LEFT}
-                minimal
-                rightIcon="caret-down"
-                text={
-                  this.state.currentModel !== undefined
-                    ? this.formatLongStringName(
-                        this.state.currentModel.name,
-                        15
-                      )
-                    : "Load Model.."
+              <Tooltip
+                content="Select a Model to Load"
+                disabled={
+                  Object.keys(this.state.registeredModelList).length === 0 ||
+                  !!this.state.currentModel
                 }
-              />
+                isOpen={
+                  !this.state.isOpenRegistraionForm &&
+                  !this.state.isOpenDrawer &&
+                  !this.state.currentModel &&
+                  Object.keys(this.state.registeredModelList).length > 0
+                    ? true
+                    : undefined
+                }
+              >
+                <Button
+                  style={{ minWidth: "140px", alignContent: "left" }}
+                  alignText={Alignment.LEFT}
+                  minimal
+                  rightIcon="caret-down"
+                  text={
+                    this.state.currentModel !== undefined
+                      ? this.formatLongStringName(
+                          this.state.currentModel.name,
+                          15
+                        )
+                      : "Load Model.."
+                  }
+                />
+              </Tooltip>
             </Popover>
           )}
         </div>
@@ -839,6 +835,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
             </>
           }
           placement="left-end"
+          onOpening={() => this.setState({ isOpenRegistraionForm: true })}
           onClosed={() => {
             this.setState({
               generalIcon: undefined,
@@ -852,20 +849,17 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 projectSecret: "",
               },
               registrationTabId: "local",
+              isOpenRegistraionForm: false,
             });
-
-            if (Object.keys(this.state.registeredModelList).length > 0)
-              this.setState({ hasAcknowledgedPopOver: false });
           }}
         >
-          <Button
-            minimal
-            icon="plus"
-            onPointerDown={() => {
-              if (Object.keys(this.state.registeredModelList).length === 0)
-                this.setState({ hasAcknowledgedPopOver: true });
-            }}
-          />
+          <Tooltip
+            disabled={Object.keys(this.state.registeredModelList).length > 0}
+            content="Add a Model Here"
+            isOpen={Object.keys(this.state.registeredModelList).length === 0}
+          >
+            <Button minimal icon="plus" />
+          </Tooltip>
         </Popover>
 
         {drawer}
