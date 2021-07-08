@@ -382,41 +382,44 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     const modelArr: string[] = Object.keys(this.state.registeredModelList);
     return modelArr.map(key => {
       const model = this.state.registeredModelList[key];
+      const icon = (
+        <span className={"bp3-menu-item-label"}>
+          <Icon
+            icon="dot"
+            intent={
+              model.hash === this.state.currentModel?.hash
+                ? Intent.SUCCESS
+                : Intent.DANGER
+            }
+          />
+        </span>
+      );
       const rightBuuttons = (
-        <>
+        <div>
           <Button
+            icon="cog"
+            intent={Intent.NONE}
             minimal
-            disabled={this.state.isAPIcalled}
-            onClick={() => {
-              this.setState({ chosenModel: model, isConfirmLoad: true });
-            }}
-          >
-            <Icon
-              icon="dot"
-              iconSize={14}
-              intent={
-                model.hash === this.state.currentModel?.hash
-                  ? Intent.SUCCESS
-                  : Intent.DANGER
-              }
-            />
-          </Button>
-          <Button
-            minimal
-            onClick={() => {
+            onClick={event => {
               this.handleOpenDrawer(model);
+              event.stopPropagation();
             }}
-          >
-            <Icon icon="cog" iconSize={14} intent={Intent.NONE} />
-          </Button>
-        </>
+          />
+        </div>
       );
       return (
         <MenuItem
+          className={classes.MenuItems}
+          icon={icon}
           text={this.formatLongStringName(model.name, 35)}
           id={model.hash}
           key={model.hash}
           labelElement={rightBuuttons}
+          disabled={this.state.isAPIcalled}
+          onClick={() => {
+            if (!this.state.isOpenDrawer)
+              this.setState({ chosenModel: model, isConfirmLoad: true });
+          }}
         />
       );
     });
