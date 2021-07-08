@@ -61,3 +61,7 @@
 .NonIdealPopOver {
   transform: translate(0%, -20%);
 }
+
+.HintIcon {
+  padding: 7px;
+}

@@ -240,8 +240,8 @@ export default class AnnotationMenu extends Component {
               guard against some returning false on empty arrays */
               this.props.filterArr.length === 0 ||
               /* Check if tag is present in filter (CASE-INSENSITIVE) */
-              this.props.filterArr.some(filter =>
-                tag.toLowerCase().includes(filter.toLowerCase())
+              this.props.filterArr.some(
+                filter => tag.toLowerCase() === filter.toLowerCase()
               ) === this.props.showSelected
           )
           /* Update mapping */

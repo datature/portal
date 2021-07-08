@@ -30,6 +30,7 @@ import {
   IconSize,
   ControlGroup,
   PopoverInteractionKind,
+  Tooltip,
 } from "@blueprintjs/core";
 import {
   APIGetRegisteredModels,
@@ -497,7 +498,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
   }
 
   public render(): JSX.Element {
-    const addButton = (
+    const browseButton = (
       <Button
         text="Browse"
         icon="folder-new"
@@ -507,6 +508,27 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           this.handleElectronFileDialog();
         }}
       />
+    );
+
+    const browseHint = (
+      <Tooltip
+        content={
+          // eslint-disable-next-line react/jsx-wrap-multilines
+          <>
+            <p>
+              Type the path of the folder that contains the model and
+              label_map.pbtxt
+            </p>
+            <b>Example</b>
+            <p>
+              <pre>/user/example/folder</pre>
+            </p>
+          </>
+        }
+        position={Position.TOP}
+      >
+        <Icon icon="help" className={classes.HintIcon} />
+      </Tooltip>
     );
 
     const menuOfModels = (
@@ -619,7 +641,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 : "Enter model folder path..."
             }
             onChange={this.handleChangeForm}
-            rightElement={addButton}
+            rightElement={isElectron() ? browseButton : browseHint}
           />
         </FormGroup>
         <FormGroup label="Description" labelFor="label-input">
