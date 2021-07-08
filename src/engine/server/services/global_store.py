@@ -50,11 +50,7 @@ class GlobalStore:
         self._store_ = {
             "registry": {},
             "predictions": {},
-            "targeted_folders": (
-                '{"py/object": '
-                '"server.services.filesystem.folder_target.FolderTargets", '
-                '"_folders_": []}',
-            ),
+            "targeted_folders": jsonpickle.encode(self._targeted_folders_),
         }
 
     def load_cache(self):
