@@ -9,6 +9,9 @@ from flask_cors import cross_origin
 # pylint: disable=E0401, E0611
 # pylint: disable=cyclic-import
 # pylint: disable=undefined-variable
+
+from run import use_gpu
+
 from server import app, global_store, server, wait_for_process
 from server.services import decode, encode
 
@@ -164,9 +167,7 @@ def clear_gpu() -> Response:
 @portal_function_handler(clear_status=False)
 def get_gpu() -> Response:
     """Get the GPU flag."""
-    with open("./use_gpu", "r") as gpu_flag:
-        flag_value = gpu_flag.read()
-    return Response(status=200, response=flag_value)
+    return Response(status=200, response=use_gpu)
 
 
 @app.route("/api/model/register", methods=["POST"])
