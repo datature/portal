@@ -17,6 +17,7 @@ import {
   ControlGroup,
   Icon,
   Intent,
+  Position,
 } from "@blueprintjs/core";
 import {
   APIGetAssetsTree,
@@ -338,7 +339,7 @@ export default class FileModal extends React.Component<
   };
 
   public render(): JSX.Element {
-    const addButton = (
+    const browseButton = (
       <Button
         text="Browse"
         icon="folder-new"
@@ -348,6 +349,23 @@ export default class FileModal extends React.Component<
           this.handleElectronFileDialog();
         }}
       />
+    );
+    const browseHint = (
+      <Tooltip
+        content={
+          // eslint-disable-next-line react/jsx-wrap-multilines
+          <>
+            <p>Type the path of the folder and press Enter</p>
+            <b>Example</b>
+            <p>
+              <pre>/user/example/folder</pre>
+            </p>
+          </>
+        }
+        position={Position.TOP}
+      >
+        <Icon icon="help" className={classes.HintIcon} />
+      </Tooltip>
     );
     return (
       <>
@@ -366,8 +384,8 @@ export default class FileModal extends React.Component<
             <FormGroup label="Add new folder" labelFor="label-input">
               <InputGroup
                 id="label-input"
-                placeholder="Enter file path..."
-                rightElement={addButton}
+                placeholder="Enter folder path..."
+                rightElement={isElectron() ? browseButton : browseHint}
                 onKeyDown={this.handleKeyDown}
                 value={this.state.text}
                 onChange={event => {

@@ -9,6 +9,9 @@ from flask_cors import cross_origin
 # pylint: disable=E0401, E0611
 # pylint: disable=cyclic-import
 # pylint: disable=undefined-variable
+
+from run import use_gpu
+
 from server import app, global_store, server, wait_for_process
 from server.services import decode, encode
 
@@ -137,6 +140,34 @@ def reject_cache() -> Response:
     """Set cache is called."""
     global_store.cache_is_called()
     return Response(status=200)
+
+
+@app.route("/set_gpu", methods=["POST"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def set_gpu() -> Response:
+    """Set the GPU flag to true."""
+    with open("./use_gpu", "w") as gpu_flag:
+        gpu_flag.write("0")
+    return Response(status=200)
+
+
+@app.route("/clear_gpu", methods=["POST"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def clear_gpu() -> Response:
+    """Clear the GPU flag."""
+    with open("./use_gpu", "w") as gpu_flag:
+        gpu_flag.write("-1")
+    return Response(status=200)
+
+
+@app.route("/get_gpu", methods=["GET"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def get_gpu() -> Response:
+    """Get the GPU flag."""
+    return Response(status=200, response=use_gpu)
 
 
 @app.route("/api/model/register", methods=["POST"])
