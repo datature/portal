@@ -382,7 +382,7 @@ export default class AnnotationMenu extends Component {
                       ? "bp3-active"
                       : ""
                   }
-                  onClick={() => this.props.callbacks.GetInference()}
+                  onClick={() => this.props.callbacks.SingleAnalysis()}
                 />
                 <MenuItem
                   disabled={!this.props.isConnected || !this.props.loadedModel}
@@ -394,7 +394,7 @@ export default class AnnotationMenu extends Component {
                       ? "bp3-active"
                       : ""
                   }
-                  onClick={() => this.props.callbacks.GetInference()}
+                  onClick={this.props.callbacks.BulkAnalysis}
                 />
               </div>
             </Tooltip>
