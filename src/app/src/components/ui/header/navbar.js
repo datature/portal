@@ -63,19 +63,16 @@ export default class HeaderNav extends React.Component {
   };
 
   handleElectronGPUListener = async () => {
-    this.setState({
-      isChangingProcessor: false,
-      changeProcessor: false,
-    });
-  };
-
-  handleGetGPUStatus = async () => {
     await APIGetGPU().then(res => {
       if (res.data === 0) {
         this.props.GlobalSettingCallback.setGPU(true);
       } else {
         this.props.GlobalSettingCallback.setGPU(false);
       }
+    });
+    this.setState({
+      isChangingProcessor: false,
+      changeProcessor: false,
     });
   };
 
@@ -208,7 +205,7 @@ export default class HeaderNav extends React.Component {
               this.setState({ hasCache });
             },
             HandleIsConnected: this.props.handleIsConnected,
-            HandleGetGPUStatus: this.handleGetGPUStatus,
+            HandleElectronGPUListener: this.handleElectronGPUListener,
           }}
         />
         <Alert

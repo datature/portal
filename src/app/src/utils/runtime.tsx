@@ -13,7 +13,7 @@ interface RunTimeProps {
   callbacks: {
     HandleHasCache: (hasCache: boolean) => void;
     HandleIsConnected: (isConnected: boolean) => void;
-    HandleGetGPUStatus: () => void;
+    HandleElectronGPUListener: () => void;
   };
 }
 
@@ -36,7 +36,7 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
         props.callbacks.HandleHasCache(askForCache);
         if (!props.isConnected) {
           props.callbacks.HandleIsConnected(true);
-          props.callbacks.HandleGetGPUStatus();
+          props.callbacks.HandleElectronGPUListener();
         }
         if (toastKey) DissmissToast(toastKey);
         heartbeatCounts = 0;
