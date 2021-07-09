@@ -141,12 +141,12 @@ export function APIRegisterModel(
   return axios.post(SERVER_ADDRESS + REGISTER_MODEL, config);
 }
 
-export function APIGetLoadedModel(): Promise<AxiosResponse<any>> {
-  return axios.get(SERVER_ADDRESS + LOADED_MODELS);
-}
-
 export function APIKillVideoInference(): Promise<AxiosResponse<any>> {
   return axios.post(SERVER_ADDRESS + KILL_PREDICT_VIDEO);
+}
+
+export function APIGetLoadedModel(): Promise<AxiosResponse<any>> {
+  return axios.get(SERVER_ADDRESS + LOADED_MODELS);
 }
 
 export function APILoadModel(modelKey: string): Promise<AxiosResponse<any>> {
