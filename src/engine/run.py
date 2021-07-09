@@ -18,6 +18,9 @@ if __name__ == "__main__":
     if use_gpu == "-1":
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    else:
+        os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 
     # Ignore due to Pyshell
     # pylint: disable=E0401, E0611
