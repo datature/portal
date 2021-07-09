@@ -95,7 +95,7 @@ async function checkWindowRenderReady() {
 }
 
 async function shutDownServer() {
-  await fetch("http://localhost:5000/shutdown", {
+  await fetch("http://localhost:5000/shutdown?deleteCache=true", {
     method: "GET",
   }).catch(err => {
     console.log(err);

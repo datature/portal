@@ -94,7 +94,8 @@ def shutdown():
     """
     Shutdown the server
     """
-    global_store.delete_cache()
+    if request.args.get("deleteCache"):
+        global_store.delete_cache()
     server.socket.stop()
     return "Server shutting down...", 200
 

@@ -13,8 +13,14 @@ export function APIIsAlive(): Promise<AxiosResponse<any>> {
   return axios.get(SERVER_ADDRESS + IS_ALIVE);
 }
 
-export function APIShutdown(): Promise<AxiosResponse<any>> {
-  return axios.get(SERVER_ADDRESS + SHUTDOWN);
+export function APIShutdown(
+  deleteCache?: boolean
+): Promise<AxiosResponse<any>> {
+  return axios.get(SERVER_ADDRESS + SHUTDOWN, {
+    params: {
+      ...(deleteCache ? { deleteCache } : {}),
+    },
+  });
 }
 
 export function APILoadCache(): Promise<AxiosResponse<any>> {
