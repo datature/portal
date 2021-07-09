@@ -6,9 +6,13 @@ def initialize() -> None:
     server.run()
 
 
-with open("./server/cache/use_gpu", "r") as gpu_flag:
-    use_gpu = gpu_flag.read()
-
+use_gpu = "0"
+if os.path.isfile("./server/cache/use_gpu"):
+    with open("./server/cache/use_gpu", "r") as gpu_flag:
+        use_gpu = gpu_flag.read()
+else:
+    with open("./server/cache/use_gpu", "w") as gpu_flag:
+        gpu_flag.write(use_gpu)
 
 if __name__ == "__main__":
     if use_gpu == "-1":
