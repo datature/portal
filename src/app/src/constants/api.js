@@ -15,6 +15,7 @@ export const DELETE_PROJECT_ASSETS = `/api/project`;
 export const MODEL = `/api/model`;
 export const REGISTER_MODEL = `/api/model/register`;
 export const LOADED_MODELS = `/api/model/loadedList`;
+export const KILL_PREDICT_VIDEO = `/api/model/predict/video/kill`;
 export const LOAD_MODEL = modelKey => {
   return `/api/model/${modelKey}/load`;
 };
