@@ -1,3 +1,4 @@
+/* eslint-disable react/sort-comp */
 /* eslint-disable no-return-assign */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-prototype-builtins */
@@ -30,6 +31,7 @@ import {
   APIGetVideoInference,
   APIGetModelTags,
   APIGetCacheList,
+  APIKillVideoInference,
 } from "@portal/api/annotation";
 
 import { invert, cloneDeep } from "lodash";
@@ -101,6 +103,8 @@ interface AnnotatorState {
   imageListCollapsed: boolean;
   /* Hide annotated images in imagebar */
   annotatedAssetsHidden: boolean;
+  /* Kill video prediction state */
+  killVideoPrediction: boolean;
   /* Set of IDs of hidden annotations */
   hiddenAnnotations: Set<string>;
   /* Is Annotator Predicting? */
@@ -206,6 +210,7 @@ export default class Annotator extends Component<
       advancedSettingsOpen: false,
       imageListCollapsed: false,
       annotatedAssetsHidden: false,
+      killVideoPrediction: false,
       hiddenAnnotations: new Set<string>(),
       uiState: null,
       predictTotal: 0,
@@ -556,7 +561,19 @@ export default class Annotator extends Component<
     this.setState({ annotatedAssetsHidden: flag });
   }
 
-  // eslint-disable-next-line react/sort-comp
+  private async killVideoPrediction() {
+    this.setState({ killVideoPrediction: true });
+    if (this.currentAsset.type === "video") {
+      await APIKillVideoInference().catch(error => {
+        let message = `Failed to kill video prediction. ${error}`;
+        if (error.response) {
+          message = `${error.response.data.error}: ${error.response.data.message}`;
+        }
+        CreateGenericToast(message, Intent.DANGER, 3000);
+      });
+    }
+  }
+
   private async bulkAnalysis() {
     /* Blocker to account for case where there is no model to perform prediction */
     if (!this.props.loadedModel) {
@@ -571,12 +588,22 @@ export default class Annotator extends Component<
 
     // eslint-disable-next-line no-restricted-syntax
     for (const asset of this.state.assetList) {
+      if (this.state.killVideoPrediction) {
+        // eslint-disable-next-line no-await-in-loop
+        await this.getInference(this.currentAsset, false);
+        break;
+      }
       this.selectAsset(asset, false);
       // eslint-disable-next-line no-await-in-loop
       await this.getInference(asset, true, asset.url === lastAsset.url);
     }
+
     await this.updateImage();
-    this.setState({ predictDone: 0, uiState: null });
+    this.setState({
+      predictDone: 0,
+      uiState: null,
+      killVideoPrediction: false,
+    });
   }
 
   /**
@@ -599,7 +626,11 @@ export default class Annotator extends Component<
     this.handleProgressToast();
     await this.getInference(this.currentAsset, reanalyse);
     await this.updateImage();
-    this.setState({ predictDone: 0, uiState: null });
+    this.setState({
+      predictDone: 0,
+      uiState: null,
+      killVideoPrediction: false,
+    });
   }
 
   /**
@@ -700,10 +731,13 @@ export default class Annotator extends Component<
         })
         .catch(error => {
           let message = `Failed to predict video. ${error}`;
+          let intent: Intent = Intent.DANGER;
           if (error.response) {
             message = `${error.response.data.error}: ${error.response.data.message}`;
           }
-          CreateGenericToast(message, Intent.DANGER, 3000);
+          if (error.response.data.error === "STOPPEDPROCESS")
+            intent = Intent.PRIMARY;
+          CreateGenericToast(message, intent, 3000);
         });
     }
   }
@@ -1200,6 +1234,7 @@ export default class Annotator extends Component<
       onDismiss: (didTimeoutExpire: boolean) => {
         if (!didTimeoutExpire) {
           // user dismissed toast with click
+          this.killVideoPrediction();
           window.clearInterval(this.progressToastInterval);
         }
       },
