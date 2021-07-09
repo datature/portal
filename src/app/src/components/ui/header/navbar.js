@@ -1,6 +1,13 @@
 import * as React from "react";
 import Router from "next/router";
-import { APILoadCache, APIRejectCache } from "@portal/api/general";
+import {
+  APILoadCache,
+  APIRejectCache,
+  APIClearGPU,
+  APISetGPU,
+  APIGetGPU,
+  APIShutdown,
+} from "@portal/api/general";
 
 import {
   Classes,
@@ -17,6 +24,7 @@ import {
 import { CreateGenericToast } from "@portal/utils/ui/toasts";
 import Model from "@portal/components/annotations/model";
 import { RuntimeChecker } from "@portal/utils/runtime";
+import isElectron from "is-electron";
 import QuickSetting from "./settings";
 
 // import classes from "./navbar.module.css";
@@ -29,11 +37,80 @@ export default class HeaderNav extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      isChangingProcessor: false,
+      changeProcessor: false,
       urlPath: "",
       hasCache: false,
       isAPICalled: false,
     };
   }
+
+  componentDidMount = () => {
+    if (isElectron()) {
+      const { ipcRenderer } = window.require("electron");
+      ipcRenderer.on("restart-server-reply", this.handleElectronGPUListener);
+    }
+  };
+
+  componentWillUnmount = () => {
+    if (isElectron()) {
+      const { ipcRenderer } = window.require("electron");
+      ipcRenderer.removeListener(
+        "restart-server-reply",
+        this.handleElectronGPUListener
+      );
+    }
+  };
+
+  handleElectronGPUListener = async () => {
+    this.setState({
+      isChangingProcessor: false,
+      changeProcessor: false,
+    });
+  };
+
+  handleGetGPUStatus = async () => {
+    await APIGetGPU().then(res => {
+      if (res.data === 0) {
+        this.props.GlobalSettingCallback.setGPU(true);
+      } else {
+        this.props.GlobalSettingCallback.setGPU(false);
+      }
+    });
+  };
+
+  openProcessorAlert = () => {
+    this.setState({
+      changeProcessor: true,
+    });
+  };
+
+  handleChangeProcessor = async () => {
+    this.setState({ isChangingProcessor: true });
+
+    if (this.props.GlobalSetting.isGPU) {
+      await APIClearGPU().catch(error => {
+        let message = `Failed to reject cache. ${error}`;
+        if (error.response) {
+          message = `${error.response.data.error}: ${error.response.data.message}`;
+        }
+
+        CreateGenericToast(message, Intent.DANGER, 3000);
+      });
+    } else {
+      await APISetGPU().catch(error => {
+        let message = `Failed to reject cache. ${error}`;
+        if (error.response) {
+          message = `${error.response.data.error}: ${error.response.data.message}`;
+        }
+
+        CreateGenericToast(message, Intent.DANGER, 3000);
+      });
+    }
+    await APIShutdown();
+    const { ipcRenderer } = window.require("electron");
+    ipcRenderer.send("restart-server");
+  };
 
   handleLoadCache = async () => {
     this.setState({ isAPICalled: true });
@@ -111,7 +188,13 @@ export default class HeaderNav extends React.Component {
               popoverClassName={Classes.POPOVER_CONTENT_SIZING}
               forceFocus={false}
               position={"bottom-right"}
-              content={<QuickSetting {...this.props} />}
+              content={
+                // eslint-disable-next-line react/jsx-wrap-multilines
+                <QuickSetting
+                  {...this.props}
+                  callbacks={{ OpenProcessorAlert: this.openProcessorAlert }}
+                />
+              }
             >
               <Button icon="cog" className={"bp3-button bp3-minimal"} />
             </Popover>
@@ -125,8 +208,26 @@ export default class HeaderNav extends React.Component {
               this.setState({ hasCache });
             },
             HandleIsConnected: this.props.handleIsConnected,
+            HandleGetGPUStatus: this.handleGetGPUStatus,
           }}
         />
+        <Alert
+          isOpen={this.state.changeProcessor}
+          intent={Intent.PRIMARY}
+          icon="warning-sign"
+          loading={this.state.isChangingProcessor}
+          onCancel={() => this.setState({ changeProcessor: false })}
+          onConfirm={this.handleChangeProcessor}
+          cancelButtonText={"No"}
+          confirmButtonText={"Yes"}
+          className={this.props.useDarkTheme ? "bp3-dark" : ""}
+        >
+          <div>
+            To change the processor to{" "}
+            {this.props.GlobalSetting.isGPU ? "CPU" : "GPU"}. The server has to
+            restart. Do you wish to continue?
+          </div>
+        </Alert>
         <Alert
           isOpen={this.state.hasCache}
           intent={Intent.PRIMARY}

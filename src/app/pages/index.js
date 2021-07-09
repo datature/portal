@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { Classes } from "@blueprintjs/core";
 import { setConfiguration } from "react-grid-system";
 import HeaderNav from "@portal/components/ui/header/navbar";
+import { APIGetGPU } from "@portal/api/general";
 
 /* Global Setting / Styling */
 const THEME_LOCAL_STORAGE_KEY = "nexus-theme";
@@ -24,6 +25,7 @@ class Annotation extends React.Component {
 
     /* Global Setting / Styling State */
     this.state = {
+      isGPU: false,
       useDarkTheme: true,
       loadedModel: undefined,
       isConnected: false,
@@ -32,12 +34,20 @@ class Annotation extends React.Component {
     /* Grid Layout Configuration */
     setConfiguration({ gutterWidth: 12 });
     this.setTheme = this.setTheme.bind(this);
+    this.setGPU = this.setGPU.bind(this);
   }
 
   componentDidMount() {
     const theme = localStorage.getItem(THEME_LOCAL_STORAGE_KEY);
     this.setState({
       useDarkTheme: theme == null ? false : theme === "true",
+    });
+
+    // Call for the gpu settings from the backend
+    APIGetGPU().then(res => {
+      if (res.data === 0) {
+        this.setState({ isGPU: true });
+      }
     });
   }
 
@@ -46,6 +56,10 @@ class Annotation extends React.Component {
     this.setState({
       useDarkTheme: flag,
     });
+  }
+
+  async setGPU(flag) {
+    this.setState({ isGPU: flag });
   }
 
   render() {
@@ -76,10 +90,14 @@ class Annotation extends React.Component {
         <div className={this.state.useDarkTheme ? Classes.DARK : ""}>
           <HeaderNav
             active={"Annotations"}
+            isGPU={this.state.isGPU}
             useDarkTheme={this.state.useDarkTheme}
             isConnected={this.state.isConnected}
             GlobalSetting={this.state}
-            GlobalSettingCallback={this.setTheme}
+            GlobalSettingCallback={{
+              setTheme: this.setTheme,
+              setGPU: this.setGPU,
+            }}
             handleModelChange={loadedModel => {
               this.setState({ loadedModel });
             }}
