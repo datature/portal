@@ -6,7 +6,7 @@ def initialize() -> None:
     server.run()
 
 
-with open("./use_gpu", "r") as gpu_flag:
+with open("./server/cache/use_gpu", "r") as gpu_flag:
     use_gpu = gpu_flag.read()
 
 
