@@ -9,7 +9,7 @@ export const GET_PROJECT_ASSETS = `/api/project/assets`;
 export const GET_PROJECT_ASSETS_TREE = `/api/project/assets/tree`;
 export const GET_PROJECT_IMAGE_DATA = `/api/project/assets/image`;
 export const UPDATE_PROJECT_ASSETS = `/api/project/sync`;
-export const DELETE_PROJECT_ASSETS = `/api/project/`;
+export const DELETE_PROJECT_ASSETS = `/api/project`;
 
 // Model Routes
 export const MODEL = `/api/model`;

@@ -612,14 +612,19 @@ def sync_images() -> Response:
     return Response(response="Sync was successful", status=200)
 
 
-@app.route("/api/project/<folder_path>", methods=["DELETE"])
+@app.route("/api/project", methods=["DELETE"])
 @cross_origin()
 @portal_function_handler(clear_status=False)
-def delete_folder(folder_path) -> Response:
+def delete_folder() -> Response:
     """
     Deletes the folder with the specified folder_path (encoded with utf-8)
     """
     try:
+
+        folder_path = request.args.get("folderpath")
+        if folder_path is None:
+            raise PortalError(Errors.INVALIDQUERY, "folderpath not specified.")
+
         global_store.delete_targeted_folder(folder_path)
         return Response(response="Deletion was successful", status=200)
 
