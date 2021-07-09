@@ -17,8 +17,8 @@ from server.services.filesystem.folder_target import FolderTargets
 
 
 def _delete_store_():
-    if os.path.isfile("./server/cache/store.portalCache"):
-        os.remove("./server/cache/store.portalCache")
+    if os.path.isfile(os.getenv("CACHE_DIR")):
+        os.remove(os.getenv("CACHE_DIR"))
 
 
 # pylint: disable=R0904
@@ -29,9 +29,7 @@ class GlobalStore:
     def __init__(self, model_load_limit, caching_system) -> None:
         """Initialize the GlobalStore class."""
         self._global_server_time_ = time.time()
-        self._is_cache_called_ = not os.path.isfile(
-            "./server/cache/store.portalCache"
-        )
+        self._is_cache_called_ = False
         self._loaded_model_list_ = {}
         self._op_status_ = {"status": None}
         self._op_atomic_ = False
@@ -55,13 +53,20 @@ class GlobalStore:
             ),
         }
 
+    def set_is_cache_called(self, path):
+        """Fist initialization in run.py
+
+        :param path: dir of cache
+        """
+        self._is_cache_called_ = not os.path.isfile(path)
+
     def load_cache(self):
         """Load the cache.
 
         Transfers data from "./server/cache/store.portalCache" into self._store_
         """
-        if os.path.isfile("./server/cache/store.portalCache"):
-            with open("./server/cache/store.portalCache", "r") as cache:
+        if os.path.isfile(os.getenv("CACHE_DIR")):
+            with open(os.getenv("CACHE_DIR"), "r") as cache:
                 self._store_ = json.load(cache)
                 self._targeted_folders_ = jsonpickle.decode(
                     self._store_["targeted_folders"]
@@ -80,7 +85,7 @@ class GlobalStore:
         Transfers data from self._store_ into "./server/cache/store.portalCache"
         """
         if self.caching_system:
-            with open("./server/cache/store.portalCache", "w+") as cache:
+            with open(os.getenv("CACHE_DIR"), "w+") as cache:
                 json.dump(self._store_, cache)
 
     # pylint: disable=R0201
@@ -89,7 +94,7 @@ class GlobalStore:
 
         :return: Boolean representing the output of the function.
         """
-        return os.path.isfile("./server/cache/store.portalCache")
+        return os.path.isfile(os.getenv("CACHE_DIR"))
 
     def is_cache_called(self):
         """Check existing cache has once been loaded

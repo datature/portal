@@ -145,7 +145,7 @@ def reject_cache() -> Response:
 @portal_function_handler(clear_status=False)
 def set_gpu() -> Response:
     """Set the GPU flag to true."""
-    with open("./server/cache/use_gpu", "w") as gpu_flag:
+    with open(os.getenv("GPU_DIR"), "w") as gpu_flag:
         gpu_flag.write("0")
     return Response(status=200)
 
@@ -155,7 +155,7 @@ def set_gpu() -> Response:
 @portal_function_handler(clear_status=False)
 def clear_gpu() -> Response:
     """Clear the GPU flag."""
-    with open("./server/cache/use_gpu", "w") as gpu_flag:
+    with open(os.getenv("GPU_DIR"), "w") as gpu_flag:
         gpu_flag.write("-1")
     return Response(status=200)
 
