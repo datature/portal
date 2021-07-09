@@ -90,19 +90,16 @@ class Annotation extends React.Component {
         <div className={this.state.useDarkTheme ? Classes.DARK : ""}>
           <HeaderNav
             active={"Annotations"}
-            isGPU={this.state.isGPU}
-            useDarkTheme={this.state.useDarkTheme}
-            isConnected={this.state.isConnected}
             GlobalSetting={this.state}
             GlobalSettingCallback={{
               setTheme: this.setTheme,
               setGPU: this.setGPU,
-            }}
-            handleModelChange={loadedModel => {
-              this.setState({ loadedModel });
-            }}
-            handleIsConnected={isConnected => {
-              this.setState({ isConnected });
+              handleIsConnected: isConnected => {
+                this.setState({ isConnected });
+              },
+              handleModelChange: loadedModel => {
+                this.setState({ loadedModel });
+              },
             }}
           />
 

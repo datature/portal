@@ -28,14 +28,16 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
   let heartbeatCounts = 0;
   const threshold = 1;
   let toastKey: string | undefined;
+  let { isConnected } = props;
 
   const checkForHeartbeat = () => {
     APIIsAlive()
       .then(result => {
         const askForCache = result.data.hasCache && !result.data.isCacheCalled;
         props.callbacks.HandleHasCache(askForCache);
-        if (!props.isConnected) {
+        if (!isConnected) {
           props.callbacks.HandleIsConnected(true);
+          isConnected = true;
           props.callbacks.HandleElectronGPUListener();
         }
         if (toastKey) DissmissToast(toastKey);
@@ -67,7 +69,10 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
           CreateGenericToast(message, Intent.WARNING, 25000, icon, action);
         }
         heartbeatCounts += 1;
-        if (props.isConnected) props.callbacks.HandleIsConnected(false);
+        if (props.isConnected) {
+          props.callbacks.HandleIsConnected(false);
+          isConnected = false;
+        }
       });
   };
 

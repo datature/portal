@@ -167,7 +167,10 @@ export default class HeaderNav extends React.Component {
             <span className="bp3-navbar-divider" />
             <Model
               {...this.props}
-              callbacks={{ HandleModelChange: this.props.handleModelChange }}
+              callbacks={{
+                HandleModelChange: this.props.GlobalSettingCallback
+                  .handleModelChange,
+              }}
             />
             <span className="bp3-navbar-divider" />
             <Button
@@ -199,12 +202,13 @@ export default class HeaderNav extends React.Component {
           </NavbarGroup>
         </Navbar>
         <RuntimeChecker
-          isConnected={this.props.isConnected}
+          isConnected={this.props.GlobalSetting.isConnected}
           callbacks={{
             HandleHasCache: hasCache => {
               this.setState({ hasCache });
             },
-            HandleIsConnected: this.props.handleIsConnected,
+            HandleIsConnected: this.props.GlobalSettingCallback
+              .handleIsConnected,
             HandleElectronGPUListener: this.handleElectronGPUListener,
           }}
         />
@@ -217,7 +221,7 @@ export default class HeaderNav extends React.Component {
           onConfirm={this.handleChangeProcessor}
           cancelButtonText={"No"}
           confirmButtonText={"Yes"}
-          className={this.props.useDarkTheme ? "bp3-dark" : ""}
+          className={this.props.GlobalSetting.useDarkTheme ? "bp3-dark" : ""}
         >
           <div>
             To change the processor to{" "}
@@ -234,7 +238,7 @@ export default class HeaderNav extends React.Component {
           onConfirm={this.handleLoadCache}
           cancelButtonText={"No"}
           confirmButtonText={"Yes"}
-          className={this.props.useDarkTheme ? "bp3-dark" : ""}
+          className={this.props.GlobalSetting.useDarkTheme ? "bp3-dark" : ""}
         >
           <div>
             Unsaved session found. Would you like to resume from the previous
