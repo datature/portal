@@ -17,6 +17,7 @@ import {
   PREDICT_VIDEO,
   LOADED_MODELS,
   CACHE_LIST,
+  KILL_PREDICT_VIDEO,
 } from "@portal/constants/api";
 
 /* Annotation Type */
@@ -142,6 +143,10 @@ export function APIRegisterModel(
 
 export function APIGetLoadedModel(): Promise<AxiosResponse<any>> {
   return axios.get(SERVER_ADDRESS + LOADED_MODELS);
+}
+
+export function APIKillVideoInference(): Promise<AxiosResponse<any>> {
+  return axios.post(SERVER_ADDRESS + KILL_PREDICT_VIDEO);
 }
 
 export function APILoadModel(modelKey: string): Promise<AxiosResponse<any>> {
