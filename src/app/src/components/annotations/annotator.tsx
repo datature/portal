@@ -624,7 +624,7 @@ export default class Annotator extends Component<
 
     this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
     this.setState({ uiState: "Predicting" });
-    this.handleProgressToast();
+    if (reanalyse) this.handleProgressToast();
     await this.getInference(this.currentAsset, reanalyse);
     await this.updateImage();
     this.setState({
