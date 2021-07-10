@@ -5,6 +5,7 @@
   "private": true,
   "main": "./src/app/main.js",
   "scripts": {
+    "portal-build": "cross-env NODE_ENV=portalbuild ROOT_DIR=./portal-build npx electron ./portal-build/main.js",
     "portal-dev": "cross-env NODE_ENV=development npx electron ./src/app",
     "portal-prod": "npx electron ./src/app",
     "build:dev": "chmod +x setup.sh && . ./setup.sh",
@@ -50,7 +51,10 @@
   },
   "dependencies": {
     "cross-env": "^7.0.3",
-    "electron-squirrel-startup": "^1.0.0"
+    "electron-log": "^4.3.5",
+    "electron-squirrel-startup": "^1.0.0",
+    "node-fetch": "^2.6.1",
+    "python-shell": "^1.0.8"
   },
   "devDependencies": {
     "electron": "^13.1.2",

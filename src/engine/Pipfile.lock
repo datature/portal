@@ -92,6 +92,14 @@
       "markers": "python_version >= '3.6'",
       "version": "==8.0.1"
     },
+    "colorama": {
+      "hashes": [
+        "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b",
+        "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"
+      ],
+      "markers": "platform_system == 'Windows'",
+      "version": "==0.4.4"
+    },
     "datature-hub": {
       "hashes": [
         "sha256:3c6ba49676196aab9eb40f4d5fe07c0e1a24ed58b6d1aabf47de018b385af5ce",
@@ -272,11 +280,11 @@
     },
     "importlib-metadata": {
       "hashes": [
-        "sha256:4a5611fea3768d3d967c447ab4e93f567d95db92225b43b7b238dbfb855d70bb",
-        "sha256:c6513572926a96458f8c8f725bf0e00108fba0c9583ade9bd15b869c9d726e33"
+        "sha256:079ada16b7fc30dfbb5d13399a5113110dab1aa7c2bc62f66af75f0b717c8cac",
+        "sha256:9f55f560e116f8643ecf2922d9cd3e1c7e8d52e683178fecd9d08f6aa357e11e"
       ],
       "markers": "python_version < '3.8'",
-      "version": "==4.6.0"
+      "version": "==4.6.1"
     },
     "itsdangerous": {
       "hashes": [
@@ -749,11 +757,11 @@
     },
     "zipp": {
       "hashes": [
-        "sha256:3607921face881ba3e026887d8150cca609d517579abe052ac81fc5aeffdbd76",
-        "sha256:51cb66cc54621609dd593d1787f286ee42a5c0adbb4b29abea5a63edc3e03098"
+        "sha256:957cfda87797e389580cb8b9e3870841ca991e2125350677b2ca83a0e99390a3",
+        "sha256:f5812b1e007e48cff63449a5e9f4e7ebea716b4111f9c4f9a645f91d579bf0c4"
       ],
       "markers": "python_version >= '3.6'",
-      "version": "==3.4.1"
+      "version": "==3.5.0"
     }
   },
   "develop": {
@@ -764,6 +772,14 @@
       ],
       "markers": "python_version ~= '3.6'",
       "version": "==2.6.2"
+    },
+    "colorama": {
+      "hashes": [
+        "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b",
+        "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"
+      ],
+      "markers": "platform_system == 'Windows'",
+      "version": "==0.4.4"
     },
     "isort": {
       "hashes": [

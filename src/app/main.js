@@ -12,28 +12,38 @@ log.transports.file.level = "info";
 log.transports.file.file = `${__dirname}log.log`;
 console.log = log.log;
 
-const root = __dirname.slice(0, -3);
-
 let exeFileName = "run";
-
+let venv = path.join(".venv", "bin", "python");
 if (process.platform.toLowerCase().includes("win")) {
   exeFileName = "run.exe";
+  venv = path.join(".venv", "Scripts", "python.exe");
 }
 
-let pythonPath = path.join(root, "engine", ".venv", "bin", "python");
-if (process.platform.toLowerCase().includes("win")) {
-  pythonPath = path.join(root, "engine", ".venv", "Scripts", "python.exe");
+let root = __dirname;
+let pythonPath;
+let scriptPath;
+if (root.endsWith("app")) {
+  root = root.slice(0, -4);
+  pythonPath = path.join(root, "engine", venv);
+  scriptPath = path.join(root, "engine");
+} else if (root.endsWith("portal-build")) {
+  pythonPath = path.join(root, venv);
+  scriptPath = root;
 }
+
 const options = {
   mode: "text",
   pythonPath,
   pythonOptions: ["-u"], // get print results in real-time
-  scriptPath: path.join(root, "engine"),
+  scriptPath,
 };
 
 let mainWindow;
 async function startBackend() {
-  if (process.env.NODE_ENV === "development") {
+  if (
+    process.env.NODE_ENV === "development" ||
+    process.env.NODE_ENV === "portalbuild"
+  ) {
     console.log(
       `NODE_ENV in ${process.env.NODE_ENV} --- running backend on pyshell`
     );
@@ -49,7 +59,7 @@ async function startBackend() {
       `NODE_ENV in default --- running the backend executable ${exeFileName}`
     );
     let backend = path.join(root, "dist", exeFileName);
-    if (root.slice(0, -1).endsWith("src")) {
+    if (root.endsWith("src")) {
       backend = path.join(root.slice(0, -4), "dist", exeFileName);
     }
     // eslint-disable-next-line global-require
@@ -85,7 +95,7 @@ async function checkWindowRenderReady() {
 }
 
 async function shutDownServer() {
-  await fetch("http://localhost:5000/shutdown", {
+  await fetch("http://localhost:5000/shutdown?deleteCache=true", {
     method: "GET",
   }).catch(err => {
     console.log(err);
@@ -130,7 +140,7 @@ async function createWindow() {
     await mainWindow.loadURL(url);
   } else {
     let staticFile = `./out/index.html`;
-    if (root.slice(0, -1).endsWith("src")) {
+    if (root.endsWith("src")) {
       staticFile = path.join(root, "app", "out", "index.html");
     }
     console.log(
@@ -195,6 +205,7 @@ ipcMain.on("select-dirs", async event => {
   event.sender.send("select-dirs-reply", result.filePaths);
 });
 
-ipcMain.on("restart-server", async () => {
-  startBackend();
+ipcMain.on("restart-server", async event => {
+  await startBackend();
+  event.sender.send("restart-server-reply");
 });

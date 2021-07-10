@@ -67,6 +67,7 @@ export type FormData = {
 interface ModelProps {
   project: string;
   useDarkTheme: boolean;
+  isConnected: boolean;
   callbacks: {
     HandleModelChange: (model: RegisteredModel | undefined) => void;
   };
@@ -76,6 +77,7 @@ interface ModelState {
   registeredModelList: { [key: string]: RegisteredModel } | any;
   currentModel: RegisteredModel | undefined;
   chosenModel: RegisteredModel | undefined;
+  waitForRuntime: boolean;
   isConfirmLoad: boolean;
   isUnloadModelAPI: boolean;
   isLoadModelAPI: boolean;
@@ -99,6 +101,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       registeredModelList: {},
       currentModel: undefined,
       chosenModel: undefined,
+      waitForRuntime: true,
       isConfirmLoad: false,
       isConfirmUnload: false,
       isConfirmDelete: false,
@@ -189,24 +192,15 @@ export default class Model extends React.Component<ModelProps, ModelState> {
 
   private handleGetLoadedModel = async () => {
     this.setState({ isLoadModelAPI: true });
-    await APIGetLoadedModel()
-      .then(result => {
-        if (result.status === 200) {
-          this.setState(prevState => {
-            const model = prevState.registeredModelList[result.data[0]];
-            this.props.callbacks.HandleModelChange(model);
-            return { currentModel: model };
-          });
-        }
-      })
-      .catch(error => {
-        let message = `Failed to get loaded model. ${error}`;
-        if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
-        }
-
-        CreateGenericToast(message, Intent.DANGER, 3000);
-      });
+    await APIGetLoadedModel().then(result => {
+      if (result.status === 200) {
+        this.setState(prevState => {
+          const model = prevState.registeredModelList[result.data[0]];
+          this.props.callbacks.HandleModelChange(model);
+          return { currentModel: model };
+        });
+      }
+    });
     this.setState({ isLoadModelAPI: false });
   };
 
@@ -481,13 +475,33 @@ export default class Model extends React.Component<ModelProps, ModelState> {
   };
 
   async componentDidMount(): Promise<void> {
-    await this.handleRefreshModelList();
-    if (this.state.registeredModelList !== {}) {
-      this.handleGetLoadedModel();
-    }
     if (isElectron()) {
       const { ipcRenderer } = window.require("electron");
       ipcRenderer.on("select-dirs-reply", this.handleElectronChangeDirListener);
+    }
+    while (this.state.waitForRuntime) {
+      // eslint-disable-next-line no-await-in-loop
+      await APIGetRegisteredModels()
+        .then(async result => {
+          if (result.status === 200) {
+            this.setState({
+              registeredModelList: this.generateRegisteredModelList(
+                result.data
+              ),
+            });
+            if (this.state.registeredModelList !== {}) {
+              // eslint-disable-next-line no-await-in-loop
+              await this.handleGetLoadedModel();
+            }
+            this.setState({ waitForRuntime: false });
+          }
+        })
+        .catch(() => {
+          /** Do Nothing */
+        });
+
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(res => setTimeout(res, 25000));
     }
   }
 
@@ -828,6 +842,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               content={menuOfModels}
               placement="bottom"
               isOpen={this.state.isOpenDrawer ? false : undefined}
+              disabled={this.state.waitForRuntime && !this.props.isConnected}
             >
               <Tooltip
                 content="Select a Model to Load"
@@ -845,6 +860,14 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 }
               >
                 <Button
+                  disabled={
+                    this.state.waitForRuntime && !this.props.isConnected
+                  }
+                  className={
+                    this.state.waitForRuntime && !this.props.isConnected
+                      ? "bp3-skeleton"
+                      : ""
+                  }
                   style={{ minWidth: "140px", alignContent: "left" }}
                   alignText={Alignment.LEFT}
                   minimal

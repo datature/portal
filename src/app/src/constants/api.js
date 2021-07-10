@@ -1,6 +1,7 @@
 // Base Server URL
 export const SERVER_ADDRESS = "http://localhost:5000";
 export const IS_ALIVE = `/heartbeat`;
+export const SHUTDOWN = `/shutdown`;
 export const CACHE = `/cache`;
 
 // Assets/folders routes
@@ -37,3 +38,8 @@ export const GET_INFERENCE_FLASK = modelKey => {
 export const CACHE_LIST = modelKey => {
   return `/api/model/${modelKey}/cachelist`;
 };
+
+// GPU Routes
+export const CLEAR_GPU = `/clear_gpu`;
+export const SET_GPU = `/set_gpu`;
+export const GET_GPU = `/get_gpu`;

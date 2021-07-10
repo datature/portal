@@ -18,6 +18,10 @@ import {
   InputGroup,
   TagInput,
   Button,
+  Tooltip,
+  Position,
+  ControlGroup,
+  IconSize,
 } from "@blueprintjs/core";
 
 import { TagColours } from "@portal/constants/annotation";
@@ -360,29 +364,40 @@ export default class AnnotationMenu extends Component {
             onClick={this.props.callbacks.OpenFileManagement}
           />
           <MenuDivider title="Inference" />
+
           {this.props.predictDone === 0 ? (
-            <>
-              <MenuItem
-                icon="redo"
-                text="Re-Analyse"
-                label={<KeyCombo combo="R" />}
-                className={
-                  this.props.userEditState === "Re-Analyse" ? "bp3-active" : ""
-                }
-                onClick={() => this.props.callbacks.SingleAnalysis()}
-              />
-              <MenuItem
-                icon="heat-grid"
-                text="Bulk Analysis"
-                label={<KeyCombo combo="B" />}
-                className={
-                  this.props.userEditState === "Bulk Analysis"
-                    ? "bp3-active"
-                    : ""
-                }
-                onClick={this.props.callbacks.BulkAnalysis}
-              />
-            </>
+            <Tooltip
+              content="Load model before analysing"
+              position={Position.TOP}
+              disabled={this.props.isConnected && this.props.loadedModel}
+            >
+              <div className={classes.InferenceMenuItem}>
+                <MenuItem
+                  disabled={!this.props.isConnected || !this.props.loadedModel}
+                  icon="redo"
+                  text="Re-Analyse"
+                  label={<KeyCombo combo="R" />}
+                  className={
+                    this.props.userEditState === "Re-Analyse"
+                      ? "bp3-active"
+                      : ""
+                  }
+                  onClick={() => this.props.callbacks.SingleAnalysis()}
+                />
+                <MenuItem
+                  disabled={!this.props.isConnected || !this.props.loadedModel}
+                  icon="heat-grid"
+                  text="Bulk Analysis"
+                  label={<KeyCombo combo="B" />}
+                  className={
+                    this.props.userEditState === "Bulk Analysis"
+                      ? "bp3-active"
+                      : ""
+                  }
+                  onClick={this.props.callbacks.BulkAnalysis}
+                />
+              </div>
+            </Tooltip>
           ) : (
             <Spinner size={30} className={classes.Spin} />
           )}

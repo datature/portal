@@ -15,6 +15,7 @@
 /application
 /dist
 /server/cache/store*
+/portal-build
 
 # misc
 .DS_Store

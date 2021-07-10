@@ -79,6 +79,7 @@ interface AnnotatorProps {
   user: any;
   useDarkTheme: boolean;
   loadedModel: RegisteredModel | undefined;
+  isConnected: boolean;
 }
 
 interface AnnotatorState {
@@ -589,8 +590,9 @@ export default class Annotator extends Component<
     // eslint-disable-next-line no-restricted-syntax
     for (const asset of this.state.assetList) {
       if (this.state.killVideoPrediction) {
-        // eslint-disable-next-line no-await-in-loop
-        await this.getInference(this.currentAsset, false);
+        if (asset.type === "image")
+          // eslint-disable-next-line no-await-in-loop
+          await this.getInference(this.currentAsset, false);
         break;
       }
       this.selectAsset(asset, false);
@@ -623,7 +625,7 @@ export default class Annotator extends Component<
 
     this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
     this.setState({ uiState: "Predicting" });
-    this.handleProgressToast();
+    if (reanalyse) this.handleProgressToast();
     await this.getInference(this.currentAsset, reanalyse);
     await this.updateImage();
     this.setState({
@@ -1004,6 +1006,9 @@ export default class Annotator extends Component<
 
     /* Checks if there is AssetReselection */
     const isAssetReselection = !(asset.assetUrl !== this.currentAsset.assetUrl);
+    console.log("asset", asset.url);
+    console.log("currentasset", this.currentAsset.url);
+    console.log("single analysis", singleAnalysis);
 
     const currentVideoElement = this.videoOverlay.getElement();
     if (!isAssetReselection) {
@@ -1458,6 +1463,8 @@ export default class Annotator extends Component<
               filterArr={this.state.filterArr}
               showSelected={this.state.showSelected}
               useDarkTheme={this.props.useDarkTheme}
+              isConnected={this.props.isConnected}
+              loadedModel={this.props.loadedModel}
               callbacks={{
                 ResetControls: this.resetControls,
                 OpenFileManagement: this.handleFileManagementOpen,
