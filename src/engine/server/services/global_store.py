@@ -15,6 +15,8 @@ from server.services.errors import Errors, PortalError
 # pylint: disable=cyclic-import
 from server.services.filesystem.folder_target import FolderTargets
 
+from server.models.abstract.BaseModel import BaseModel
+
 
 def _delete_store_():
     if os.path.isfile(os.getenv("CACHE_DIR")):
@@ -46,11 +48,7 @@ class GlobalStore:
         self._store_ = {
             "registry": {},
             "predictions": {},
-            "targeted_folders": (
-                '{"py/object": '
-                '"server.services.filesystem.folder_target.FolderTargets", '
-                '"_folders_": []}',
-            ),
+            "targeted_folders": jsonpickle.encode(self._targeted_folders_),
         }
 
     def set_is_cache_called(self, path):
@@ -202,47 +200,32 @@ class GlobalStore:
     def add_registered_model(
         self,
         key: str,
-        directory: str,
-        model_name: str,
-        description: str,
-        height: int,
-        width: int,
+        model: BaseModel,
     ) -> None:
-        """Add a model into the registry.
+        """Add or update a model into the registry.
 
         :param key: The model key.
-        :param directory: The path of the model.
-        :model_name: The name of the model.
-        :description: A short description of the model.
-        :height: The model height.
-        :width: The model width.
+        :param _model_: The _model_ class attributed to the model key.
         """
-        self._store_["registry"][key] = {
-            "directory": directory,
-            "name": model_name,
-            "description": description,
-            "height": height,
-            "width": width,
-        }
+        serialized_model_class = jsonpickle.encode(model)
+        self._store_["registry"][key] = serialized_model_class
         self._save_store_()
 
-    def get_registered_model(self, key: str) -> dict:
+    def get_registered_model(self, key: str) -> BaseModel:
         """Retrieve the model given its model key
 
         :param key: The model key.
-        :return: The model as a dictionary.
+        :return: The model as a Model class.
         """
-        return self._store_["registry"][key]
+        if key in self._store_["registry"]:
+            return jsonpickle.decode(self._store_["registry"][key])
+        raise PortalError(Errors.INVALIDMODELKEY, "Model not registered.")
 
     def get_registered_model_info(self) -> str:
         """Retrieve directory, description, name of all registered models"""
         return {
-            model_id: {
-                required_info: model_info[required_info]
-                for required_info in ["directory", "description", "name"]
-                if required_info in model_info
-            }
-            for model_id, model_info in self._store_["registry"].items()
+            model_id: jsonpickle.decode(model_class).get_info()
+            for model_id, model_class in self._store_["registry"].items()
         }
 
     def del_registered_model(self, key: str) -> None:
@@ -263,12 +246,13 @@ class GlobalStore:
         """Add a model into the loaded model list.
 
         :param key: The model key.
-        :param model_dict: The information of the model.
+        :param model_dict: A dictionary of the loaded model
+            and its model class.
         """
         self._loaded_model_list_[key] = model_dict
 
     def get_loaded_model_keys(self) -> list:
-        """Retrieve all modek keys in the loaded model list."""
+        """Retrieve all model keys in the loaded model list."""
         return list(self._loaded_model_list_.keys())
 
     def unload_model(self, key: str) -> None:
@@ -282,32 +266,30 @@ class GlobalStore:
         gc.collect()
         self._save_store_()
 
-    def get_all_model_attributes(self, key: str) -> tuple:
+    def get_model_dict(self, key: str) -> tuple:
         """Retrieve the model, label map, height and width given the model key.
 
         :param key: The model key.
-        :return: A tuple represented by (model, label map, height, width).
+        :return: A dictionary of the loaded model and its model class.
         """
-        model_info = self._loaded_model_list_[key]
-        return (
-            model_info["tf_model"],
-            model_info["label_map"],
-            model_info["model_height"],
-            model_info["model_width"],
-        )
+        return self._loaded_model_list_[key]
 
     # PREDICTIONS
     def add_predictions(self, key: tuple, value: str) -> None:
         """Add predictions into the prediction cache.
 
-        :param key: The prediction key.
+        :param key: The prediction key as a tuple of:
+            (model_id, image/video directory, additional_parameters)
         :param value: The predictions.
         """
-        if key[0] not in self._store_["predictions"]:
-            self._store_["predictions"][key[0]] = {}
-        if key[1] not in self._store_["predictions"][key[0]]:
-            self._store_["predictions"][key[0]][key[1]] = {}
-        self._store_["predictions"][key[0]][key[1]][key[2]] = value
+        model_id = key[0]
+        img_vid_dir = key[1]
+        params = key[2]
+        if model_id not in self._store_["predictions"]:
+            self._store_["predictions"][model_id] = {}
+        if img_vid_dir not in self._store_["predictions"][model_id]:
+            self._store_["predictions"][model_id][img_vid_dir] = {}
+        self._store_["predictions"][model_id][img_vid_dir][params] = value
         self._save_store_()
 
     def check_prediction_cache(self, key: tuple) -> bool:

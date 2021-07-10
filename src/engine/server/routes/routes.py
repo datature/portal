@@ -19,7 +19,7 @@ from server.services.filesystem.file import (
     allowed_video,
     generate_thumbnail,
 )
-from server.services.model_loader import load_local
+from server.services.model_loader import model_loader
 from server.services.model_register import (
     register_endpoint,
     register_hub,
@@ -27,7 +27,6 @@ from server.services.model_register import (
 )
 
 from server.services.predictions import predict_image, predict_video
-from server.utilities.label_map_loader import load_label_map
 from server.utilities.prediction_utilities import corrected_predict_query
 
 
@@ -196,6 +195,7 @@ def register_model() -> tuple:
         model_description: str = data["description"]
         model_key: str = input_credentials["modelKey"]
         project_secret: str = input_credentials["projectSecret"]
+        model_type: str = data["modelType"]
         input_directory: str = data["directory"]
 
         if global_store.set_status("register_model_" + model_key):
@@ -231,10 +231,21 @@ def register_model() -> tuple:
                 Errors.INVALIDAPI,
                 "model_key needs to be given if input_type is 'hub'.",
             )
-
+        if model_type not in ["darknet", "tensorflow", "pytorch"]:
+            raise PortalError(
+                Errors.INVALIDAPI,
+                "model_type needs to be one of 'darknet', 'tensorflow' or 'pytorch'.",
+            )
+        if input_type == "hub" and model_type != "tensorflow":
+            raise PortalError(
+                Errors.INVALIDAPI,
+                "only tensorflow models are supported for Hub.",
+            )
         # Register the model using the respective registration code.
         if input_type == "local":
-            register_local(input_directory, model_name, model_description)
+            register_local(
+                input_directory, model_type, model_name, model_description
+            )
 
         if input_type == "hub":
             register_hub(
@@ -271,14 +282,8 @@ def get_tag(model_id: str) -> tuple:
         UNINITIALIZED: There are no registered models.
     """
     try:
-        registered_model_list = global_store.get_registered_model_list()
-        if not registered_model_list:
-            raise PortalError(
-                Errors.UNINITIALIZED,
-                "No Registered Models.",
-            )
-        directory = registered_model_list[model_id]
-        label_map = load_label_map(directory)
+        registered_model = global_store.get_registered_model(model_id)
+        label_map = registered_model.get_label_map()
         output = {value["name"]: value["id"] for _, value in label_map.items()}
 
         return (jsonify(output), 200)
@@ -362,7 +367,7 @@ def load_model(model_id: str) -> Response:
         return global_store.get_caught_response("load_model")
     if global_store.check_model_limit():
         raise PortalError(Errors.OVERLOADED, "Maximum loadable model reached.")
-    return load_local(model_id)
+    return model_loader(model_id)
 
 
 @app.route("/api/model/<model_id>/unload", methods=["PUT"])
@@ -407,7 +412,7 @@ def predict_single_image(model_id: str) -> tuple:
         UNINITIALIZED:      Empty loaded model list.
         INVALIDFILETYPE:    Image file extension is not allowed.
         INVALIDQUERY:       Wrongly given query parameters.
-        FAILEDTENSORFLOW:   Tensorflow failed. See error message for more information.
+        FAILEDPREDICTION:   Prediction failed. See error message for more information.
         NOTFOUND:           Image directory not found.
         INVALIDMODELKEY:    Model key is not in loaded model list.
     """
@@ -458,20 +463,13 @@ def predict_single_image(model_id: str) -> tuple:
         else:
             if not global_store.get_loaded_model_keys():
                 raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
-            (
-                model,
-                label_map,
-                model_height,
-                model_width,
-            ) = global_store.get_all_model_attributes(model_id)
+            if model_id not in global_store.get_loaded_model_keys():
+                raise PortalError(Errors.NOTFOUND, "model_id not loaded.")
+
+            model_dict = global_store.get_model_dict(model_id)
+
             output = predict_image(
-                model,
-                model_height,
-                model_width,
-                label_map,
-                format_arg,
-                iou,
-                image_directory,
+                model_dict, format_arg, iou, image_directory
             )
             global_store.add_predictions(prediction_key, output)
 
@@ -507,7 +505,7 @@ def predict_video_fn(model_id: str) -> tuple:
         UNINITIALIZED:      Empty loaded model list.
         INVALIDFILETYPE:    Image file extension is not allowed.
         INVALIDQUERY:       Wrongly given query parameters.
-        FAILEDTENSORFLOW:   Tensorflow failed. See error message for more information.
+        FAILEDPREDICTION:   Prediction failed. See error message for more information.
         NOTFOUND:           Image directory not found.
         INVALIDMODELKEY:    Model key is not in loaded model list.
     """
@@ -563,17 +561,12 @@ def predict_video_fn(model_id: str) -> tuple:
         else:
             if not global_store.get_loaded_model_keys():
                 raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
-            (
-                model,
-                label_map,
-                model_height,
-                model_width,
-            ) = global_store.get_all_model_attributes(model_id)
+            if model_id not in global_store.get_loaded_model_keys():
+                raise PortalError(Errors.NOTFOUND, "model_id not loaded.")
+            model_dict = global_store.get_model_dict(model_id)
+
             output = predict_video(
-                model=model,
-                model_height=model_height,
-                model_width=model_width,
-                label_map=label_map,
+                model_dict,
                 iou=iou,
                 video_directory=video_directory,
                 frame_interval=frame_interval,
@@ -649,14 +642,19 @@ def sync_images() -> Response:
     return Response(response="Sync was successful", status=200)
 
 
-@app.route("/api/project/<folder_path>", methods=["DELETE"])
+@app.route("/api/project", methods=["DELETE"])
 @cross_origin()
 @portal_function_handler(clear_status=False)
-def delete_folder(folder_path) -> Response:
+def delete_folder() -> Response:
     """
     Deletes the folder with the specified folder_path (encoded with utf-8)
     """
     try:
+
+        folder_path = request.args.get("folderpath")
+        if folder_path is None:
+            raise PortalError(Errors.INVALIDQUERY, "folderpath not specified.")
+
         global_store.delete_targeted_folder(folder_path)
         return Response(response="Deletion was successful", status=200)
 

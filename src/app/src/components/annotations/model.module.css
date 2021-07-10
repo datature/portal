@@ -65,3 +65,8 @@
 .HintIcon {
   padding: 7px;
 }
+
+.MenuItems {
+  display: flex;
+  align-items: center;
+}

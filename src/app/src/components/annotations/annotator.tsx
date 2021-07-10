@@ -1006,15 +1006,15 @@ export default class Annotator extends Component<
     /* Checks if there is AssetReselection */
     const isAssetReselection = !(asset.assetUrl !== this.currentAsset.assetUrl);
 
-    const videoElement = this.videoOverlay.getElement();
+    const currentVideoElement = this.videoOverlay.getElement();
     if (!isAssetReselection) {
       this.setState({ currentAssetAnnotations: [] });
       this.annotationGroup.eachLayer(layer => {
         this.annotationGroup.removeLayer(layer);
       });
       this.updateMenuBarAnnotations();
-      if (videoElement) {
-        (videoElement as any).cancelVideoFrameCallback(
+      if (currentVideoElement) {
+        (currentVideoElement as any).cancelVideoFrameCallback(
           this.state.currAnnotationPlaybackId
         );
       }
@@ -1112,6 +1112,8 @@ export default class Annotator extends Component<
             height: selectedVideo.videoHeight,
           },
         };
+
+        const videoElement = this.videoOverlay.getElement();
 
         if (videoElement) {
           videoElement.controls = true;
