@@ -166,7 +166,7 @@ export default class HeaderNav extends React.Component {
           <NavbarGroup align={Alignment.RIGHT}>
             <span className="bp3-navbar-divider" />
             <Model
-              {...this.props}
+              {...this.props.GlobalSetting}
               callbacks={{
                 HandleModelChange: this.props.GlobalSettingCallback
                   .handleModelChange,
