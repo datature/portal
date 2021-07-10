@@ -61,6 +61,7 @@ export type FormData = {
   directory: string;
   modelKey: string;
   projectSecret: string;
+  modelType: "tensorflow" | "darknet" | "";
 };
 
 interface ModelProps {
@@ -111,6 +112,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       projectTags: {},
       formData: {
         type: "local",
+        modelType: "tensorflow",
         name: "",
         description: "",
         directory: "",
@@ -153,6 +155,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     } else {
       await APIRegisterModel(
         this.state.formData.type,
+        this.state.formData.modelType,
         this.state.formData.name,
         this.state.formData.description,
         this.state.formData.directory,
@@ -410,6 +413,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       );
       return (
         <MenuItem
+          shouldDismissPopover={false}
           className={classes.MenuItems}
           icon={icon}
           text={this.formatLongStringName(model.name, 35)}
@@ -443,6 +447,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     this.setState({
       formData: {
         type: tabId.toString(),
+        modelType: tabId.toString() === "local" ? "tensorflow" : "",
         name: "",
         description: "",
         directory: "",
@@ -549,6 +554,10 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       </Menu>
     );
 
+    const modelTypes = {
+      tensorflow: "TensorFlow 2.0",
+      darknet: "DarkNet (YOLO v3, YOLO v4)",
+    };
     const registerModelForm = (
       <div className={classes.RegistrationForm}>
         {this.state.registrationTabId === "hub" ? (
@@ -572,7 +581,50 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               />{" "}
             </FormGroup>
           </>
-        ) : null}
+        ) : (
+          <>
+            <FormGroup label="Model Type" labelFor="label-input">
+              <Popover
+                minimal
+                content={
+                  // eslint-disable-next-line react/jsx-wrap-multilines
+                  <Menu>
+                    <Menu.Item
+                      shouldDismissPopover={false}
+                      text={modelTypes.tensorflow}
+                      onClick={() => {
+                        const event = {
+                          target: { name: "modelType", value: "tensorflow" },
+                        };
+                        this.handleChangeForm(event);
+                      }}
+                    />
+                    <Menu.Item
+                      shouldDismissPopover={false}
+                      text={modelTypes.darknet}
+                      onClick={() => {
+                        const event = {
+                          target: { name: "modelType", value: "darknet" },
+                        };
+                        this.handleChangeForm(event);
+                      }}
+                    />
+                  </Menu>
+                }
+                placement="bottom-start"
+              >
+                <Button
+                  text={
+                    this.state.formData.modelType !== ""
+                      ? modelTypes[this.state.formData.modelType]
+                      : "None selected"
+                  }
+                  rightIcon="double-caret-vertical"
+                />
+              </Popover>
+            </FormGroup>
+          </>
+        )}
         <FormGroup label="Name" labelFor="label-input">
           <InputGroup
             id="name"
@@ -827,7 +879,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                     renderActiveTabPanelOnly={true}
                   >
                     <Tab id="local" title="Local" />
-                    <Tab id="hub" title="Hub" />
+                    <Tab id="hub" title="Datature Hub" />
                     <Tabs.Expander />
                   </Tabs>
                 </NavbarGroup>{" "}
@@ -843,6 +895,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
 
               formData: {
                 type: "local",
+                modelType: "tensorflow",
                 name: "",
                 description: "",
                 directory: "",

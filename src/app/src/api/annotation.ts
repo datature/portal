@@ -110,8 +110,14 @@ export function APIUpdateAsset(directory: string): Promise<AxiosResponse<any>> {
   return axios.post(SERVER_ADDRESS + UPDATE_PROJECT_ASSETS, config);
 }
 
-export function APIDeleteAsset(path: string): Promise<AxiosResponse<any>> {
-  return axios.delete(SERVER_ADDRESS + DELETE_PROJECT_ASSETS + path);
+export function APIDeleteAsset(
+  folderpath: string
+): Promise<AxiosResponse<any>> {
+  return axios.delete(SERVER_ADDRESS + DELETE_PROJECT_ASSETS, {
+    params: {
+      folderpath,
+    },
+  });
 }
 
 /* -------------- MODEL API -------------- */
@@ -122,6 +128,7 @@ export function APIGetRegisteredModels(): Promise<AxiosResponse<any>> {
 
 export function APIRegisterModel(
   type: string,
+  modelType: string,
   name: string,
   description: string,
   directory: string,
@@ -130,6 +137,7 @@ export function APIRegisterModel(
 ): Promise<AxiosResponse<any>> {
   const config = {
     type,
+    modelType,
     name,
     description,
     credentials: {
