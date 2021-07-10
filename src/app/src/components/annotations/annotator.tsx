@@ -590,8 +590,9 @@ export default class Annotator extends Component<
     // eslint-disable-next-line no-restricted-syntax
     for (const asset of this.state.assetList) {
       if (this.state.killVideoPrediction) {
-        // eslint-disable-next-line no-await-in-loop
-        await this.getInference(this.currentAsset, false);
+        if (asset.type === "image")
+          // eslint-disable-next-line no-await-in-loop
+          await this.getInference(this.currentAsset, false);
         break;
       }
       this.selectAsset(asset, false);
@@ -1005,6 +1006,9 @@ export default class Annotator extends Component<
 
     /* Checks if there is AssetReselection */
     const isAssetReselection = !(asset.assetUrl !== this.currentAsset.assetUrl);
+    console.log("asset", asset.url);
+    console.log("currentasset", this.currentAsset.url);
+    console.log("single analysis", singleAnalysis);
 
     const currentVideoElement = this.videoOverlay.getElement();
     if (!isAssetReselection) {
