@@ -28,7 +28,6 @@ import {
   Navbar,
   NavbarGroup,
   IconSize,
-  ControlGroup,
   PopoverInteractionKind,
   Tooltip,
 } from "@blueprintjs/core";
@@ -84,6 +83,7 @@ interface ModelState {
   isAPIcalled: boolean;
   isGetTagAPI: boolean;
   isOpenDrawer: boolean;
+  isOpenRegistraionForm: boolean;
   formData: FormData;
   drawerTabId: TabId;
   registrationTabId: TabId;
@@ -106,6 +106,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       isLoadModelAPI: false,
       isGetTagAPI: false,
       isOpenDrawer: false,
+      isOpenRegistraionForm: false,
       generalIcon: undefined,
       projectTags: {},
       formData: {
@@ -382,41 +383,44 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     const modelArr: string[] = Object.keys(this.state.registeredModelList);
     return modelArr.map(key => {
       const model = this.state.registeredModelList[key];
+      const icon = (
+        <span className={"bp3-menu-item-label"}>
+          <Icon
+            icon="dot"
+            intent={
+              model.hash === this.state.currentModel?.hash
+                ? Intent.SUCCESS
+                : Intent.DANGER
+            }
+          />
+        </span>
+      );
       const rightBuuttons = (
-        <>
+        <div>
           <Button
+            icon="cog"
+            intent={Intent.NONE}
             minimal
-            disabled={this.state.isAPIcalled}
-            onClick={() => {
-              this.setState({ chosenModel: model, isConfirmLoad: true });
-            }}
-          >
-            <Icon
-              icon="dot"
-              iconSize={14}
-              intent={
-                model.hash === this.state.currentModel?.hash
-                  ? Intent.SUCCESS
-                  : Intent.DANGER
-              }
-            />
-          </Button>
-          <Button
-            minimal
-            onClick={() => {
+            onClick={event => {
               this.handleOpenDrawer(model);
+              event.stopPropagation();
             }}
-          >
-            <Icon icon="cog" iconSize={14} intent={Intent.NONE} />
-          </Button>
-        </>
+          />
+        </div>
       );
       return (
         <MenuItem
+          className={classes.MenuItems}
+          icon={icon}
           text={this.formatLongStringName(model.name, 35)}
           id={model.hash}
           key={model.hash}
           labelElement={rightBuuttons}
+          disabled={this.state.isAPIcalled}
+          onClick={() => {
+            if (!this.state.isOpenDrawer)
+              this.setState({ chosenModel: model, isConfirmLoad: true });
+          }}
         />
       );
     });
@@ -528,9 +532,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
 
     const menuOfModels = (
       <Menu className={classes.PopOverMenu}>
-        {Object.keys(this.state.registeredModelList).length > 0 ? (
-          this.createMenuItems()
-        ) : (
+        {Object.keys(this.state.registeredModelList).length === 0 ? (
           <div className={classes.NonIdealPopOver}>
             <div className="bp3-non-ideal-state">
               <div className="bp3-non-ideal-state-visual">
@@ -541,6 +543,8 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               </h5>
             </div>
           </div>
+        ) : (
+          this.createMenuItems()
         )}
       </Menu>
     );
@@ -726,35 +730,37 @@ export default class Model extends React.Component<ModelProps, ModelState> {
             {this.state.drawerTabId === "details" ? detailsPanel : null}
           </div>
         </div>
-        <div>
-          <ControlGroup className={classes.Right}>
+        <div
+          className={[
+            Classes.DIALOG_FOOTER_ACTIONS,
+            Classes.DRAWER_FOOTER,
+          ].join(" ")}
+        >
+          <Button
+            type="button"
+            text="Unload"
+            disabled={
+              this.state.chosenModel?.hash !== this.state.currentModel?.hash ||
+              this.state.isUnloadModelAPI
+            }
+            onClick={() => {
+              this.setState({ isConfirmUnload: true });
+            }}
+          />
+          <Popover
+            interactionKind={PopoverInteractionKind.HOVER}
+            content={<div className={classes.Section}>Delete</div>}
+          >
             <Button
-              minimal
               type="button"
-              text="Unload"
-              disabled={
-                this.state.chosenModel?.hash !==
-                  this.state.currentModel?.hash || this.state.isUnloadModelAPI
-              }
+              intent={Intent.DANGER}
+              disabled={this.state.isAPIcalled}
+              icon="trash"
               onClick={() => {
-                this.setState({ isConfirmUnload: true });
+                this.setState({ isConfirmDelete: true });
               }}
             />
-            <Popover
-              interactionKind={PopoverInteractionKind.HOVER}
-              content={<div className={classes.Section}>Delete</div>}
-            >
-              <Button
-                minimal
-                type="button"
-                disabled={this.state.isAPIcalled}
-                icon="trash"
-                onClick={() => {
-                  this.setState({ isConfirmDelete: true });
-                }}
-              />
-            </Popover>
-          </ControlGroup>
+          </Popover>
         </div>
       </Drawer>
     );
@@ -769,21 +775,38 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               className={classes.PopOver}
               content={menuOfModels}
               placement="bottom"
+              isOpen={this.state.isOpenDrawer ? false : undefined}
             >
-              <Button
-                style={{ minWidth: "140px", alignContent: "left" }}
-                alignText={Alignment.LEFT}
-                minimal
-                rightIcon="caret-down"
-                text={
-                  this.state.currentModel !== undefined
-                    ? this.formatLongStringName(
-                        this.state.currentModel.name,
-                        15
-                      )
-                    : "Choose Model.."
+              <Tooltip
+                content="Select a Model to Load"
+                disabled={
+                  Object.keys(this.state.registeredModelList).length === 0 ||
+                  !!this.state.currentModel
                 }
-              />
+                isOpen={
+                  !this.state.isOpenRegistraionForm &&
+                  !this.state.isOpenDrawer &&
+                  !this.state.currentModel &&
+                  Object.keys(this.state.registeredModelList).length > 0
+                    ? true
+                    : undefined
+                }
+              >
+                <Button
+                  style={{ minWidth: "140px", alignContent: "left" }}
+                  alignText={Alignment.LEFT}
+                  minimal
+                  rightIcon="caret-down"
+                  text={
+                    this.state.currentModel !== undefined
+                      ? this.formatLongStringName(
+                          this.state.currentModel.name,
+                          15
+                        )
+                      : "Load Model.."
+                  }
+                />
+              </Tooltip>
             </Popover>
           )}
         </div>
@@ -813,6 +836,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
             </>
           }
           placement="left-end"
+          onOpening={() => this.setState({ isOpenRegistraionForm: true })}
           onClosed={() => {
             this.setState({
               generalIcon: undefined,
@@ -826,10 +850,17 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 projectSecret: "",
               },
               registrationTabId: "local",
+              isOpenRegistraionForm: false,
             });
           }}
         >
-          <Button minimal icon="plus" />
+          <Tooltip
+            disabled={Object.keys(this.state.registeredModelList).length > 0}
+            content="Add a Model Here"
+            isOpen={Object.keys(this.state.registeredModelList).length === 0}
+          >
+            <Button minimal icon="plus" />
+          </Tooltip>
         </Popover>
 
         {drawer}
