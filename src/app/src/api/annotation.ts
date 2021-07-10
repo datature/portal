@@ -110,8 +110,14 @@ export function APIUpdateAsset(directory: string): Promise<AxiosResponse<any>> {
   return axios.post(SERVER_ADDRESS + UPDATE_PROJECT_ASSETS, config);
 }
 
-export function APIDeleteAsset(path: string): Promise<AxiosResponse<any>> {
-  return axios.delete(SERVER_ADDRESS + DELETE_PROJECT_ASSETS + `?folderpath=${path}`);
+export function APIDeleteAsset(
+  folderpath: string
+): Promise<AxiosResponse<any>> {
+  return axios.delete(SERVER_ADDRESS + DELETE_PROJECT_ASSETS, {
+    params: {
+      folderpath,
+    },
+  });
 }
 
 /* -------------- MODEL API -------------- */
