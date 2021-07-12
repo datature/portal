@@ -1,0 +1,42 @@
+name: Portal CI
+
+on:
+  push:
+    branches: [release]
+    tags:
+      - "release*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: false
+          prerelease: false
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+
+      - name: Upload sample Darknet Model
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: sample/yolo.zip
+          asset_name: yolo.zip
+          asset_content_type: application/zip
+
+      - name: Upload sample Tensorflow Model
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: sample/mobilenet.zip
+          asset_name: yolo.zip
+          asset_content_type: application/zip
