@@ -1,4 +1,4 @@
-<img src="https://github.com/datature/portal/blob/feature/icon-design/build/icon.png?raw=true" width="128" height="128" />
+<img src="./build/icon.png" width="128" height="128" />
 
 # Portal
 Portal is the fastest way to load and visualize your deep learning models.
