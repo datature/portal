@@ -155,7 +155,13 @@ export default class HeaderNav extends React.Component {
         <Navbar>
           <NavbarGroup align={Alignment.LEFT}>
             <AnchorButton
-              icon={<NexusDarkLogo />}
+              icon={
+                this.props.GlobalSetting.useDarkTheme ? (
+                  <DarkLogo />
+                ) : (
+                  <LightLogo />
+                )
+              }
               minimal={true}
               onClick={() => {
                 Router.push({ pathname: "/" });
@@ -255,6 +261,10 @@ export default class HeaderNav extends React.Component {
  * @todo - Move this to utils
  */
 
-const NexusDarkLogo = () => {
-  return <img src="./static/img/portal-icon.png" alt="logo" height="24px" />;
+const DarkLogo = () => {
+  return <img src="./static/img/portal-icon-dm.png" alt="logo" height="24px" />;
+};
+
+const LightLogo = () => {
+  return <img src="./static/img/portal-icon-lm.png" alt="logo" height="24px" />;
 };
