@@ -12,9 +12,18 @@ This framework is built using Python 3.7. There are 2 different options for you 
 
 - Replace `./setup-virtualenv` with `./setup.sh` if you wish to install the environment globally
 
+Mac
+
 ```.bash
 git clone https://github.com/datature/portal
 chmod u+x ./setup-virtualenv.sh && ./setup-virtualenv.sh
+```
+
+Win
+
+```.bash
+git clone https://github.com/datature/portal
+.\setup-virtualenv.sh
 ```
 
 ### Activate the virtual environment
