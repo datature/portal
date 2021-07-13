@@ -27,6 +27,10 @@
     },
     "extraResources": [
       {
+        "from": "./portal-build/out",
+        "to": "./app/out"
+      },
+      {
         "from": "./portal-build/dist",
         "to": "./dist"
       }
