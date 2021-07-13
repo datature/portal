@@ -7,7 +7,7 @@ Portal is the fastest way to load and visualize your deep learning models.
 > Load models from Datature Nexus or drop in `saved_model` files onto the platform + run inference to visualize the performance of the model - without a single line of code
 > You may refer to the [documentation][docs] for further details of the application
 
-[doc]: https://docs.datature.io/
+[docs]: https://docs.datature.io/
 
 ## Setting up the environment
 
