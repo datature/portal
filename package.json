@@ -27,13 +27,17 @@
     },
     "extraResources": [
       {
-        "from": "./dist",
+        "from": "./portal-build/out",
+        "to": "./app/out"
+      },
+      {
+        "from": "./portal-build/dist",
         "to": "./dist"
       }
     ],
     "extraFiles": [
       {
-        "from": "./server/cache",
+        "from": "./portal-build/server/cache",
         "to": "./server/cache"
       },
       "./build/icon.*"

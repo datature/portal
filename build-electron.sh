@@ -1,11 +1,10 @@
 #! /bin/sh
 
-echo "Installing Electron Environment for Portal..."
-npm install
-
-chmod +x setup.sh build-python.sh 
-. setup.sh 
-echo "Building Backend for Portal..."
+echo "Running build-electron bash job!"
+chmod +x setup-virtualenv.sh build-python.sh 
+echo "Calling setup-virtualenv.sh to setup environment in portal-build"
+. setup-virtualenv.sh 
+echo "Calling build-python.sh to build backend executable"
 . build-python.sh 
 cd ./src/app
 echo "Building Frontend for Portal..."
