@@ -1,10 +1,26 @@
 #! /bin/sh
 
+check_if_node_exists() {
+if which npm > /dev/null
+  then
+   echo "NPM Found! Installing Electron dependencies..."
+   return 0
+  else
+   echo "Skipping the setup for Electron. You Need to have NPM first. "
+   return 1
+  fi
+}
+
 echo "Running setup bash job!"
+
+if check_if_node_exists; then 
 echo "Installing Nextjs Environment for Portal..."
 npm install
 cd ./src/app
 npm install
+else 
+cd ./src/app
+fi
 
 echo "Building and Exporting related app files to portal-build..."
 npm run build:static
