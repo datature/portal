@@ -11,7 +11,7 @@ Portal is the fastest way to load and visualize your deep learning models.
 
 ## Setting up the environment
 
-This framework is built using Python 3.7. There are 2 different options for you to setup the environment. You can either install the necessary packages globally or or install them into a newly created virtual environment.
+This framework is built using Python 3.7 and Node to run electron. There are 2 different options for you to setup the environment. You can either install the necessary packages globally or or install them into a newly created virtual environment.
 
 - `./setup-virtualenv` bash file creates a new virtual environment for the packages. If you wish to install globally, run the following commands with `./setup.sh` instead.
 
