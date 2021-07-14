@@ -85,7 +85,7 @@ async function startBackend() {
 }
 
 async function checkWindowRenderReady() {
-  const response = await fetch("http://localhost:5000/heartbeat", {
+  const response = await fetch("http://localhost:9449/heartbeat", {
     method: "GET",
   }).catch(() => {
     /* Ignore */
@@ -95,7 +95,7 @@ async function checkWindowRenderReady() {
 }
 
 async function shutDownServer() {
-  await fetch("http://localhost:5000/shutdown?deleteCache=true", {
+  await fetch("http://localhost:9449/shutdown?deleteCache=true", {
     method: "GET",
   }).catch(err => {
     console.log(err);
