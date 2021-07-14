@@ -1,5 +1,5 @@
 // Base Server URL
-export const SERVER_ADDRESS = "http://localhost:5000";
+export const SERVER_ADDRESS = "http://localhost:9449";
 export const IS_ALIVE = `/heartbeat`;
 export const SHUTDOWN = `/shutdown`;
 export const CACHE = `/cache`;

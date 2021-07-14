@@ -118,21 +118,6 @@ export default class AnnotatorSettings extends Component<
     this.props.callbacks.setAnnotationOptions(true);
   };
 
-  /**
-   * Toggle whether only unannotated images are shown
-   */
-  filterAnnotatedAssetsHandler = (): void => {
-    this.setState(prevState => {
-      this.props.callbacks.setAnnotatedAssetsHidden(
-        !prevState.onlyUnannotatedShown
-      );
-      return {
-        ...prevState,
-        onlyUnannotatedShown: !prevState.onlyUnannotatedShown,
-      };
-    });
-  };
-
   render(): JSX.Element {
     return (
       <Popover
@@ -147,13 +132,6 @@ export default class AnnotatorSettings extends Component<
           <div className="annotator-settings-content">
             <div className="annotator-settings-col">
               <H5>Annotator Settings</H5>
-              <br />
-              <Switch
-                checked={this.state.onlyUnannotatedShown}
-                onChange={this.filterAnnotatedAssetsHandler}
-              >
-                Filter Annotated Images
-              </Switch>
               <br />
               <Switch
                 checked={this.props.annotationOptions.isOutlined}

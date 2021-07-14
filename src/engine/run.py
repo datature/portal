@@ -12,12 +12,16 @@ def initialize() -> None:
 
 
 root = os.path.abspath(os.curdir)
-print(os.getenv("ROOT_DIR"))
 if os.getenv("ROOT_DIR") is not None:
     root = os.path.abspath(os.getenv("ROOT_DIR"))
-    print(root)
 
-cache_dir = os.path.join(root, "server/cache/store.portalCache")
+cache_folder = os.path.join(root, "server/cache")
+if not os.path.isdir(cache_folder):
+    os.makedirs(cache_folder)
+    with open(os.path.join(root, cache_folder, ".gitkeep"), "w") as gitkeep:
+        pass
+
+cache_dir = os.path.join(root, cache_folder, "store.portalCache")
 gpu_dir = os.path.join(root, "server/cache/use_gpu")
 
 use_gpu = "0"

@@ -39,7 +39,7 @@ class ServerThread(threading.Thread):
         )
 
     def run(self):
-        self.socket.run(app, use_debugger=False, use_reloader=False)
+        self.socket.run(app, use_debugger=False, use_reloader=False, port=9449)
 
 
 # pylint: disable=invalid-name
