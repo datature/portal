@@ -515,19 +515,21 @@ export default class Annotator extends Component<
     visible: boolean,
     ...annotationList: any[]
   ): void {
-    this.setState(prevState => {
-      const hiddenAnnotations = new Set<string>(prevState.hiddenAnnotations);
-      annotationList.forEach(annotation => {
-        if (visible) {
-          this.map.addLayer(annotation);
-          hiddenAnnotations.delete(annotation.options.annotationID);
-        } else {
-          this.map.removeLayer(annotation);
-          hiddenAnnotations.add(annotation.options.annotationID);
-        }
-      });
-      return { hiddenAnnotations };
-    });
+    this.setState(
+      prevState => {
+        const hiddenAnnotations = new Set<string>(prevState.hiddenAnnotations);
+
+        annotationList.forEach(annotation => {
+          if (visible) {
+            hiddenAnnotations.delete(annotation.options.annotationID);
+          } else {
+            hiddenAnnotations.add(annotation.options.annotationID);
+          }
+        });
+        return { hiddenAnnotations };
+      },
+      () => this.filterAnnotationVisibility()
+    );
   }
 
   /**
