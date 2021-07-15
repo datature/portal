@@ -14,13 +14,21 @@
     "build:prod-win": "build-electron.sh",
     "postinstall": "electron-builder install-app-deps",
     "pack": "set DEBUG=electron-builder electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder",
+    "publish": "electron-builder -w --publish always"
   },
   "build": {
     "asar": false,
     "appId": "com.electron.datatureportal",
     "productName": "Portal",
     "copyright": "Copyright © 2021 Datature",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "datature",
+        "repo": "portal"
+      }
+    ],
     "directories": {
       "output": "./application",
       "app": "./src/app"
