@@ -4,6 +4,20 @@ on:
   push:
     branches: [release]
 jobs:
+  build-win:
+    runs-on: window-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Publish windows
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: .
+        run: |
+          . setup-virtualenv.sh
+          . build-python.sh
+          npm run publish
+
   release:
     runs-on: ubuntu-latest
     steps:
