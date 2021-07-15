@@ -1,23 +1,13 @@
 name: Portal CI
 
 on:
-  pull_request:
-    branches: [develop]
-  # push:
-  #   branches: [release*]
+  push:
+    branches: [release*]
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-        with:
-          lfs: true
-      - name: Pull LFS
-        working-directory: .
-        run: |
-          echo "Pulling git lfs, should have a sample dir"
-          git lfs pull
-          ls
 
       - name: Extract branch name
         shell: bash
@@ -34,34 +24,3 @@ jobs:
           prerelease: false
           tag_name: ${{ steps.extract_branch.outputs.branch }}
           release_name: ${{ steps.extract_branch.outputs.branch }}
-
-      - name: Upload Yolo.zip
-        uses: actions/upload-artifact@v2
-        with:
-          name: yolo.zip
-          path: ${{ github.workspace }}/sample/yolo.zip
-
-      - name: Download Artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: yolo.zip
-
-      # - name: Upload sample Darknet Model
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: sample/yolo.zip
-      #     asset_name: yolo-v3.zip
-      #     asset_content_type: application/zip
-
-      # - name: Upload sample Tensorflow Model
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: sample/mobilenet.zip
-      #     asset_name: mobilenet.zip
-      #     asset_content_type: application/zip
