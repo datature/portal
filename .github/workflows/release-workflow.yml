@@ -2,7 +2,7 @@ name: Portal CI
 
 on:
   push:
-    branches: [release*]
+    branches: [hotfix/release-workflow]
 jobs:
   build-win:
     runs-on: window-latest
