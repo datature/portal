@@ -64,6 +64,7 @@ if __name__ == "__main__":
 
     if os.getenv("COMMAND_LINE"):
         if not os.getenv("IS_ELECTRON"):
+            # pylint: disable=W0212
             app._static_folder = os.path.join(root, "out", "static")
             webbrowser.open("http://localhost:9449")
 
