@@ -52,9 +52,6 @@ npm run build:static
 
 cd ../..
 
-echo "Copying portal.py to portal-build..."
-cp portal.py ./portal-build
-
 echo "Copying related app files to portal-build..."
 cp ./src/app/main.js ./portal-build
 cp ./src/app/preload.js ./portal-build
