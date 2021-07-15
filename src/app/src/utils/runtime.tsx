@@ -26,6 +26,7 @@ interface RunTimeProps {
 export function RuntimeChecker(props: RunTimeProps): JSX.Element {
   const [isRestart, setIsRestart] = useState(false);
   let heartbeatCounts = 0;
+  let connectedOnce = false;
   const threshold = 1;
   let toastKey: string | undefined;
   let { isConnected } = props;
@@ -41,11 +42,17 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
           props.callbacks.HandleElectronGPUListener();
         }
         if (toastKey) DissmissToast(toastKey);
+        if (!connectedOnce) connectedOnce = true;
         heartbeatCounts = 0;
         if (isRestart) setIsRestart(false);
       })
       .catch(() => {
-        if (heartbeatCounts === 0) {
+        if (connectedOnce && !isElectron()) {
+          const message = "Portal runtime is unresponsive. Restart browser.";
+          const icon = "outdated";
+          if (toastKey) DissmissToast(toastKey);
+          CreateGenericToast(message, Intent.WARNING, 25000, icon);
+        } else if (heartbeatCounts === 0) {
           const message = "Waiting for runtime to load";
           const icon = (
             <>
