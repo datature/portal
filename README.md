@@ -76,7 +76,7 @@ We have provided sample weights for you to test portal:
 | Yolo-v3                          | DarkNet model obtained from [pjreddie/darknet][darknet]        |      [Yolo][yolo]      |
 | SSD MobileNet V2 FPNLite 640x640 | Tensorflow model obtained from [tensorflow/models][tensorflow] | [MobileNet][mobilenet] |
 
-[tensorflow]: https://github.com/pjreddie/darknet
-[darknet]: https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
+[darknet]: https://github.com/pjreddie/darknet
+[tensorflow]: https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
 [yolo]: https://github.com/datature/portal/releases/download/v1.0/yolo.zip
 [mobilenet]: https://github.com/datature/portal/releases/download/v1.0/mobilenet.zip
