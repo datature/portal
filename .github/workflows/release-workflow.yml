@@ -5,7 +5,7 @@ on:
     branches: [hotfix/release-workflow]
 jobs:
   build-win:
-    runs-on: window-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
 
