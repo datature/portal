@@ -1,4 +1,5 @@
 # Portal
+
 [![Build Tests](https://github.com/datature/portal/actions/workflows/app-workflow.yml/badge.svg)](https://github.com/datature/portal/actions/workflows/app-workflow.yml)
 [![Join Datature Slack](https://img.shields.io/badge/Join%20The%20Community-Datature%20Slack-blueviolet)](https://datature.io/community)
 
@@ -70,11 +71,12 @@ python3 portal-build/portal.py
 
 We have provided sample weights for you to test portal:
 
-| Dataset   | Description                                             |     Download Link      |
-| --------- | ------------------------------------------------------- | :--------------------: |
-| Yolo-v3   | DarkNet model obtained from [pjreddie/darknet][darknet] |      [Yolo][yolo]      |
-| MobileNet | Tensorflow model                                        | [MobileNet][mobilenet] |
+| Dataset                          | Description                                                    |     Download Link      |
+| -------------------------------- | -------------------------------------------------------------- | :--------------------: |
+| Yolo-v3                          | DarkNet model obtained from [pjreddie/darknet][darknet]        |      [Yolo][yolo]      |
+| SSD MobileNet V2 FPNLite 640x640 | Tensorflow model obtained from [tensorflow/models][tensorflow] | [MobileNet][mobilenet] |
 
-[darknet]: https://github.com/pjreddie/darknet
+[tensorflow]: https://github.com/pjreddie/darknet
+[darknet]: https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
 [yolo]: https://github.com/datature/portal/releases/download/v1.0/yolo.zip
 [mobilenet]: https://github.com/datature/portal/releases/download/v1.0/mobilenet.zip
