@@ -5,6 +5,7 @@ import threading
 import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 from flask import Flask
 from flask_socketio import SocketIO
 
@@ -74,7 +75,7 @@ def schedule_shutdown():
         shutdown_server()
 
 
-scheduler.add_job(schedule_shutdown, "interval", minutes=1)
+scheduler.add_job(schedule_shutdown, IntervalTrigger(minutes=1))
 scheduler.start()
 # Shut down the scheduler when exiting the app
 # pylint: disable=unnecessary-lambda)

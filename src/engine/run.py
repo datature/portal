@@ -1,10 +1,12 @@
 """Main file to run the flask app."""
-import os
 
 # Ignore due to Pyshell
 # pylint: disable=E0401, E0611
-# pylint: disable=wrong-import-position
-from server import server, global_store
+import os
+import webbrowser
+from server import server, app, global_store
+from flask import send_from_directory
+from flask_cors import cross_origin
 
 
 def initialize() -> None:
@@ -32,6 +34,22 @@ else:
     with open(gpu_dir, "w") as gpu_flag:
         gpu_flag.write(use_gpu)
 
+if os.getenv("COMMAND_LINE"):
+    @app.route('/')
+    @cross_origin()
+    def index():
+        filepath = os.path.join(root, "out")
+        print(filepath)
+        return send_from_directory(filepath, "index.html")
+
+    @app.route('/<path:path>')
+    @cross_origin()
+    def send_paths(path):
+        filepath = os.path.join(root, "out", path)
+
+        head, tail = os.path.split(filepath)
+        return send_from_directory(head, tail)
+
 if __name__ == "__main__":
     os.environ["ROOT_DIR"] = root
     os.environ["CACHE_DIR"] = cache_dir
@@ -43,5 +61,17 @@ if __name__ == "__main__":
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
     else:
         os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
+    if os.getenv("COMMAND_LINE"):
+        if not os.getenv("IS_ELECTRON"):
+            # pylint: disable=W0212
+            app._static_folder = os.path.join(root, "out", "static")
+            webbrowser.open("http://localhost:9449")
+
+            if not os.getenv("IS_GPU"):
+                os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+                os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+            else:
+                os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
     initialize()
