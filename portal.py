@@ -55,7 +55,7 @@ if __name__ == "__main__":
         os.system("npm run portal-build")
     else:
         app._static_folder = os.path.join(root, "out", "static")
-        webbrowser.open("http://localhost:5000")
+        webbrowser.open("http://localhost:9449")
         
         if not is_gpu:
             os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
