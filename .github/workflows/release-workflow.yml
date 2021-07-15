@@ -8,6 +8,15 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v1
+        # Install Node.js
+      - uses: actions/setup-node@v1.4.4
+        with:
+          node-version: 14
+          registry-url: https://npm.pkg.github.com/
+          scope: "@datature"
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
 
       - name: Publish windows
         env:
