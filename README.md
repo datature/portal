@@ -1,13 +1,23 @@
-<img src="./build/icon.png" width="128" height="128" />
-
 # Portal
+[![Build Tests](https://github.com/datature/portal/actions/workflows/app-workflow.yml/badge.svg)](https://github.com/datature/portal/actions/workflows/app-workflow.yml)
+[![Join Datature Slack](https://img.shields.io/badge/Join%20The%20Community-Datature%20Slack-blueviolet)](https://datature.io/community)
 
-Portal is the fastest way to load and visualize your deep learning models.
+**Portal is the fastest way to load and visualize your deep learning models.** We are all sick of wrangling a bunch of `cv2` or `matplotlib` codes to test your models - especially on videos. We created portal to help teams, engineers, and product managers interactively test their model on images and videos, inference thresholds, IoU values and much more.
 
-> Load models from Datature Nexus or drop in `saved_model` files onto the platform + run inference to visualize the performance of the model - without a single line of code
-> You may refer to the [documentation][docs] for further details of the application
+Portal is an open-source Electron / Browser based app written in TypeScript, React and Python Flask.
 
-[docs]: https://docs.datature.io/
+Made with `<3` by [Datature](https://datature.io)
+
+<p align="center">
+  <img alt="Portal User Experience" src="https://github.com/datature/portal/blob/develop/docs/images/portal-demo-image.gif?raw=true" width="90%">
+</p>
+
+Portal works on both images and videos - allowing you to use it as a sandbox for testing your model's performance. Additionally, Portal supports Datature Hub, TensorFlow and DarkNet models (PyTorch Support Incoming) and runs on either our electron app or your browser.
+
+<p align="center">
+  <img alt="Portal User Experience" src="https://github.com/datature/portal/blob/develop/docs/images/portal-demo-video.gif?raw=true" width="45%">
+  <img alt="Portal User Experience" src="https://github.com/datature/portal/blob/develop/docs/images/portal-demo-fields.gif?raw=true" width="45%">
+</p>
 
 ## Setting up the environment
 
