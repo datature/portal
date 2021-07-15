@@ -64,7 +64,7 @@ Running the following command will open the portal application on the browser vi
 > If you wish to run the application on gpu, add the `--gpu` flag.
 
 ```.bash
-python3 portal-build/portal.py
+python3 portal.py
 ```
 
 ## Sample Weights
