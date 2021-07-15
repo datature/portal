@@ -48,7 +48,7 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
       })
       .catch(() => {
         if (connectedOnce && !isElectron()) {
-          const message = "Portal runtime is unresponsive. Restart browser.";
+          const message = "Portal runtime is unresponsive. Restart server.";
           const icon = "outdated";
           if (toastKey) DissmissToast(toastKey);
           CreateGenericToast(message, Intent.WARNING, 25000, icon);
