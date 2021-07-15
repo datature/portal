@@ -58,7 +58,7 @@ portal-build\.venv\Scripts\activate
 
 ## Run the Portal app!
 
-Running the following command will open the portal application on the browser via http://localhost:5000.
+Running the following command will open the portal application on the browser via http://localhost:9449.
 
 > If you wish to run the application on electron, add the `--electron` flag.
 > If you wish to run the application on gpu, add the `--gpu` flag.
