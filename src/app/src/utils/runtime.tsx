@@ -52,7 +52,7 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
           const icon = "outdated";
           if (toastKey) DissmissToast(toastKey);
           CreateGenericToast(message, Intent.WARNING, 25000, icon);
-        } else if (heartbeatCounts === 0) {
+        } else if (!connectedOnce && heartbeatCounts === 0) {
           const message = "Waiting for runtime to load";
           const icon = (
             <>
@@ -60,7 +60,10 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
             </>
           );
           toastKey = CreateGenericToast(message, Intent.PRIMARY, 0, icon);
-        } else if (heartbeatCounts >= threshold && isElectron()) {
+        } else if (
+          ((heartbeatCounts >= threshold && !connectedOnce) || connectedOnce) &&
+          isElectron()
+        ) {
           const message = "Portal runtime is unresponsive.";
           const icon = "outdated";
           const action = {
