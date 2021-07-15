@@ -2,7 +2,7 @@ name: Portal CI
 
 on:
   push:
-    branches: [release]
+    branches: [release*]
 jobs:
   build-win:
     runs-on: window-latest
@@ -21,37 +21,20 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
+
       - name: Extract branch name
         shell: bash
         run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
         id: extract_branch
+
       - name: release
         uses: actions/create-release@v1
         id: create_release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          draft: false
+          draft: true
           prerelease: false
           tag_name: ${{ steps.extract_branch.outputs.branch }}
           release_name: ${{ steps.extract_branch.outputs.branch }}
-
-      - name: Upload sample Darknet Model
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: sample/yolo.zip
-          asset_name: yolo-v3.zip
-          asset_content_type: application/zip
-
-      - name: Upload sample Tensorflow Model
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: sample/mobilenet.zip
-          asset_name: mobilenet.zip
-          asset_content_type: application/zip

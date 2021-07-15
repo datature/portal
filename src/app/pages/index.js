@@ -66,7 +66,7 @@ class Annotation extends React.Component {
     return (
       <>
         <Head>
-          <title>Annotator</title>
+          <title>Portal</title>
           <link rel="icon" type="image/x-icon" href="./favicon.ico" />
           <link
             rel="stylesheet"
