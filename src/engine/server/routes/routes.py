@@ -619,7 +619,7 @@ def register_images() -> Response:
     """
     try:
         path = request.json["directory"]
-        global_store.add_targeted_folder(path.lower())
+        global_store.add_targeted_folder(path)
 
         return Response(
             response="Successfully registered the targeted folder", status=200
