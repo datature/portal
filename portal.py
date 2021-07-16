@@ -26,8 +26,10 @@ else:
 if os.getenv("IS_ELECTRON"):
     os.system("npm run portal-build")
 else:
-    if (sys.platform == "win32" or sys.platform == "linux"):
+    if sys.platform == "win32":
         os.system("python portal-build/run.py")
+    elif sys.platform == "linux":
+        os.system("python3 portal-build/run.py")
     else:
         # Non windows
         os.system("python3 -m portal-build/run")
