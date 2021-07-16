@@ -23,8 +23,9 @@ if not os.path.isdir(cache_folder):
     with open(os.path.join(root, cache_folder, ".gitkeep"), "w") as gitkeep:
         pass
 
+model_dir = os.path.join(root, "server/hub_models")
 cache_dir = os.path.join(root, cache_folder, "store.portalCache")
-gpu_dir = os.path.join(root, "server/cache/use_gpu")
+gpu_dir = os.path.join(root, cache_folder, "use_gpu")
 
 use_gpu = "0"
 if os.path.isfile(gpu_dir):
@@ -54,6 +55,7 @@ if __name__ == "__main__":
     os.environ["ROOT_DIR"] = root
     os.environ["CACHE_DIR"] = cache_dir
     os.environ["GPU_DIR"] = gpu_dir
+    os.environ["MODEL_DIR"] = model_dir
     global_store.set_is_cache_called(cache_dir)
 
     if use_gpu == "-1":
