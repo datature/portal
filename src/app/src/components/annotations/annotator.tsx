@@ -587,8 +587,6 @@ export default class Annotator extends Component<
     this.setState({ uiState: "Predicting" });
     this.handleProgressToast();
 
-    const lastAsset = this.state.assetList[this.state.assetList.length - 1];
-
     // eslint-disable-next-line no-restricted-syntax
     for (const asset of this.state.assetList) {
       if (this.state.killVideoPrediction) {
@@ -599,7 +597,9 @@ export default class Annotator extends Component<
       }
       this.selectAsset(asset, false);
       // eslint-disable-next-line no-await-in-loop
-      await this.getInference(asset, true, asset.url === lastAsset.url);
+      await this.getInference(asset, true);
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(res => setTimeout(res, 1000));
     }
 
     await this.updateImage();
