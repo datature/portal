@@ -19,7 +19,6 @@ import {
   Tabs,
   Tab,
   TabId,
-  TextArea,
   Icon,
   IconName,
   Alert,
