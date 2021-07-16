@@ -209,15 +209,25 @@ class GlobalStore:
         """
 
         model_dir = model.get_info()["directory"]
+        model_name = model.get_info()["name"]
         if key not in self._store_["registry"]:
             for item in self._store_["registry"]:
-                if self._store_["registry"][item]["model_dir"] == model_dir:
-                    self._store_["registry"].pop(item)
-                    break
+                if self._store_["registry"][item]["model_name"] == model_name:
+                    if (
+                        self._store_["registry"][item]["model_dir"]
+                        == model_dir
+                    ):
+                        self._store_["registry"].pop(item)
+                        break
+                    raise PortalError(
+                        Errors.INVALIDAPI,
+                        "A model with the same name already exists.",
+                    )
         serialized_model_class = jsonpickle.encode(model)
         self._store_["registry"][key] = {
             "class": serialized_model_class,
             "model_dir": model_dir,
+            "model_name": model_name,
         }
         self._save_store_()
 
