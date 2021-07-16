@@ -46,7 +46,7 @@ def register_hub(
         hub_model = HubModel(
             project_secret=project_secret,
             model_key=model_key,
-            hub_dir=hub_dir if hub_dir != "" else "./server/hub_models",
+            hub_dir=hub_dir if hub_dir != "" else os.getenv("MODEL_DIR"),
         )
         model_folder = hub_model.model_dir
         if not os.path.exists(model_folder):

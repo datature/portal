@@ -6,7 +6,6 @@ import sys
 arguments = sys.argv
 
 root = os.path.join(os.path.abspath(os.curdir), "portal-build")
-cache_dir = os.path.join(root, "server/cache/store.portalCache")
 gpu_dir = os.path.join(root, "server/cache/use_gpu")
 
 
