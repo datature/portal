@@ -639,13 +639,10 @@ def sync_images():
     """
     path = request.json.get("directory")
     if not path:
-        print("Hello")
-        not_found_folders = global_store.update_all_targeted_folders()
-        print(not_found_folders)
-        return jsonify(not_found_folders), 200
+        global_store.update_all_targeted_folders()
     else:
         global_store.update_targeted_folder(path)
-        return Response(response="Sync was successful", status=200)
+    return Response(response="Sync was successful", status=200)
 
 
 @app.route("/api/project", methods=["DELETE"])
