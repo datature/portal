@@ -23,11 +23,10 @@ else:
     with open(gpu_dir, "w") as gpu_flag:
         gpu_flag.write("-1")
 
-
 if os.getenv("IS_ELECTRON"):
     os.system("npm run portal-build")
 else:
-    if (sys.platform == "win32"):
+    if (sys.platform == "win32" or sys.platform == "linux"):
         os.system("python portal-build/run.py")
     else:
         # Non windows
