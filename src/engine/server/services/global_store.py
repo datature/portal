@@ -206,23 +206,25 @@ class GlobalStore:
 
         :param key: The model key.
         :param _model_: The _model_ class attributed to the model key.
-        """
 
+        Cases:
+        same dir    same name   =>  pop old from and add new to existing list
+        same dir    diff name   =>  pop old from and add new to existing list
+        diff dir    same name   =>  ERROR Name has been used
+        diff dir    diff name   =>  add new to existing list
+        """
         model_dir = model.get_info()["directory"]
         model_name = model.get_info()["name"]
-        if key not in self._store_["registry"]:
-            for item in self._store_["registry"]:
-                if self._store_["registry"][item]["model_name"] == model_name:
-                    if (
-                        self._store_["registry"][item]["model_dir"]
-                        == model_dir
-                    ):
-                        self._store_["registry"].pop(item)
-                        break
-                    raise PortalError(
-                        Errors.INVALIDAPI,
-                        "A model with the same name already exists.",
-                    )
+
+        for item in self._store_["registry"]:
+            if self._store_["registry"][item]["model_dir"] == model_dir:
+                self._store_["registry"].pop(item)
+                break
+            if self._store_["registry"][item]["model_name"] == model_name:
+                raise PortalError(
+                    Errors.INVALIDAPI,
+                    "A model with the same name already exists.",
+                )
         serialized_model_class = jsonpickle.encode(model)
         self._store_["registry"][key] = {
             "class": serialized_model_class,
