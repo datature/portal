@@ -633,13 +633,19 @@ def register_images() -> Response:
 @app.route("/api/project/sync", methods=["POST"])
 @cross_origin()
 @portal_function_handler(clear_status=False)
-def sync_images() -> Response:
+def sync_images():
     """
     Sync the folder targets for updated contents
     """
-    path = request.json["directory"]
-    global_store.update_targeted_folder(path)
-    return Response(response="Sync was successful", status=200)
+    path = request.json.get("directory")
+    if not path:
+        print("Hello")
+        not_found_folders = global_store.update_all_targeted_folders()
+        print(not_found_folders)
+        return jsonify(not_found_folders), 200
+    else:
+        global_store.update_targeted_folder(path)
+        return Response(response="Sync was successful", status=200)
 
 
 @app.route("/api/project", methods=["DELETE"])

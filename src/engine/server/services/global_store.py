@@ -337,7 +337,17 @@ class GlobalStore:
 
         :param new_path: The path of the folder.
         """
-        self._targeted_folders_.update_folders(new_path)
+        self._targeted_folders_.update_folder(new_path)
+        seriliazable_folders = jsonpickle.encode(self._targeted_folders_)
+        self._store_["targeted_folders"] = seriliazable_folders
+        self._save_store_()
+
+    def update_all_targeted_folders(self):
+        """Update the cache
+
+        :param new_path: The path of the folder.
+        """
+        self._targeted_folders_.update_all_folders()
         seriliazable_folders = jsonpickle.encode(self._targeted_folders_)
         self._store_["targeted_folders"] = seriliazable_folders
         self._save_store_()
