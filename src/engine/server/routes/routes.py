@@ -217,7 +217,7 @@ def register_model() -> tuple:
         if input_directory != "" and not os.path.isdir(input_directory):
             raise PortalError(
                 Errors.INVALIDAPI,
-                "directory is not '', nor is it a valid directory.",
+                f"{input_directory} is not a valid directory.",
             )
 
         if input_type == "local" and input_directory == "":
@@ -619,7 +619,7 @@ def register_images() -> Response:
     """
     try:
         path = request.json["directory"]
-        global_store.add_targeted_folder(path.lower())
+        global_store.add_targeted_folder(path)
 
         return Response(
             response="Successfully registered the targeted folder", status=200

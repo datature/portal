@@ -373,9 +373,9 @@ export default class Annotator extends Component<
           (this.annotationGroup as any).tags = this.state.tagInfo.tags;
         })
         .catch(error => {
-          let message = `Failed to obtain loaded model tags. ${error}`;
+          let message = "Failed to obtain loaded model tags.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
@@ -572,9 +572,9 @@ export default class Annotator extends Component<
     this.setState({ killVideoPrediction: true });
     if (this.currentAsset.type === "video") {
       await APIKillVideoInference().catch(error => {
-        let message = `Failed to kill video prediction. ${error}`;
+        let message = "Failed to kill video prediction.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
         CreateGenericToast(message, Intent.DANGER, 3000);
       });
@@ -673,9 +673,9 @@ export default class Annotator extends Component<
             this.updateAnnotations(response.data);
         })
         .catch(error => {
-          let message = `Failed to predict image. ${error}`;
+          let message = "Failed to predict image.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
@@ -738,10 +738,10 @@ export default class Annotator extends Component<
           }
         })
         .catch(error => {
-          let message = `Failed to predict video. ${error}`;
+          let message = "Failed to predict video.";
           let intent: Intent = Intent.DANGER;
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
           if (error.response.data.error === "STOPPEDPROCESS")
             intent = Intent.PRIMARY;

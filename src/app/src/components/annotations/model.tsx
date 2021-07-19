@@ -179,9 +179,16 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           this.setState({
             generalIcon: { name: "cross", intent: Intent.DANGER },
           });
-          let message = `Failed to register model. ${error}`;
+          let message = "Failed to register model.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            if (error.response.data.error_code === 3001) {
+              if (this.state.formData.modelType === "tensorflow")
+                message = "Are you sure this is a TensorFlow Model?";
+              else if (this.state.formData.modelType === "darknet")
+                message = "Are you sure this is a Darknet Model?";
+            } else {
+              message = `${error.response.data.message}`;
+            }
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
@@ -215,9 +222,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         }
       })
       .catch(error => {
-        let message = `Failed to refresh model list. ${error}`;
+        let message = "Failed to refresh model list.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
 
         CreateGenericToast(message, Intent.DANGER, 3000);
@@ -238,9 +245,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           }
         })
         .catch(error => {
-          let message = `Failed to unload current model. ${error}`;
+          let message = "Failed to unload current model.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
@@ -282,9 +289,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         }
       })
       .catch(error => {
-        let message = `Cannot load model. ${error}`;
+        let message = "Cannot load model.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
 
         CreateGenericToast(message, Intent.DANGER, 3000);
@@ -305,9 +312,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           }
         })
         .catch(error => {
-          let message = `Failed to delete model. ${error}`;
+          let message = "Failed to delete model.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
@@ -327,9 +334,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           }
         })
         .catch(error => {
-          let message = `Failed to get model tags. ${error}`;
+          let message = "Failed to get model tags.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
