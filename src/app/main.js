@@ -12,10 +12,9 @@ log.transports.file.level = "info";
 log.transports.file.file = `${__dirname}log.log`;
 console.log = log.log;
 
-let exeFileName = "run";
+const exeFileName = "run.exe";
 let venv = path.join(".venv", "bin", "python");
 if (process.platform.toLowerCase().includes("win32")) {
-  exeFileName = "run.exe";
   venv = path.join(".venv", "Scripts", "python.exe");
 }
 
