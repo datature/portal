@@ -81,9 +81,9 @@ export default class FileModal extends React.Component<
         }
       })
       .catch(error => {
-        let message = `Failed to obtain current folders. ${error}`;
+        let message = "Failed to obtain current folders.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
 
         CreateGenericToast(message, Intent.DANGER, 3000);
@@ -97,14 +97,13 @@ export default class FileModal extends React.Component<
       .then(result => {
         if (result.status === 200) {
           this.refreshTree();
-          console.log("Successfully registered");
           this.props.callbacks.UpdateImage();
         }
       })
       .catch(error => {
-        let message = `Failed to register folder. ${error}`;
+        let message = "Failed to register folder.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
         CreateGenericToast(message, Intent.DANGER, 3000);
       });
@@ -179,9 +178,9 @@ export default class FileModal extends React.Component<
           });
         }
 
-        let message = `Failed to update folder. ${error}`;
+        let message = "Failed to update folder.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
         CreateGenericToast(message, Intent.DANGER, 3000);
       });
@@ -198,9 +197,9 @@ export default class FileModal extends React.Component<
         this.props.callbacks.UpdateImage();
       })
       .catch(error => {
-        let message = `Failed to delete folder. ${error}`;
+        let message = "Failed to delete folder.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
         CreateGenericToast(message, Intent.DANGER, 3000);
       });
