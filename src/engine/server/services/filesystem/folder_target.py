@@ -34,9 +34,27 @@ class FolderTargets:
             trees_arr.append(folder.get_tree())
         return trees_arr
 
-    def update_folders(self, path):
+    def update_all_folders(self):
+        for index, folder in enumerate(self._folders_):
+            decoded_path = os.path.normpath(decode(folder.get_path()))
+            if not os.path.isdir(decoded_path):
+                self._folders_.pop(index)
+            else:
+                self._folders_[index] = folder.update_folder(
+                    folder.get_path(), datetime.datetime.utcnow()
+                )
+
+    def update_folder(self, path):
         # Ensure all encoded path are encoded with the same format
-        path = encode(os.path.normpath(decode(path)))
+        decoded_path = os.path.normpath(decode(path))
+        if not os.path.isdir(decoded_path):
+            self.delete_folder(path)
+            raise PortalError(
+                Errors.INVALIDFILETYPE,
+                f"{decoded_path} is no longer a directory. Deleted it from assets",
+            )
+
+        path = encode(decoded_path)
         for index, item in enumerate(self._folders_):
             folder = item
             if path.startswith(folder.get_path()):

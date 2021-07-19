@@ -153,6 +153,7 @@ export default class FileModal extends React.Component<
   };
 
   private handleUpdateFolder = async (path: string) => {
+    this.setState({ isAPICalled: true });
     await APIUpdateAsset(path)
       .then(result => {
         if (result.status === 200) {
@@ -172,17 +173,20 @@ export default class FileModal extends React.Component<
         if (index < 0) {
           this.setState(prevState => {
             const arr = prevState.notFoundFolder;
-            console.log(arr);
             arr.push(path);
             return { notFoundFolder: arr };
           });
         }
 
         let message = "Failed to update folder.";
+        let intent: Intent = Intent.DANGER;
         if (error.response) {
+          if (error.response.data.error_code === 3002) {
+            intent = Intent.PRIMARY;
+          }
           message = `${error.response.data.message}`;
         }
-        CreateGenericToast(message, Intent.DANGER, 3000);
+        CreateGenericToast(message, intent, 3000);
       });
     this.refreshTree();
     this.setState({ isAPICalled: false });
