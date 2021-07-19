@@ -14,7 +14,8 @@
 # production
 /application
 /dist
-/server/cache/store*
+/server/cache
+/server/hub_models
 /portal-build
 
 # misc

@@ -102,9 +102,11 @@ export function APIGetAssetsTree(): Promise<AxiosResponse<any>> {
   return axios.get(SERVER_ADDRESS + GET_PROJECT_ASSETS_TREE);
 }
 
-export function APIUpdateAsset(directory: string): Promise<AxiosResponse<any>> {
+export function APIUpdateAsset(
+  directory?: string
+): Promise<AxiosResponse<any>> {
   const config = {
-    directory,
+    ...(directory ? { directory } : {}),
   };
 
   return axios.post(SERVER_ADDRESS + UPDATE_PROJECT_ASSETS, config);

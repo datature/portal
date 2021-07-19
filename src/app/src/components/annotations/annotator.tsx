@@ -32,6 +32,7 @@ import {
   APIGetModelTags,
   APIGetCacheList,
   APIKillVideoInference,
+  APIUpdateAsset,
 } from "@portal/api/annotation";
 
 import { invert, cloneDeep } from "lodash";
@@ -106,6 +107,8 @@ interface AnnotatorState {
   annotatedAssetsHidden: boolean;
   /* Kill video prediction state */
   killVideoPrediction: boolean;
+  /* Sync all folders state */
+  isSyncing: boolean;
   /* Set of IDs of hidden annotations */
   hiddenAnnotations: Set<string>;
   /* Is Annotator Predicting? */
@@ -212,6 +215,7 @@ export default class Annotator extends Component<
       imageListCollapsed: false,
       annotatedAssetsHidden: false,
       killVideoPrediction: false,
+      isSyncing: false,
       hiddenAnnotations: new Set<string>(),
       uiState: null,
       predictTotal: 0,
@@ -369,9 +373,9 @@ export default class Annotator extends Component<
           (this.annotationGroup as any).tags = this.state.tagInfo.tags;
         })
         .catch(error => {
-          let message = `Failed to obtain loaded model tags. ${error}`;
+          let message = "Failed to obtain loaded model tags.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
@@ -568,9 +572,9 @@ export default class Annotator extends Component<
     this.setState({ killVideoPrediction: true });
     if (this.currentAsset.type === "video") {
       await APIKillVideoInference().catch(error => {
-        let message = `Failed to kill video prediction. ${error}`;
+        let message = "Failed to kill video prediction.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
         CreateGenericToast(message, Intent.DANGER, 3000);
       });
@@ -669,9 +673,9 @@ export default class Annotator extends Component<
             this.updateAnnotations(response.data);
         })
         .catch(error => {
-          let message = `Failed to predict image. ${error}`;
+          let message = "Failed to predict image.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
@@ -734,10 +738,10 @@ export default class Annotator extends Component<
           }
         })
         .catch(error => {
-          let message = `Failed to predict video. ${error}`;
+          let message = "Failed to predict video.";
           let intent: Intent = Intent.DANGER;
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
           if (error.response.data.error === "STOPPEDPROCESS")
             intent = Intent.PRIMARY;
@@ -1229,6 +1233,23 @@ export default class Annotator extends Component<
     this.setSelectedAnnotation(null);
   }
 
+  private syncAllFolders = async () => {
+    this.setState({ isSyncing: true });
+
+    await APIUpdateAsset()
+      .then(() => {
+        this.updateImage();
+      })
+      .catch(error => {
+        let message = "Failed to sync all folders.";
+        if (error.response) {
+          message = `${error.response.data.message}`;
+        }
+        CreateGenericToast(message, Intent.DANGER, 3000);
+      });
+    this.setState({ isSyncing: false });
+  };
+
   private renderProgress(amount: number): IToastProps {
     return {
       className: this.props.useDarkTheme ? "bp3-dark" : "",
@@ -1261,6 +1282,12 @@ export default class Annotator extends Component<
           combo={"o"}
           label={"Open Folder"}
           onKeyDown={this.handleFileManagementOpen}
+        />
+        <Hotkey
+          global={true}
+          combo={"s"}
+          label={"Sync All Folders"}
+          onKeyDown={this.syncAllFolders}
         />
         <Hotkey
           global={true}
@@ -1454,6 +1481,7 @@ export default class Annotator extends Component<
           <div className={"annotator-controls"}>
             <AnnotationMenu
               ref={this.menubarRef}
+              isSyncing={this.state.isSyncing}
               projectTags={this.state.tagInfo.tags}
               userEditState={this.state.userEditState}
               changesMade={this.state.changesMade}
@@ -1479,6 +1507,7 @@ export default class Annotator extends Component<
                 /* Used by TagSelector */
                 SetFilterArr: this.setFilterArr,
                 ToggleShowSelected: this.toggleShowSelected,
+                SyncAllFolders: this.syncAllFolders,
               }}
             />
             {/* File Management Modal */}

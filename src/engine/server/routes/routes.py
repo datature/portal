@@ -217,7 +217,7 @@ def register_model() -> tuple:
         if input_directory != "" and not os.path.isdir(input_directory):
             raise PortalError(
                 Errors.INVALIDAPI,
-                "directory is not '', nor is it a valid directory.",
+                f"{input_directory} is not a valid directory.",
             )
 
         if input_type == "local" and input_directory == "":
@@ -619,7 +619,7 @@ def register_images() -> Response:
     """
     try:
         path = request.json["directory"]
-        global_store.add_targeted_folder(path.lower())
+        global_store.add_targeted_folder(path)
 
         return Response(
             response="Successfully registered the targeted folder", status=200
@@ -633,12 +633,15 @@ def register_images() -> Response:
 @app.route("/api/project/sync", methods=["POST"])
 @cross_origin()
 @portal_function_handler(clear_status=False)
-def sync_images() -> Response:
+def sync_images():
     """
     Sync the folder targets for updated contents
     """
-    path = request.json["directory"]
-    global_store.update_targeted_folder(path)
+    path = request.json.get("directory")
+    if not path:
+        global_store.update_all_targeted_folders()
+    else:
+        global_store.update_targeted_folder(path)
     return Response(response="Sync was successful", status=200)
 
 
