@@ -19,7 +19,6 @@ import {
   Tabs,
   Tab,
   TabId,
-  TextArea,
   Icon,
   IconName,
   Alert,
@@ -139,16 +138,17 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     if (
       this.state.formData.type === "hub" &&
       (this.state.formData.modelKey === "" ||
-        this.state.formData.projectSecret === "")
+        this.state.formData.projectSecret === "" ||
+        this.state.formData.name === "")
     ) {
       CreateGenericToast(
-        "Please fill in the model key and project secret of the model you want to load from hub.",
+        "Please fill in the name,  model key and project secret of the model you want to load from hub.",
         Intent.WARNING,
         3000
       );
     } else if (
-      this.state.formData.name === "" ||
-      this.state.formData.directory === ""
+      this.state.formData.type === "local" &&
+      (this.state.formData.name === "" || this.state.formData.directory === "")
     ) {
       CreateGenericToast(
         "Please fill in the name and path of the model.",
@@ -179,9 +179,16 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           this.setState({
             generalIcon: { name: "cross", intent: Intent.DANGER },
           });
-          let message = `Failed to register model. ${error}`;
+          let message = "Failed to register model.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            if (error.response.data.error_code === 3001) {
+              if (this.state.formData.modelType === "tensorflow")
+                message = "Are you sure this is a TensorFlow Model?";
+              else if (this.state.formData.modelType === "darknet")
+                message = "Are you sure this is a Darknet Model?";
+            } else {
+              message = `${error.response.data.message}`;
+            }
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
@@ -215,9 +222,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         }
       })
       .catch(error => {
-        let message = `Failed to refresh model list. ${error}`;
+        let message = "Failed to refresh model list.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
 
         CreateGenericToast(message, Intent.DANGER, 3000);
@@ -238,9 +245,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           }
         })
         .catch(error => {
-          let message = `Failed to unload current model. ${error}`;
+          let message = "Failed to unload current model.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
@@ -282,9 +289,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         }
       })
       .catch(error => {
-        let message = `Cannot load model. ${error}`;
+        let message = "Cannot load model.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
 
         CreateGenericToast(message, Intent.DANGER, 3000);
@@ -305,9 +312,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           }
         })
         .catch(error => {
-          let message = `Failed to delete model. ${error}`;
+          let message = "Failed to delete model.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
@@ -327,9 +334,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           }
         })
         .catch(error => {
-          let message = `Failed to get model tags. ${error}`;
+          let message = "Failed to get model tags.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
@@ -441,7 +448,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     this.setState({
       formData: {
         type: tabId.toString(),
-        modelType: tabId.toString() === "local" ? "tensorflow" : "",
+        modelType: "tensorflow",
         name: "",
         description: "",
         directory: "",
@@ -576,6 +583,23 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       <div className={classes.RegistrationForm}>
         {this.state.registrationTabId === "hub" ? (
           <>
+            <FormGroup label="Model Type" labelFor="label-input">
+              <Tooltip
+                content="Only tensorflow model supported for hub"
+                position={Position.RIGHT}
+              >
+                <Button
+                  disabled={true}
+                  text={
+                    this.state.formData.modelType !== ""
+                      ? modelTypes[this.state.formData.modelType]
+                      : "None selected"
+                  }
+                  rightIcon="double-caret-vertical"
+                />
+              </Tooltip>
+            </FormGroup>
+
             <FormGroup label="Model Key" labelFor="label-input">
               <InputGroup
                 id="modelKey"
@@ -648,32 +672,18 @@ export default class Model extends React.Component<ModelProps, ModelState> {
             onChange={this.handleChangeForm}
           />
         </FormGroup>
-        <FormGroup label="Folder Path" labelFor="label-input">
-          <InputGroup
-            id="directory"
-            name="directory"
-            value={this.state.formData.directory}
-            placeholder={
-              this.state.registrationTabId === "hub"
-                ? "Enter the folder path to save the model..."
-                : "Enter model folder path..."
-            }
-            onChange={this.handleChangeForm}
-            rightElement={isElectron() ? browseButton : browseHint}
-          />
-        </FormGroup>
-        <FormGroup label="Description" labelFor="label-input">
-          <TextArea
-            placeholder="Optional"
-            className="bp3-fill"
-            growVertically={false}
-            small
-            intent={Intent.PRIMARY}
-            name="description"
-            value={this.state.formData.description}
-            onChange={this.handleChangeForm}
-          />
-        </FormGroup>
+        {this.state.registrationTabId === "local" ? (
+          <FormGroup label="Folder Path" labelFor="label-input">
+            <InputGroup
+              id="directory"
+              name="directory"
+              value={this.state.formData.directory}
+              placeholder={"Enter model folder path..."}
+              onChange={this.handleChangeForm}
+              rightElement={isElectron() ? browseButton : browseHint}
+            />
+          </FormGroup>
+        ) : null}
         <Button
           type="submit"
           text="Register"
@@ -697,14 +707,6 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     const detailsPanel = (
       <div className={classes.Panel}>
         <div className={["bp3-elevation-2", classes.Section].join(" ")}>
-          <h6 className="bp3-heading">
-            {/* <Icon icon="draw" /> */}
-            About Model
-          </h6>
-          <p className="bp3-running-text">
-            {this.state.chosenModel?.description}
-          </p>
-
           <h6 className="bp3-heading">
             {/* <Icon icon="folder-open" /> */}
             Directory

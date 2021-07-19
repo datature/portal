@@ -26,25 +26,18 @@ This framework is built using Python 3.7 and Node to run electron. There are 2 d
 
 - `./setup-virtualenv` bash file creates a new virtual environment for the packages. If you wish to install globally, run the following commands with `./setup.sh` instead.
 
-Mac
+Win / Mac / Unix
 
 ```.bash
 git clone https://github.com/datature/portal
-chmod u+x ./setup-virtualenv.sh && ./setup-virtualenv.sh
-```
-
-Win
-
-```.bash
-git clone https://github.com/datature/portal
-.\setup-virtualenv.sh
+./setup-virtualenv.sh
 ```
 
 ### Activate the virtual environment
 
 If you have installed the packages in a virtual environment, you will need to activate it before running the application. This step is not necessary if you are running the application globally.
 
-Mac
+Mac / Unix
 
 ```.bash
 . portal-build/.venv/bin/activate

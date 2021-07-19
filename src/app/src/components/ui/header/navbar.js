@@ -87,18 +87,18 @@ export default class HeaderNav extends React.Component {
 
     if (this.props.GlobalSetting.isGPU) {
       await APIClearGPU().catch(error => {
-        let message = `Failed to reject cache. ${error}`;
+        let message = "Failed to clear gpu";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
 
         CreateGenericToast(message, Intent.DANGER, 3000);
       });
     } else {
       await APISetGPU().catch(error => {
-        let message = `Failed to reject cache. ${error}`;
+        let message = "Failed to set gpu";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
 
         CreateGenericToast(message, Intent.DANGER, 3000);
@@ -117,9 +117,9 @@ export default class HeaderNav extends React.Component {
         window.location.reload(false);
       })
       .catch(error => {
-        let message = `Failed to load cache. ${error}`;
+        let message = "Failed to load cache.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
 
         CreateGenericToast(message, Intent.DANGER, 3000);
@@ -134,9 +134,9 @@ export default class HeaderNav extends React.Component {
         this.setState({ hasCache: false });
       })
       .catch(error => {
-        let message = `Failed to reject cache. ${error}`;
+        let message = "Failed to reject cache.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
 
         CreateGenericToast(message, Intent.DANGER, 3000);
