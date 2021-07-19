@@ -14,7 +14,7 @@ console.log = log.log;
 
 let exeFileName = "run";
 let venv = path.join(".venv", "bin", "python");
-if (process.platform.toLowerCase().includes("win")) {
+if (process.platform.toLowerCase().includes("win32")) {
   exeFileName = "run.exe";
   venv = path.join(".venv", "Scripts", "python.exe");
 }

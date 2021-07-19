@@ -353,16 +353,25 @@ export default class AnnotationMenu extends Component {
       <>
         <Menu className={"main-menu bp3-elevation-1"}>
           <MenuItem icon={"graph"} text="Annotator Controls" />
-          <MenuDivider title="Project Folder" />
-          <MenuItem
-            icon="folder-new"
-            text="Open Folder"
-            label={<KeyCombo combo="O" />}
-            className={
-              this.props.userEditState === "Open Folder" ? "bp3-active" : ""
-            }
-            onClick={this.props.callbacks.OpenFileManagement}
-          />
+          <MenuDivider title="Assets Folder" />
+          {this.props.isSyncing ? (
+            <Spinner size={30} className={classes.Spin} />
+          ) : (
+            <>
+              <MenuItem
+                icon="folder-new"
+                text="Open Folder"
+                label={<KeyCombo combo="O" />}
+                onClick={this.props.callbacks.OpenFileManagement}
+              />
+              <MenuItem
+                icon="repeat"
+                text="Sync All Folders"
+                label={<KeyCombo combo="S" />}
+                onClick={this.props.callbacks.SyncAllFolders}
+              />
+            </>
+          )}
           <MenuDivider title="Inference" />
 
           {this.props.predictDone === 0 ? (

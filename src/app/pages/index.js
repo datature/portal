@@ -40,7 +40,7 @@ class Annotation extends React.Component {
   componentDidMount() {
     const theme = localStorage.getItem(THEME_LOCAL_STORAGE_KEY);
     this.setState({
-      useDarkTheme: theme == null ? false : theme === "true",
+      useDarkTheme: theme == null ? true : theme === "true",
     });
 
     // Call for the gpu settings from the backend
