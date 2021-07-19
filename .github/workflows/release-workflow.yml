@@ -2,7 +2,7 @@ name: Portal CI/CD
 
 on:
   push:
-    branches: [hotfix/release-workflow]
+    branches: [hotfix/release-workflow-0.4.0]
 jobs:
   build-run-win:
     runs-on: windows-latest
@@ -86,7 +86,7 @@ jobs:
 
       - name: Extract Version
         shell: bash
-        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/release-})"
+        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-workflow-})"
         id: extract_version
 
       - uses: actions/download-artifact@v2
@@ -136,7 +136,7 @@ jobs:
 
       - name: Extract Version
         shell: bash
-        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/release-})"
+        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-workflow-})"
         id: extract_version
 
       - uses: actions/download-artifact@v2
@@ -194,7 +194,7 @@ jobs:
 
       - name: Extract Version
         shell: bash
-        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/release-})"
+        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-workflow-})"
         id: extract_version
 
       - uses: actions/download-artifact@v2
@@ -245,7 +245,7 @@ jobs:
 
       - name: Extract Version
         shell: bash
-        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/release-})"
+        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-workflow-})"
         id: extract_version
 
       - name: release
