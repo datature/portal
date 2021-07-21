@@ -26,6 +26,10 @@ if [[ "$OSTYPE" == "msys" ]]; then
 pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ./dist
 else
 DYLD_LIBRARY_PATH=".venv/bin" pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ./dist
+if [ -f ./dist/run ]; then
+echo "Renaming file"
+mv ./dist/run ./dist/run.exe
+fi
 fi
 
 echo "Removing extra files - run.spec and build"
