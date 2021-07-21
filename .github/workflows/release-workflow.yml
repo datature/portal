@@ -4,8 +4,11 @@ on:
   push:
     branches: [hotfix/release-workflow-0.4.0]
 jobs:
-  build-run-win:
-    runs-on: windows-latest
+  build-run:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-python@v2
@@ -18,40 +21,22 @@ jobs:
           pip install -r ./src/engine/requirements.txt
           python -m pip install --upgrade pyinstaller
 
-      - name: Package Application with pyinstaller Window
+      - name: Extract Platform
+        shell: bash
+        run: |
+          OS=${{ matrix.os }}
+          echo "##[set-output name=platform;]$(echo ${OS%-latest})"
+        id: extract_platform
+
+      - name: Package Application with pyinstaller
         working-directory: ./src/engine
         run: |
-          pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ./dist/windows
+          pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ./dist/${{ steps.extract_platform.outputs.platform }}
 
       - uses: actions/upload-artifact@v2
         with:
-          name: windows-run
-          path: ./src/engine/dist/windows
-          retention-days: 1
-
-  build-run-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-      - name: Install Engine dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install pylint
-          pip install -r ./src/engine/requirements.txt
-          python -m pip install --upgrade pyinstaller
-
-      - name: Package Application with pyinstaller Window
-        working-directory: ./src/engine
-        run: |
-          pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ./dist/linux
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: linux-run
-          path: ./src/engine/dist/linux
+          name: ${{ steps.extract_platform.outputs.platform }}-run
+          path: ./src/engine/dist/${{ steps.extract_platform.outputs.platform }}
           retention-days: 1
 
   build-out:
@@ -62,7 +47,7 @@ jobs:
         with:
           node-version: 14
           registry-url: https://npm.pkg.github.com/
-          scope: "@datature"
+          scope: "@beesaycheese"
 
       - name: Installing App dependencies
         working-directory: ./src/app
@@ -78,128 +63,45 @@ jobs:
           path: ./portal-build/out
           retention-days: 1
 
-  build-win:
-    needs: [build-run-win, build-out]
-    runs-on: windows-latest
+  build-electron:
+    needs: [build-run, build-out]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v1
-
-      - name: Extract Version
-        shell: bash
-        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-workflow-})"
-        id: extract_version
-
-      - uses: actions/download-artifact@v2
-        with:
-          name: windows-run
-          path: ./portal-build/dist
-
-      - uses: actions/download-artifact@v2
-        with:
-          name: app-out
-          path: ./portal-build/out
-
-        # Install Node.js
-      - uses: actions/setup-node@v1.4.4
-        with:
-          node-version: 14
-          registry-url: https://npm.pkg.github.com/
-          scope: "@datature"
-
-      # Install your dependencies
-      - name: Installing Portal dependencies
-        working-directory: .
-        run: npm install
-
-      - name: Publish windows
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: .
-        run: |
-          npm run dist
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: win-exe
-          path: ./application/Portal Setup ${{ steps.extract_version.outputs.version }}.exe
-          retention-days: 1
-
-  build-linux:
-    needs: [build-run-linux, build-out]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-
       - name: Set the env variables
         run: |
           echo "USE_HARD_LINKS=false" >> $GITHUB_ENV
 
-      - name: Extract Version
+      - name: Extract Platform
         shell: bash
-        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-workflow-})"
-        id: extract_version
-
-      - uses: actions/download-artifact@v2
-        with:
-          name: linux-run
-          path: ./portal-build/dist
-
-      - uses: actions/download-artifact@v2
-        with:
-          name: app-out
-          path: ./portal-build/out
-
-      - name: Check existence
         run: |
-          ls -R .
-
-        # Install Node.js
-      - uses: actions/setup-node@v1.4.4
-        with:
-          node-version: 14
-          registry-url: https://npm.pkg.github.com/
-          scope: "@datature"
-
-      # Install your dependencies
-      - name: Installing Portal dependencies
-        working-directory: .
-        run: npm install
-
-      - name: Publish App
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: .
-        run: |
-          npm run dist
-
-      - name: Check existence
-        run: |
-          ls -R .
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: linux-appimage
-          path: ./application/Portal-${{ steps.extract_version.outputs.version }}.AppImage
-          retention-days: 1
-
-  build-mac:
-    needs: [build-run-linux, build-out]
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v1
-
-      - name: Set the env variables
-        run: |
-          echo "USE_HARD_LINKS=false" >> $GITHUB_ENV
+          OS=${{ matrix.os }}
+          echo "##[set-output name=platform;]$(echo ${OS%-latest})"
+        id: extract_platform
 
       - name: Extract Version
         shell: bash
         run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-workflow-})"
         id: extract_version
 
+      - name: Extract Executable name
+        shell: bash
+        run: |
+          if [ ${{ steps.extract_platform.outputs.platform }} = "windows" ]; then
+          echo "##[set-output name=name;]$(echo Portal Setup ${{ steps.extract_version.outputs.version }}.exe)"
+          elif [ ${{ steps.extract_platform.outputs.platform }} = "ubuntu" ]; then
+          echo "##[set-output name=name;]$(echo Portal-${{ steps.extract_version.outputs.version }}.AppImage)"
+          else
+          echo "##[set-output name=name;]$(echo Portal-${{ steps.extract_version.outputs.version }}.dmg)"
+          fi
+        id: extract_executable_name
+
       - uses: actions/download-artifact@v2
         with:
-          name: linux-run
+          name: ${{ steps.extract_platform.outputs.platform }}-run
           path: ./portal-build/dist
 
       - uses: actions/download-artifact@v2
@@ -212,14 +114,14 @@ jobs:
         with:
           node-version: 14
           registry-url: https://npm.pkg.github.com/
-          scope: "@datature"
+          scope: "@beesaycheese"
 
       # Install your dependencies
       - name: Installing Portal dependencies
         working-directory: .
         run: npm install
 
-      - name: Publish App
+      - name: Publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         working-directory: .
@@ -228,12 +130,12 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: mac-dmg
-          path: ./application/Portal-${{ steps.extract_version.outputs.version }}.dmg
+          name: ${{ steps.extract_platform.outputs.platform }}-electron
+          path: ./application/ ${{ steps.extract_executable_name.name }}
           retention-days: 1
 
   release:
-    needs: [build-win, build-linux, build-mac]
+    needs: [build-electron]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -261,17 +163,17 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: win-exe
+          name: windows-electron
           path: ./application/windows
 
       - uses: actions/download-artifact@v2
         with:
-          name: linux-appimage
+          name: ubuntu-electron
           path: ./application/linux
 
       - uses: actions/download-artifact@v2
         with:
-          name: mac-dmg
+          name: macos-electron
           path: ./application/mac
 
       - name: Upload windows to release
@@ -281,7 +183,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./application/windows/Portal Setup ${{ steps.extract_version.outputs.version }}.exe
-          asset_name: Portal-Setup-${{ steps.extract_version.outputs.version }}-win.exe
+          asset_name: Portal-${{ steps.extract_version.outputs.version }}-windows.exe
           asset_content_type: application/exe
 
       - name: Upload linux to release
@@ -301,5 +203,5 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./application/mac/Portal-${{ steps.extract_version.outputs.version }}.dmg
-          asset_name: Portal-${{ steps.extract_version.outputs.version }}-mac.dmg
+          asset_name: Portal-${{ steps.extract_version.outputs.version }}-macos.dmg
           asset_content_type: application/dmg

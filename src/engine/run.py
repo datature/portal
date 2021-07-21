@@ -17,15 +17,27 @@ root = os.path.abspath(os.curdir)
 if os.getenv("ROOT_DIR") is not None:
     root = os.path.abspath(os.getenv("ROOT_DIR"))
 
+env = os.getenv("ROOT_DIR")
+print(f"ROOT_DIR {env}")
+print(f"Root {root}")
+
 cache_folder = os.path.join(root, "server/cache")
+print(f"cache_folder {cache_folder}")
+
 if not os.path.isdir(cache_folder):
+    print(f"Making cache at cache_folder {cache_folder}")
     os.makedirs(cache_folder)
     with open(os.path.join(root, cache_folder, ".gitkeep"), "w") as gitkeep:
         pass
 
+print(f"At this stage a server/cache should be created.")
+
 model_dir = os.path.join(root, "server/hub_models")
 cache_dir = os.path.join(root, cache_folder, "store.portalCache")
 gpu_dir = os.path.join(root, cache_folder, "use_gpu")
+print(f"model_dir {model_dir}")
+print(f"cache_dir {cache_dir}")
+print(f"gpu_dir {gpu_dir}")
 
 use_gpu = "0"
 if os.path.isfile(gpu_dir):
