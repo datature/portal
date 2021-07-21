@@ -33,7 +33,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@v1
       - name: Set the env variables
@@ -142,10 +142,10 @@ jobs:
           name: windows-electron
           path: ./application/windows
 
-      - uses: actions/download-artifact@v2
-        with:
-          name: ubuntu-electron
-          path: ./application/linux
+      # - uses: actions/download-artifact@v2
+      #   with:
+      #     name: ubuntu-electron
+      #     path: ./application/linux
 
       - uses: actions/download-artifact@v2
         with:
@@ -162,15 +162,15 @@ jobs:
           asset_name: Portal-${{ steps.extract_version.outputs.version }}-windows.exe
           asset_content_type: application/exe
 
-      - name: Upload linux to release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./application/linux/portal-${{ steps.extract_version.outputs.version }}.zip
-          asset_name: Portal-${{ steps.extract_version.outputs.version }}-linux.zip
-          asset_content_type: application/zip
+      # - name: Upload linux to release
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./application/linux/portal-${{ steps.extract_version.outputs.version }}.zip
+      #     asset_name: Portal-${{ steps.extract_version.outputs.version }}-linux.zip
+      #     asset_content_type: application/zip
 
       - name: Upload mac to release
         uses: actions/upload-release-asset@v1
