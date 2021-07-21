@@ -443,7 +443,6 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
         key: value[0, :num_detections].numpy()
         for key, value in detections_output.items()
     }
-
     # Extract predictions
     bboxes = detections["detection_boxes"]
     classes = detections["detection_classes"].astype(np.int64)
@@ -453,40 +452,46 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
         _, height, width = reframed_masks.shape
         contours = []
         for single_mask in reframed_masks:
-            contour = cv2.findContours(
+            found_contours = cv2.findContours(
                 single_mask,
                 cv2.RETR_TREE,
                 cv2.CHAIN_APPROX_SIMPLE,
-            )[0][0]
-            epsilon = EPSILON_MULTIPLIER * cv2.arcLength(contour, True)
-            approx = cv2.approxPolyDP(contour, epsilon, True)
-            approx = [
-                [item[0][0] / width, item[0][1] / height] for item in approx
-            ]
-            contours.append(approx)
+            )
+            inner_contour = found_contours[0]
+            if bool(inner_contour):
+                contour = inner_contour[0]
+                epsilon = EPSILON_MULTIPLIER * cv2.arcLength(contour, True)
+                approx = cv2.approxPolyDP(contour, epsilon, True)
+                approx = [
+                    [item[0][0] / width, item[0][1] / height] for item in approx
+                ]
+                contours.append(approx)
+            else:
+                contours.append([])
     else:
         contours = None
-
     output = []
-    for each_class, _ in enumerate(classes):
-        class_name = category_map[str(classes[each_class])]
-        item = {}
-        item["confidence"] = float(scores[each_class])
-        item["tag"] = class_name
-        item["bound"] = [
-            [float(bboxes[each_class][1]), float(bboxes[each_class][0])],
-            [float(bboxes[each_class][1]), float(bboxes[each_class][2])],
-            [float(bboxes[each_class][3]), float(bboxes[each_class][2])],
-            [float(bboxes[each_class][3]), float(bboxes[each_class][0])],
-        ]
-        if contours is not None:
-            item["boundType"] = "masks"
-            item["contourType"] = "polygon"
-            item["contour"] = contours[each_class]
-        else:
-            item["boundType"] = "rectangle"
 
-        output.append(item)
+    for each_class, _ in enumerate(classes):
+        if bool(contours[each_class]):
+            class_name = category_map[str(classes[each_class])]
+            item = {}
+            item["confidence"] = float(scores[each_class])
+            item["tag"] = class_name
+            item["bound"] = [
+                [float(bboxes[each_class][1]), float(bboxes[each_class][0])],
+                [float(bboxes[each_class][1]), float(bboxes[each_class][2])],
+                [float(bboxes[each_class][3]), float(bboxes[each_class][2])],
+                [float(bboxes[each_class][3]), float(bboxes[each_class][0])],
+            ]
+            if contours is not None:
+                item["boundType"] = "masks"
+                item["contourType"] = "polygon"
+                item["contour"] = contours[each_class]
+            else:
+                item["boundType"] = "rectangle"
+
+            output.append(item)
     return output
 
 
