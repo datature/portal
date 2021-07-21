@@ -40,13 +40,13 @@ If you have installed the packages in a virtual environment, you will need to ac
 Mac / Unix
 
 ```.bash
-. portal-build/.venv/bin/activate
+. portal_build/.venv/bin/activate
 ```
 
 Win
 
 ```.bash
-portal-build\.venv\Scripts\activate
+portal_build\.venv\Scripts\activate
 ```
 
 ## Run the Portal app!
@@ -71,5 +71,5 @@ We have provided sample weights for you to test portal:
 
 [darknet]: https://github.com/pjreddie/darknet
 [tensorflow]: https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
-[yolo]: https://github.com/datature/portal/releases/download/v1.0/yolo.zip
-[mobilenet]: https://github.com/datature/portal/releases/download/v1.0/mobilenet.zip
+[yolo]: https://github.com/datature/portal/releases/download/release-0.4.0/yolo.zip
+[mobilenet]: https://github.com/datature/portal/releases/download/release-0.4.0/mobilenet.zip

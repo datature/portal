@@ -2,18 +2,23 @@
 
 # Ignore due to Pyshell
 # pylint: disable=E0401, E0611
+import sys
 import os
+
 import webbrowser
-from server import server, app, global_store
 from flask import send_from_directory
 from flask_cors import cross_origin
 
+# Change root folder to build folder directory
+root = os.path.join(os.getcwd(), "portal_build")
 
-def initialize() -> None:
-    server.run()
+if os.getenv("COMMAND_LINE"):
+    sys.path.append(root)
+
+# pylint: disable=wrong-import-position
+from server import server, app, global_store
 
 
-root = os.getcwd()
 if os.getenv("ROOT_DIR") is not None:
     root = os.path.abspath(os.getenv("ROOT_DIR"))
 
@@ -48,14 +53,15 @@ else:
         gpu_flag.write(use_gpu)
 
 if os.getenv("COMMAND_LINE"):
-    @app.route('/')
+
+    @app.route("/")
     @cross_origin()
     def index():
         filepath = os.path.join(root, "out")
         print(filepath)
         return send_from_directory(filepath, "index.html")
 
-    @app.route('/<path:path>')
+    @app.route("/<path:path>")
     @cross_origin()
     def send_paths(path):
         filepath = os.path.join(root, "out", path)
@@ -63,7 +69,8 @@ if os.getenv("COMMAND_LINE"):
         head, tail = os.path.split(filepath)
         return send_from_directory(head, tail)
 
-if __name__ == "__main__":
+
+def initialize() -> None:
     os.environ["ROOT_DIR"] = root
     os.environ["CACHE_DIR"] = cache_dir
     os.environ["GPU_DIR"] = gpu_dir
@@ -88,4 +95,8 @@ if __name__ == "__main__":
             else:
                 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
+    server.run()
+
+
+if not os.getenv("COMMAND_LINE"):
     initialize()

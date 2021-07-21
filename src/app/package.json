@@ -8,7 +8,7 @@
     "dev": "next dev",
     "build": "NODE_ENV=production env-cmd -f environments/.env.build.local next build",
     "build:github": "next build",
-    "build:static": "next build && next export -o ../../portal-build/out",
+    "build:static": "next build && next export -o ../../portal_build/out",
     "start": "env-cmd -f environments/.env.build.local next start",
     "lint": "eslint . --ext .js,.jsx,.tsx; exit 0",
     "preflight": "eslint . --config .eslintrc --ext .js,.jsx,.ts,.tsx; npx tsc --project tsconfig.json; npx prettier --check ./src/api/**/* ./src/components/**/* ./src/utils/**/* ./pages/**/*; next build; exit 0",

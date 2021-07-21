@@ -8,7 +8,7 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 trap 'echo "Exiting shell: \"${last_command}\" command failed with exit code $?."' EXIT
 
 echo "Running build-python bash job!"
-cd ./portal-build
+cd ./portal_build
 echo "$OSTYPE"
 if [[ "$OSTYPE" == "msys" ]]; then
 echo "Activating .venv/Scripts/activate"
