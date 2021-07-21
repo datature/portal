@@ -4,43 +4,6 @@ on:
   push:
     branches: [hotfix/release-workflow-0.4.0]
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
-
-      - name: Extract Version
-        shell: bash
-        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-workflow-})"
-        id: extract_version
-
-      - name: release
-        uses: actions/create-release@v1
-        id: create_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          draft: true
-          prerelease: false
-          tag_name: v${{ steps.extract_version.outputs.version }}
-          release_name: ${{ steps.extract_branch.outputs.branch }}
-
-      - name: save release url
-        shell: bash
-        run: |
-          echo ${{ steps.create_release.outputs.upload_url }} > release.txt
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: release-url
-          path: ./release.txt
-          retention-days: 1
-
   build-out:
     runs-on: ubuntu-latest
     steps:
@@ -65,8 +28,8 @@ jobs:
           path: ./portal_build/out
           retention-days: 1
 
-  build-run-n-electron:
-    needs: [build-out, release]
+  build-electron:
+    needs: [build-out]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -82,11 +45,6 @@ jobs:
           name: app-out
           path: ./portal_build/out
 
-      - uses: actions/download-artifact@v2
-        with:
-          name: release-url
-          path: ./
-
       - name: Extract Platform
         shell: bash
         run: |
@@ -99,11 +57,6 @@ jobs:
         run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-workflow-})"
         id: extract_version
 
-      - name: Extract release url
-        shell: bash
-        run: echo "##[set-output name=url;]$(cat ./release.txt)"
-        id: release_url
-
       - name: Extract Executable name
         shell: bash
         run: |
@@ -115,18 +68,6 @@ jobs:
           echo "##[set-output name=name;]$(echo Portal-${{ steps.extract_version.outputs.version }}.dmg)"
           fi
         id: extract_executable_name
-
-      - name: Extract Executable type
-        shell: bash
-        run: |
-          if [ ${{ steps.extract_platform.outputs.platform }} = "windows" ]; then
-          echo "##[set-output name=type;]$(echo exe)"
-          elif [ ${{ steps.extract_platform.outputs.platform }} = "ubuntu" ]; then
-          echo "##[set-output name=type;]$(echo zip)"
-          else
-          echo "##[set-output name=type;]$(echo dmg)"
-          fi
-        id: extract_executable_type
 
       - uses: actions/setup-python@v2
         with:
@@ -163,12 +104,80 @@ jobs:
         run: |
           npm run dist
 
-      - name: Upload to release
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.extract_platform.outputs.platform }}-electron
+          path: ./application/ ${{ steps.extract_executable_name.name }}
+          retention-days: 1
+
+  release:
+    needs: [build-electron]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
+      - name: Extract Version
+        shell: bash
+        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-workflow-})"
+        id: extract_version
+
+      - name: release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: true
+          prerelease: false
+          tag_name: v${{ steps.extract_version.outputs.version }}
+          release_name: ${{ steps.extract_branch.outputs.branch }}
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: windows-electron
+          path: ./application/windows
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: ubuntu-electron
+          path: ./application/linux
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: macos-electron
+          path: ./application/mac
+
+      - name: Upload windows to release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.release_url.outputs.url }}
-          asset_path: ./application/${{ steps.extract_executable_name.outputs.name }}
-          asset_name: Portal-${{ steps.extract_version.outputs.version }}-${{ steps.extract_platform.outputs.platform }}.${{ steps.extract_executable_type.outputs.type }}
-          asset_content_type: application/${{ steps.extract_executable_type.outputs.type }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./application/windows/Portal Setup ${{ steps.extract_version.outputs.version }}.exe
+          asset_name: Portal-${{ steps.extract_version.outputs.version }}-windows.exe
+          asset_content_type: application/exe
+
+      - name: Upload linux to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./application/linux/portal-${{ steps.extract_version.outputs.version }}.zip
+          asset_name: Portal-${{ steps.extract_version.outputs.version }}-linux.zip
+          asset_content_type: application/zip
+
+      - name: Upload mac to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./application/mac/Portal-${{ steps.extract_version.outputs.version }}.dmg
+          asset_name: Portal-${{ steps.extract_version.outputs.version }}-macos.dmg
+          asset_content_type: application/dmg
