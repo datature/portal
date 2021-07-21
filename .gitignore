@@ -16,7 +16,7 @@
 /dist
 /server/cache
 /server/hub_models
-/portal-build
+/portal_build
 
 # misc
 .DS_Store

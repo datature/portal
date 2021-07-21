@@ -26,7 +26,7 @@ if (root.endsWith("app")) {
   root = root.slice(0, -4);
   pythonPath = path.join(root, "engine", venv);
   scriptPath = path.join(root, "engine");
-} else if (root.endsWith("portal-build")) {
+} else if (root.endsWith("portal_build")) {
   pythonPath = path.join(root, venv);
   scriptPath = root;
 }

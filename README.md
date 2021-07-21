@@ -40,13 +40,13 @@ If you have installed the packages in a virtual environment, you will need to ac
 Mac / Unix
 
 ```.bash
-. portal-build/.venv/bin/activate
+. portal_build/.venv/bin/activate
 ```
 
 Win
 
 ```.bash
-portal-build\.venv\Scripts\activate
+portal_build\.venv\Scripts\activate
 ```
 
 ## Run the Portal app!

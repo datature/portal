@@ -5,7 +5,7 @@
   "private": true,
   "main": "./src/app/main.js",
   "scripts": {
-    "portal-build": "cross-env NODE_ENV=portalbuild ROOT_DIR=./portal-build npx electron ./portal-build/main.js",
+    "portal_build": "cross-env NODE_ENV=portalbuild ROOT_DIR=./portal_build npx electron ./portal_build/main.js",
     "portal-dev": "cross-env NODE_ENV=development npx electron ./src/app",
     "portal-prod": "npx electron ./src/app",
     "build:dev": "chmod +x setup.sh && . ./setup.sh",
@@ -27,17 +27,17 @@
     },
     "extraResources": [
       {
-        "from": "./portal-build/out",
+        "from": "./portal_build/out",
         "to": "./app/out"
       },
       {
-        "from": "./portal-build/dist",
+        "from": "./portal_build/dist",
         "to": "./dist"
       }
     ],
     "extraFiles": [
       {
-        "from": "./portal-build/server/cache",
+        "from": "./portal_build/server/cache",
         "to": "./server/cache"
       },
       "./build/icon.*"
@@ -57,6 +57,7 @@
     "cross-env": "^7.0.3",
     "electron-log": "^4.3.5",
     "electron-squirrel-startup": "^1.0.0",
+    "fs": "0.0.1-security",
     "node-fetch": "^2.6.1",
     "python-shell": "^1.0.8"
   },
