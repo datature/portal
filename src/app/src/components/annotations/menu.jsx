@@ -26,6 +26,8 @@ import {
 
 import { TagColours } from "@portal/constants/annotation";
 
+import { isEmpty } from "lodash";
+
 import classes from "./menu.module.css";
 
 import TagSelector from "./tagselector";
@@ -376,13 +378,21 @@ export default class AnnotationMenu extends Component {
 
           {this.props.predictDone === 0 ? (
             <Tooltip
-              content="Load model before analysing"
+              content="Load Model and Image before analysing"
               position={Position.TOP}
-              disabled={this.props.isConnected && this.props.loadedModel}
+              disabled={
+                this.props.isConnected &&
+                this.props.loadedModel &&
+                !isEmpty(this.state.assetList)
+              }
             >
               <div className={classes.InferenceMenuItem}>
                 <MenuItem
-                  disabled={!this.props.isConnected || !this.props.loadedModel}
+                  disabled={
+                    !this.props.isConnected ||
+                    !this.props.loadedModel ||
+                    isEmpty(this.props.currentAsset)
+                  }
                   icon="redo"
                   text="Re-Analyse"
                   label={<KeyCombo combo="R" />}
@@ -394,7 +404,11 @@ export default class AnnotationMenu extends Component {
                   onClick={() => this.props.callbacks.SingleAnalysis()}
                 />
                 <MenuItem
-                  disabled={!this.props.isConnected || !this.props.loadedModel}
+                  disabled={
+                    !this.props.isConnected ||
+                    !this.props.loadedModel ||
+                    isEmpty(this.props.assetList)
+                  }
                   icon="heat-grid"
                   text="Bulk Analysis"
                   label={<KeyCombo combo="B" />}

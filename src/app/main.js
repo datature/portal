@@ -12,10 +12,9 @@ log.transports.file.level = "info";
 log.transports.file.file = `${__dirname}log.log`;
 console.log = log.log;
 
-let exeFileName = "run";
+const exeFileName = "run.exe";
 let venv = path.join(".venv", "bin", "python");
 if (process.platform.toLowerCase().includes("win32")) {
-  exeFileName = "run.exe";
   venv = path.join(".venv", "Scripts", "python.exe");
 }
 
@@ -26,7 +25,7 @@ if (root.endsWith("app")) {
   root = root.slice(0, -4);
   pythonPath = path.join(root, "engine", venv);
   scriptPath = path.join(root, "engine");
-} else if (root.endsWith("portal-build")) {
+} else if (root.endsWith("portal_build")) {
   pythonPath = path.join(root, venv);
   scriptPath = root;
 }
