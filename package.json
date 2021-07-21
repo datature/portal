@@ -56,6 +56,9 @@
     "win": {
       "target": "nsis"
     },
+    "linux": {
+      "target": "zip"
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
