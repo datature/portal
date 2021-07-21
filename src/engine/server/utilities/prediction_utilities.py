@@ -220,7 +220,7 @@ def _non_max_suppress_bbox(
         )
         sorted_scores = sorted_scores[
             np.union1d(
-                np.where(overlap <= iou)[0],
+                np.where(overlap >= iou)[0],
                 np.where(class_others != class_largest),
             )
             + 1
@@ -304,7 +304,7 @@ def _non_max_suppress_mask(
         )
         sorted_scores = sorted_scores[
             np.union1d(
-                np.where(overlap <= iou)[0],
+                np.where(overlap >= iou)[0],
                 np.where(
                     classes_filter[sorted_scores[1:]] != classes_filter[score]
                 ),
