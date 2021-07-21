@@ -170,7 +170,6 @@ export default class Annotator extends Component<
 
   /* Project Properties */
   private project: string;
-  private annotatedAssets: number;
 
   /* Component Reference */
   private imagebarRef: any;
@@ -249,7 +248,6 @@ export default class Annotator extends Component<
 
     /* Placeholder Value for Initialization */
     this.currentAsset = {} as AssetAPIObject;
-    this.annotatedAssets = 0;
     this.selectedAnnotation = null;
 
     this.annotationGroup = new L.FeatureGroup();
@@ -1369,11 +1367,6 @@ export default class Annotator extends Component<
       this.isAssetVisible()
     );
 
-    /* Index of current asset */
-    const currentIndex =
-      this.state.assetList.findIndex(
-        asset => asset.assetUrl === this.currentAsset.assetUrl
-      ) + 1;
     return (
       <div>
         <Toaster {...this.state} ref={this.refHandlers.toaster} />
@@ -1383,30 +1376,6 @@ export default class Annotator extends Component<
             className={[isCollapsed, "image-list"].join("")}
             id={"image-list"}
           >
-            {this.state.imageListCollapsed && visibleAssets.length > 0 ? (
-              <div className={"statistics"}>
-                <p>{this.annotatedAssets} annotated</p>
-                <ProgressBar
-                  /**
-                   * Since this component shows total statistics, use the full
-                   * assetList instead of visibleAssets
-                   */
-                  value={this.annotatedAssets / this.state.assetList.length}
-                  intent={
-                    this.annotatedAssets / this.state.assetList.length === 1
-                      ? "success"
-                      : "primary"
-                  }
-                  animate={false}
-                  stripes={false}
-                  className="statistic-progress-bar"
-                />
-                <p>
-                  {currentIndex <= 0 ? "-" : currentIndex} of{" "}
-                  {this.state.assetList.length}
-                </p>
-              </div>
-            ) : null}
             <Button
               className={[collapsedButtonTheme, "collapse-button"].join("")}
               large
