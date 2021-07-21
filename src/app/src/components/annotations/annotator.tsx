@@ -1383,30 +1383,6 @@ export default class Annotator extends Component<
             className={[isCollapsed, "image-list"].join("")}
             id={"image-list"}
           >
-            {this.state.imageListCollapsed && visibleAssets.length > 0 ? (
-              <div className={"statistics"}>
-                <p>{this.annotatedAssets} annotated</p>
-                <ProgressBar
-                  /**
-                   * Since this component shows total statistics, use the full
-                   * assetList instead of visibleAssets
-                   */
-                  value={this.annotatedAssets / this.state.assetList.length}
-                  intent={
-                    this.annotatedAssets / this.state.assetList.length === 1
-                      ? "success"
-                      : "primary"
-                  }
-                  animate={false}
-                  stripes={false}
-                  className="statistic-progress-bar"
-                />
-                <p>
-                  {currentIndex <= 0 ? "-" : currentIndex} of{" "}
-                  {this.state.assetList.length}
-                </p>
-              </div>
-            ) : null}
             <Button
               className={[collapsedButtonTheme, "collapse-button"].join("")}
               large

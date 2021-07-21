@@ -253,7 +253,11 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
     }
-    this.setState({ isUnloadModelAPI: false, isConfirmUnload: false });
+    this.setState({
+      isUnloadModelAPI: false,
+      isConfirmUnload: false,
+      isOpenDrawer: false,
+    });
   };
 
   private handleUnloadAndLoadModel = async () => {
@@ -319,9 +323,33 @@ export default class Model extends React.Component<ModelProps, ModelState> {
 
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
+
+      await APIGetRegisteredModels()
+        .then(async result => {
+          if (result.status === 200) {
+            this.setState({
+              registeredModelList: this.generateRegisteredModelList(
+                result.data
+              ),
+            });
+            if (this.state.registeredModelList !== {}) {
+              // eslint-disable-next-line no-await-in-loop
+              await this.handleGetLoadedModel();
+            }
+          }
+        })
+        .catch(() => {
+          /** Do Nothing */
+        });
     }
 
-    this.setState({ isAPIcalled: false, isConfirmDelete: false });
+    this.setState({
+      isOpenDrawer: false,
+      isAPIcalled: false,
+      isConfirmDelete: false,
+      currentModel: undefined,
+      chosenModel: undefined,
+    });
   };
 
   private handleGetModelTags = async () => {
