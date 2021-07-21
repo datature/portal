@@ -2,7 +2,7 @@ name: Portal CI/CD
 
 on:
   push:
-    branches: [hotfix/release-workflow-0.4.0]
+    branches: [hotfix/release-workflow-0.4.01]
 jobs:
   build-out:
     runs-on: ubuntu-latest
