@@ -110,7 +110,7 @@ jobs:
           if [ ${{ steps.extract_platform.outputs.platform }} = "windows" ]; then
           echo "##[set-output name=name;]$(echo Portal Setup ${{ steps.extract_version.outputs.version }}.exe)"
           elif [ ${{ steps.extract_platform.outputs.platform }} = "ubuntu" ]; then
-          echo "##[set-output name=name;]$(echo Portal-${{ steps.extract_version.outputs.version }}.zip)"
+          echo "##[set-output name=name;]$(echo portal-${{ steps.extract_version.outputs.version }}.zip)"
           else
           echo "##[set-output name=name;]$(echo Portal-${{ steps.extract_version.outputs.version }}.dmg)"
           fi
@@ -142,7 +142,7 @@ jobs:
       - name: Package Application with pyinstaller
         working-directory: ./src/engine
         run: |
-          pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ../../portal-build/dist
+          pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ../../portal_build/dist
 
         # Install Node.js
       - uses: actions/setup-node@v1.4.4
