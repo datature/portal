@@ -4,41 +4,6 @@ on:
   push:
     branches: [hotfix/release-workflow-0.4.0]
 jobs:
-  build-run:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-      - name: Install Engine dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install pylint
-          pip install -r ./src/engine/requirements.txt
-          python -m pip install --upgrade pyinstaller
-
-      - name: Extract Platform
-        shell: bash
-        run: |
-          OS=${{ matrix.os }}
-          echo "##[set-output name=platform;]$(echo ${OS%-latest})"
-        id: extract_platform
-
-      - name: Package Application with pyinstaller
-        working-directory: ./src/engine
-        run: |
-          pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ./dist/${{ steps.extract_platform.outputs.platform }}
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ steps.extract_platform.outputs.platform }}-run
-          path: ./src/engine/dist/${{ steps.extract_platform.outputs.platform }}
-          retention-days: 1
-
   build-out:
     runs-on: ubuntu-latest
     steps:
@@ -63,8 +28,8 @@ jobs:
           path: ./portal-build/out
           retention-days: 1
 
-  build-electron:
-    needs: [build-run, build-out]
+  build-run-n-electron:
+    needs: [build-out]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -101,13 +66,24 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: ${{ steps.extract_platform.outputs.platform }}-run
-          path: ./portal-build/dist
-
-      - uses: actions/download-artifact@v2
-        with:
           name: app-out
           path: ./portal-build/out
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: Install Engine dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pylint
+          pip install -r ./src/engine/requirements.txt
+          python -m pip install --upgrade pyinstaller
+
+      - name: Package Application with pyinstaller
+        working-directory: ./src/engine
+        run: |
+          pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ../../portal-build/dist
 
         # Install Node.js
       - uses: actions/setup-node@v1.4.4

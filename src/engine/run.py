@@ -13,7 +13,7 @@ def initialize() -> None:
     server.run()
 
 
-root = os.path.abspath(os.curdir)
+root = os.getcwd()
 if os.getenv("ROOT_DIR") is not None:
     root = os.path.abspath(os.getenv("ROOT_DIR"))
 
