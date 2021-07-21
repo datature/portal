@@ -265,10 +265,6 @@ class GlobalStore:
             self._store_["predictions"].pop(key)
         gc.collect()
 
-        import tensorflow as tf
-
-        tf.keras.backend.clear_session()
-
         self._save_store_()
 
     def get_model_dict(self, key: str) -> tuple:
