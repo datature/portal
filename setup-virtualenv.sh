@@ -47,23 +47,23 @@ else
 cd ./src/app
 fi
 
-echo "Building and Exporting related app files to portal-build..."
+echo "Building and Exporting related app files to portal_build..."
 npm run build:static
 
 cd ../..
 
-echo "Copying related app files to portal-build..."
-cp ./src/app/main.js ./portal-build
-cp ./src/app/preload.js ./portal-build
+echo "Copying related app files to portal_build..."
+cp ./src/app/main.js ./portal_build
+cp ./src/app/preload.js ./portal_build
 
-echo "Copying related engine files to portal-build..."
-cp -R ./src/engine/server ./portal-build
-cp ./src/engine/run.py ./portal-build
-cp ./src/engine/Pipfile.lock ./portal-build
-cp ./src/engine/Pipfile ./portal-build
+echo "Copying related engine files to portal_build..."
+cp -R ./src/engine/server ./portal_build
+cp ./src/engine/run.py ./portal_build
+cp ./src/engine/Pipfile.lock ./portal_build
+cp ./src/engine/Pipfile ./portal_build
 
-cd ./portal-build
-echo "Installing Python Environment in portal-build..."
+cd ./portal_build
+echo "Installing Python Environment in portal_build..."
 echo "$OSTYPE"
 if [[ "$OSTYPE" == "msys" ]]; then
 python -m pip install --upgrade pip
