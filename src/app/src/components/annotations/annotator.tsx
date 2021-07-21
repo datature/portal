@@ -170,7 +170,6 @@ export default class Annotator extends Component<
 
   /* Project Properties */
   private project: string;
-  private annotatedAssets: number;
 
   /* Component Reference */
   private imagebarRef: any;
@@ -249,7 +248,6 @@ export default class Annotator extends Component<
 
     /* Placeholder Value for Initialization */
     this.currentAsset = {} as AssetAPIObject;
-    this.annotatedAssets = 0;
     this.selectedAnnotation = null;
 
     this.annotationGroup = new L.FeatureGroup();
@@ -1369,11 +1367,6 @@ export default class Annotator extends Component<
       this.isAssetVisible()
     );
 
-    /* Index of current asset */
-    const currentIndex =
-      this.state.assetList.findIndex(
-        asset => asset.assetUrl === this.currentAsset.assetUrl
-      ) + 1;
     return (
       <div>
         <Toaster {...this.state} ref={this.refHandlers.toaster} />
