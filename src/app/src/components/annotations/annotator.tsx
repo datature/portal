@@ -633,7 +633,6 @@ export default class Annotator extends Component<
       return;
     }
 
-    /* Set prediction state + white wash all hidden annotations */
     this.setState({
       predictTotal: 100,
       predictDone: 0.01,
