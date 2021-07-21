@@ -62,7 +62,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: app-out
-          path: ./portal-build/out
+          path: ./portal_build/out
           retention-days: 1
 
   build-run-n-electron:
@@ -80,7 +80,7 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: app-out
-          path: ./portal-build/out
+          path: ./portal_build/out
 
       - uses: actions/download-artifact@v2
         with:
