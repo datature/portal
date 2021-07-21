@@ -35,7 +35,7 @@ import {
   APIUpdateAsset,
 } from "@portal/api/annotation";
 
-import { invert, cloneDeep } from "lodash";
+import { invert, cloneDeep, isEmpty } from "lodash";
 
 import { CreateGenericToast } from "@portal/utils/ui/toasts";
 import AnnotatorInstanceSingleton from "./utils/annotator.singleton";
@@ -621,6 +621,20 @@ export default class Annotator extends Component<
     /* Blocker to account for case where prediction is still running */
     if (this.state.predictDone !== 0 || this.state.uiState === "Predicting") {
       CreateGenericToast("Inference is already running", Intent.WARNING, 3000);
+      return;
+    }
+
+    if (isEmpty(this.currentAsset) && !this.props.loadedModel) {
+      CreateGenericToast(
+        "There is no model and image loaded",
+        Intent.WARNING,
+        3000
+      );
+      return;
+    }
+
+    if (isEmpty(this.currentAsset)) {
+      CreateGenericToast("There is no image loaded", Intent.WARNING, 3000);
       return;
     }
 
