@@ -466,7 +466,7 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
                 contours.append(approx)
             else:
                 contours.append([])
-        
+
     else:
         contours = None
     output = []
