@@ -399,7 +399,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           />
         </span>
       );
-      const rightBuuttons = (
+      const rightButtons = (
         <div>
           <Button
             icon="cog"
@@ -420,7 +420,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           text={this.formatLongStringName(model.name, 35)}
           id={model.hash}
           key={model.hash}
-          labelElement={rightBuuttons}
+          labelElement={rightButtons}
           disabled={this.state.isAPIcalled}
           onClick={() => {
             if (!this.state.isOpenDrawer)

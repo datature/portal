@@ -582,11 +582,24 @@ export default class Annotator extends Component<
   }
 
   private async bulkAnalysis() {
-    /* Blocker to account for case where there is no model to perform prediction */
+    /* Blocker to account for case where there is no model or image to perform prediction */
+    if (isEmpty(this.state.assetList) && !this.props.loadedModel) {
+      CreateGenericToast(
+        "There are no models and images loaded",
+        Intent.WARNING,
+        3000
+      );
+      return;
+    }
     if (!this.props.loadedModel) {
       CreateGenericToast("There is no model loaded", Intent.WARNING, 3000);
       return;
     }
+    if (isEmpty(this.state.assetList)) {
+      CreateGenericToast("There is no image loaded", Intent.WARNING, 3000);
+      return;
+    }
+
     this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
     this.setState({ uiState: "Predicting" });
     this.handleProgressToast();
@@ -1509,6 +1522,8 @@ export default class Annotator extends Component<
               useDarkTheme={this.props.useDarkTheme}
               isConnected={this.props.isConnected}
               loadedModel={this.props.loadedModel}
+              currentAsset={this.currentAsset}
+              assetList={this.state.assetList}
               callbacks={{
                 ResetControls: this.resetControls,
                 OpenFileManagement: this.handleFileManagementOpen,
