@@ -33,8 +33,7 @@ jobs:
       - name: save release url
         shell: bash
         run: |
-          cat ${{ steps.create_release.outputs.upload_url }} > release.txt
-          cat release.txt
+          echo ${{ steps.create_release.outputs.upload_url }} > release.txt
 
       - uses: actions/upload-artifact@v2
         with:
@@ -67,7 +66,7 @@ jobs:
           retention-days: 1
 
   build-run-n-electron:
-    needs: [build-out]
+    needs: [build-out, release]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
