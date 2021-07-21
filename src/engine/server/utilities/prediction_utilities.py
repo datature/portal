@@ -194,7 +194,6 @@ def _non_max_suppress_bbox(
     y_1 = np.expand_dims(bbox_filter[:, 0], axis=1)
     x_2 = np.expand_dims(bbox_filter[:, 3], axis=1)
     y_2 = np.expand_dims(bbox_filter[:, 2], axis=1)
-
     # element-wise multiplication to get areas
     areas = (x_2 - x_1) * (y_2 - y_1)
     sorted_scores = scores_filter.argsort()[::-1]
@@ -225,7 +224,6 @@ def _non_max_suppress_bbox(
             )
             + 1
         ]
-
     detection_boxes = list(map(tuple, bbox_filter[keep]))
     detection_scores = list(scores_filter[keep])
     detection_classes = list(classes_filter[keep])
@@ -363,7 +361,6 @@ def get_suppressed_output(
     :param confidence: The confidence threshold.
     :returns: tuple of suppressed bbox, suppressed scores and suppressed classes.
     """
-
     detection_masks = (
         detections["detection_masks"]
         if "detection_masks" in detections
@@ -463,17 +460,19 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
                 epsilon = EPSILON_MULTIPLIER * cv2.arcLength(contour, True)
                 approx = cv2.approxPolyDP(contour, epsilon, True)
                 approx = [
-                    [item[0][0] / width, item[0][1] / height] for item in approx
+                    [item[0][0] / width, item[0][1] / height]
+                    for item in approx
                 ]
                 contours.append(approx)
             else:
                 contours.append([])
+        
     else:
         contours = None
     output = []
 
     for each_class, _ in enumerate(classes):
-        if bool(contours[each_class]):
+        if contours is None or (contours is not None and bool(contours[each_class])):
             class_name = category_map[str(classes[each_class])]
             item = {}
             item["confidence"] = float(scores[each_class])
