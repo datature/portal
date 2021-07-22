@@ -90,7 +90,7 @@ jobs:
           echo "Renaming file"
           mv ../../portal_build/dist/run ../../portal_build/dist/run.exe
           fi
-          chmod u+x ./dist/run.exe
+          chmod u+x ../../portal_build/dist/run.exe
 
         # Install Node.js
       - uses: actions/setup-node@v1.4.4
