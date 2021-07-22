@@ -29,8 +29,8 @@ git clone https://github.com/datature/portal
 The following details the procedures of setting up Portal with Win / Mac / Unix:
 | Using `requirements.txt`| Using bash scripts |
 | --- | --- | 
-| 1. `cd portal/src/engine` to navigate to `requirements.txt location` | 1. navigate to `portal` root directory
-| 2. If you'd like to install your dependencies in a virtual environment, run `pip install virtualenv` to install the package, `virtualenv .venv` to create the virtual environment and `.venv/Scripts/activate` to initialize it. | 2. If you'd like to install your dependencies in a virtual environment, run `./setup-virtualenv.sh`.
+| 1. `cd portal/src/engine` to navigate to `requirements.txt` | 1. navigate to `portal` root directory
+| 2. To install your dependencies in a virtual environment, run `pip install virtualenv` and `virtualenv .venv` to create the virtual environment, then `.venv/Scripts/activate` to initialize it. | 2. If you'd like to install your dependencies in a virtual environment, run `./setup-virtualenv.sh`.
 | 3. run `pip install -r requirements.txt` to install your dependencies | 3. If you'd like to install your dependencies globally, run `./setup.sh`
 
 ### Activate the virtual environment
