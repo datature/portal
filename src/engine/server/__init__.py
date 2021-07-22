@@ -19,6 +19,16 @@ MODEL_LOAD_LIMIT = 1
 CACHE_OPTION = True
 EPSILON_MULTIPLIER = 0.001
 IDLE_MINUTES = 60 * 5
+DEBUG_MODE = False
+
+if DEBUG_MODE is True:
+    # pylint: disable=wrong-import-position
+    import logging
+
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
+else:
+    logger = None
 
 
 class ServerThread(threading.Thread):
