@@ -495,6 +495,7 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
 
                     # 5. For MultiPolygon, get Polygon with the largest area
                     if isinstance(union_polygon, MultiPolygon):
+                        # pylint: disable=E1101
                         polygon_list = list(union_polygon.geoms)
                         largest_poly_idx = np.argmax(
                             [item.area for item in polygon_list]
@@ -596,11 +597,10 @@ def visualize(
         ## Insert label class & score
         cv2.putText(
             img_arr,
-            str(round(scores[idx], 2)),
-            # "Class: {}, Score: {}".format(
-            #     str(category_index[str(classes[idx])]["name"]),
-            #     str(round(scores[idx], 2)),
-            # ),
+            "Class: {}, Score: {}".format(
+                str(category_index[str(classes[idx])]["name"]),
+                str(round(scores[idx], 2)),
+            ),
             (
                 int(each_bbox[1] * width),
                 int(each_bbox[2] * height + 10),
@@ -614,17 +614,13 @@ def visualize(
     return img_arr
 
 
-def save_to_bytes(img_array: np.array, count) -> dict:
+def save_to_bytes(img_array: np.array) -> dict:
     """Convert an image array to a byte array.
     :param img_array: The image in the form of a numpy array.
     :returns: The byte array.
     """
     # convert the array back to bgr for exporting
     img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
-    # cv2.imwrite(
-    #     "/mnt/d/Datature/Fish/output/" + str(count) + ".jpg", img_array
-    # )
-    cv2.imshow("output", img_array)
     _, bts = cv2.imencode(".jpg", img_array)
     output = {"predicted_image": encodebytes(bts.tostring()).decode("ascii")}
     return output
