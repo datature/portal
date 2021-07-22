@@ -94,31 +94,31 @@ python3 portal.py
 If you're running Portal from source, simply run the executable file after installation. You should see this:
 
 <p align="center">
-  <img alt="Portal Landing Screen" src="https://github.com/datature/portal/blob/develop/docs/images/landing.png?raw=true" width="90%">
+  <img alt="Portal Landing Screen" src="https://github.com/datature/portal/blob/virtuoso98-patch-readme/docs/images/landing.png?raw=true" width="90%">
 </p>
 
 To begin, register a `tensorflow` model by clicking on the `+` sign which is highlighted in green. Give it a name and indicate the full folder part where the model is located:
 
 <p align="center">
-  <img alt="Register Model" src="https://github.com/datature/portal/blob/develop/docs/images/register-model.png?raw=true" width="90%">
+  <img alt="Register Model" src="https://github.com/datature/portal/blob/virtuoso98-patch-readme/docs/images/register-model.png?raw=true" width="90%">
 </p>
 
 Afterwards, load your model by clicking on the `Load Model..` button, highlighted in red then clicking on the corresponding model name. On the popover dialog bog, click on `I understand` to load your model: 
 
 <p align="center">
-  <img alt="Load Model" src="https://github.com/datature/portal/blob/develop/docs/images/load-model.png?raw=true" width="90%">
+  <img alt="Load Model" src="https://github.com/datature/portal/blob/virtuoso98-patch-readme/docs/images/load-model.png?raw=true" width="90%">
 </p>
 
 It is time to load the necessary images to render your predictions. Click on the `Open Folders` button highlighted in pink (Or press `o` on your keyboard) and paste the folder path where your images are loaded. Once you are done, press the `enter` button. The images should appear in the region highlighted in white.
 
 <p align="center">
-  <img alt="Load Assets" src="https://github.com/datature/portal/blob/develop/docs/images/load-asset.png?raw=true" width="90%">
+  <img alt="Load Assets" src="https://github.com/datature/portal/blob/virtuoso98-patch-readme/docs/images/load-asset.png?raw=true" width="90%">
 </p>
 
 Lastly, load any of the images and click on the `Re-analyse` button highlighted in orange (Or press `r` on your keyboard) to render your predictions:
 
 <p align="center">
-  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/render-predict.png?raw=true" width="90%">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/virtuoso98-patch-readme/docs/images/render-prediction.png?raw=true" width="90%">
 </p>
 
 More detailed documentation about advanced functions of Portal can be found in <a href="https://docs.datature.io/portal/documentation">docs.datature.io</a>
