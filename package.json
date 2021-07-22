@@ -44,10 +44,6 @@
       }
     ],
     "extraFiles": [
-      {
-        "from": "./portal_build/server/cache",
-        "to": "./server/cache"
-      },
       "./build/icon.*"
     ],
     "mac": {
