@@ -57,7 +57,7 @@
       "target": "nsis"
     },
     "linux": {
-      "target": "zip"
+      "target": "AppImage"
     },
     "nsis": {
       "oneClick": false,
