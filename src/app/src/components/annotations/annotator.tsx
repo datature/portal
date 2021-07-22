@@ -35,7 +35,7 @@ import {
   APIUpdateAsset,
 } from "@portal/api/annotation";
 
-import { invert, cloneDeep } from "lodash";
+import { invert, cloneDeep, isEmpty } from "lodash";
 
 import { CreateGenericToast } from "@portal/utils/ui/toasts";
 import AnnotatorInstanceSingleton from "./utils/annotator.singleton";
@@ -170,7 +170,6 @@ export default class Annotator extends Component<
 
   /* Project Properties */
   private project: string;
-  private annotatedAssets: number;
 
   /* Component Reference */
   private imagebarRef: any;
@@ -249,7 +248,6 @@ export default class Annotator extends Component<
 
     /* Placeholder Value for Initialization */
     this.currentAsset = {} as AssetAPIObject;
-    this.annotatedAssets = 0;
     this.selectedAnnotation = null;
 
     this.annotationGroup = new L.FeatureGroup();
@@ -582,11 +580,24 @@ export default class Annotator extends Component<
   }
 
   private async bulkAnalysis() {
-    /* Blocker to account for case where there is no model to perform prediction */
+    /* Blocker to account for case where there is no model or image to perform prediction */
+    if (isEmpty(this.state.assetList) && !this.props.loadedModel) {
+      CreateGenericToast(
+        "There are no models and images loaded",
+        Intent.WARNING,
+        3000
+      );
+      return;
+    }
     if (!this.props.loadedModel) {
       CreateGenericToast("There is no model loaded", Intent.WARNING, 3000);
       return;
     }
+    if (isEmpty(this.state.assetList)) {
+      CreateGenericToast("There is no image loaded", Intent.WARNING, 3000);
+      return;
+    }
+
     this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
     this.setState({ uiState: "Predicting" });
     this.handleProgressToast();
@@ -621,6 +632,20 @@ export default class Annotator extends Component<
     /* Blocker to account for case where prediction is still running */
     if (this.state.predictDone !== 0 || this.state.uiState === "Predicting") {
       CreateGenericToast("Inference is already running", Intent.WARNING, 3000);
+      return;
+    }
+
+    if (isEmpty(this.currentAsset) && !this.props.loadedModel) {
+      CreateGenericToast(
+        "There is no model and image loaded",
+        Intent.WARNING,
+        3000
+      );
+      return;
+    }
+
+    if (isEmpty(this.currentAsset)) {
+      CreateGenericToast("There is no image loaded", Intent.WARNING, 3000);
       return;
     }
 
@@ -1369,11 +1394,6 @@ export default class Annotator extends Component<
       this.isAssetVisible()
     );
 
-    /* Index of current asset */
-    const currentIndex =
-      this.state.assetList.findIndex(
-        asset => asset.assetUrl === this.currentAsset.assetUrl
-      ) + 1;
     return (
       <div>
         <Toaster {...this.state} ref={this.refHandlers.toaster} />
@@ -1383,30 +1403,6 @@ export default class Annotator extends Component<
             className={[isCollapsed, "image-list"].join("")}
             id={"image-list"}
           >
-            {this.state.imageListCollapsed && visibleAssets.length > 0 ? (
-              <div className={"statistics"}>
-                <p>{this.annotatedAssets} annotated</p>
-                <ProgressBar
-                  /**
-                   * Since this component shows total statistics, use the full
-                   * assetList instead of visibleAssets
-                   */
-                  value={this.annotatedAssets / this.state.assetList.length}
-                  intent={
-                    this.annotatedAssets / this.state.assetList.length === 1
-                      ? "success"
-                      : "primary"
-                  }
-                  animate={false}
-                  stripes={false}
-                  className="statistic-progress-bar"
-                />
-                <p>
-                  {currentIndex <= 0 ? "-" : currentIndex} of{" "}
-                  {this.state.assetList.length}
-                </p>
-              </div>
-            ) : null}
             <Button
               className={[collapsedButtonTheme, "collapse-button"].join("")}
               large
@@ -1495,6 +1491,8 @@ export default class Annotator extends Component<
               useDarkTheme={this.props.useDarkTheme}
               isConnected={this.props.isConnected}
               loadedModel={this.props.loadedModel}
+              currentAsset={this.currentAsset}
+              assetList={this.state.assetList}
               callbacks={{
                 ResetControls: this.resetControls,
                 OpenFileManagement: this.handleFileManagementOpen,
