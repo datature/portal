@@ -17,6 +17,15 @@ cd ./src/app
 echo "Building Frontend for Portal..."
 npm run build:static 
 cd ../..
+cd ./src/app
+if [ -f ./node_modules ]; then
+echo "Removing extra dependencies"
+rm -rf node_modules/
+fi
+echo "Installing the production dependencies"
+npm install --only=prod
+cd ../..
+
 echo "Building Executable for Portal..."
 npm run dist
 echo "Ending build-electron bash job in 10 secs..."
