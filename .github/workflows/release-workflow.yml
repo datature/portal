@@ -84,13 +84,19 @@ jobs:
 
       - name: Package Application with pyinstaller
         working-directory: ./src/engine
+        shell: bash
         run: |
           pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ../../portal_build/dist
-          if [ -f ./dist/run ]; then
+          if [ -f ../../portal_build/dist/run ]; then
           echo "Renaming file"
+          ls ../../portal_build/dist
+          chmod u+x ../../portal_build/dist/run
           mv ../../portal_build/dist/run ../../portal_build/dist/run.exe
+          ls ../../portal_build/dist
           fi
+          if [ -f ../../portal_build/dist/run.exe ]; then
           chmod u+x ../../portal_build/dist/run.exe
+          fi
 
         # Install Node.js
       - uses: actions/setup-node@v1.4.4
