@@ -38,10 +38,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - name: Set up MinGW
-        uses: egor-tensin/setup-mingw@v2
-        with:
-          platform: x64
       - name: Set the env variables
         run: |
           echo "USE_HARD_LINKS=false" >> $GITHUB_ENV
@@ -90,6 +86,11 @@ jobs:
         working-directory: ./src/engine
         run: |
           pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ../../portal_build/dist
+          if [ -f ./dist/run ]; then
+          echo "Renaming file"
+          mv ../../portal_build/dist/run ../../portal_build/dist/run.exe
+          fi
+          chmod u+x ./dist/run.exe
 
         # Install Node.js
       - uses: actions/setup-node@v1.4.4
