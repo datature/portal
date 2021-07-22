@@ -223,7 +223,7 @@ export default class Annotator extends Component<
       confidence: 0.5,
       annotationOptions: {
         isOutlined: true,
-        opacity: 0.3,
+        opacity: 0.45,
       },
       filterArr: [],
       showSelected: true,

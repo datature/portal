@@ -114,7 +114,7 @@ export default class AnnotatorSettings extends Component<
       contrast: 100,
       saturate: 100,
     });
-    this.props.callbacks.setAnnotationOptions(0.3);
+    this.props.callbacks.setAnnotationOptions(0.45);
     this.props.callbacks.setAnnotationOptions(true);
   };
 
