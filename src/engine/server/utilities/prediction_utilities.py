@@ -5,6 +5,8 @@ from typing import Union
 import tensorflow as tf
 import numpy as np
 import cv2
+from shapely.geometry import Polygon, MultiPolygon
+from shapely.ops import unary_union
 
 # pylint: disable=E0401, E0611
 from server.utilities.color_switch import color_switch
@@ -444,35 +446,74 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
     bboxes = detections["detection_boxes"]
     classes = detections["detection_classes"].astype(np.int64)
     scores = detections["detection_scores"]
-    if "detection_masks" in detections:
+    if not "detection_masks" in detections:
+        contours = None
+    else:
         reframed_masks = detections["detection_masks"]
         _, height, width = reframed_masks.shape
         contours = []
         for single_mask in reframed_masks:
             found_contours = cv2.findContours(
                 single_mask,
-                cv2.RETR_TREE,
-                cv2.CHAIN_APPROX_SIMPLE,
+                cv2.RETR_LIST,
+                cv2.CHAIN_APPROX_NONE,
             )
             inner_contour = found_contours[0]
-            if bool(inner_contour):
-                contour = inner_contour[0]
-                epsilon = EPSILON_MULTIPLIER * cv2.arcLength(contour, True)
-                approx = cv2.approxPolyDP(contour, epsilon, True)
-                approx = [
-                    [item[0][0] / width, item[0][1] / height]
-                    for item in approx
-                ]
-                contours.append(approx)
-            else:
-                contours.append([])
 
-    else:
-        contours = None
+            if not bool(inner_contour):
+                contours.append([])
+            else:
+                polygons = []
+                for single_contour in inner_contour:
+                    # 1. Simplfy the contour to get an approximate
+                    epsilon = EPSILON_MULTIPLIER * cv2.arcLength(
+                        single_contour, True
+                    )
+                    approx = cv2.approxPolyDP(single_contour, epsilon, True)
+                    approx = [
+                        [item[0][0] / width, item[0][1] / height]
+                        for item in approx
+                    ]
+
+                    # Min 3 points is needed for polygon to be created
+                    if len(approx) >= 3:
+                        polygon = Polygon(approx)
+                        polygons.append(polygon)
+
+                # For the case where approx contour has
+                # less than 3 points and is filtered out
+                if not bool(polygons):
+                    contours.append([])
+                else:
+                    # 2. With all Polygons, create a Multipolygon Object
+                    multipolygon = MultiPolygon(polygons)
+                    # 3. Union all Polygons in Multipolygon Object
+                    union_polygon = unary_union(multipolygon)
+                    # 4. Output of union may be either
+                    # Polygon (All Polygons touching each other previously)
+                    # or MultiPolygon (Previously some separated Polygons)
+
+                    # 5. For MultiPolygon, get Polygon with the largest area
+                    if isinstance(union_polygon, MultiPolygon):
+                        polygon_list = list(union_polygon.geoms)
+                        largest_poly_idx = np.argmax(
+                            [item.area for item in polygon_list]
+                        )
+                        final_polygon = polygon_list[largest_poly_idx]
+
+                    # 6. No change for single polygon
+                    else:
+                        final_polygon = union_polygon
+
+                    # 7. Extract the contour points and append
+                    contours.append(list(final_polygon.exterior.coords))
+
     output = []
 
     for each_class, _ in enumerate(classes):
-        if contours is None or (contours is not None and bool(contours[each_class])):
+        if contours is None or (
+            contours is not None and bool(contours[each_class])
+        ):
             class_name = category_map[str(classes[each_class])]
             item = {}
             item["confidence"] = float(scores[each_class])
@@ -555,10 +596,11 @@ def visualize(
         ## Insert label class & score
         cv2.putText(
             img_arr,
-            "Class: {}, Score: {}".format(
-                str(category_index[str(classes[idx])]["name"]),
-                str(round(scores[idx], 2)),
-            ),
+            str(round(scores[idx], 2)),
+            # "Class: {}, Score: {}".format(
+            #     str(category_index[str(classes[idx])]["name"]),
+            #     str(round(scores[idx], 2)),
+            # ),
             (
                 int(each_bbox[1] * width),
                 int(each_bbox[2] * height + 10),
@@ -572,13 +614,17 @@ def visualize(
     return img_arr
 
 
-def save_to_bytes(img_array: np.array) -> dict:
+def save_to_bytes(img_array: np.array, count) -> dict:
     """Convert an image array to a byte array.
     :param img_array: The image in the form of a numpy array.
     :returns: The byte array.
     """
     # convert the array back to bgr for exporting
     img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+    # cv2.imwrite(
+    #     "/mnt/d/Datature/Fish/output/" + str(count) + ".jpg", img_array
+    # )
+    cv2.imshow("output", img_array)
     _, bts = cv2.imencode(".jpg", img_array)
     output = {"predicted_image": encodebytes(bts.tostring()).decode("ascii")}
     return output
