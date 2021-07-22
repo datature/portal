@@ -20,18 +20,18 @@ Portal works on both images and videos - allowing you to use it as a sandbox for
   <img alt="Portal User Experience" src="https://github.com/datature/portal/blob/develop/docs/images/portal-demo-fields.gif?raw=true" width="45%">
 </p>
 
-## Setting up the environment
+## Setting up Portal
 
-This framework is built using Python 3.7 and Node to run electron. There are 2 different options for you to setup the environment. You can either install the necessary packages globally or or install them into a newly created virtual environment.
-
-- `./setup-virtualenv` bash file creates a new virtual environment for the packages. If you wish to install globally, run the following commands with `./setup.sh` instead.
-
-Win / Mac / Unix
-
+This framework is built using Python 3.7 and Node to run electron. There are 2 different options for you to setup the environment. You can either install the necessary packages using our `requirements.txt` file located in `portal/src/engine` or through our provided bash scripts. Firstly, clone this project with 
 ```.bash
 git clone https://github.com/datature/portal
-./setup-virtualenv.sh
 ```
+The following details the procedures of setting up Portal with Win / Mac / Unix:
+| Using `requirements.txt`| Using bash scripts |
+| --- | --- | 
+| 1. `cd portal/src/engine` to navigate to `requirements.txt location` | 1. navigate to `portal` root directory
+| 2. If you'd like to install your dependencies in a virtual environment, run `pip install virtualenv` to install the package, `virtualenv .venv` to create the virtual environment and `.venv/Scripts/activate` to initialize it. | 2. If you'd like to install your dependencies in a virtual environment, run `./setup-virtualenv.sh`.
+| 3. run `pip install -r requirements.txt` to install your dependencies | 3. If you'd like to install your dependencies globally, run `./setup.sh`
 
 ### Activate the virtual environment
 
