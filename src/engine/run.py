@@ -10,9 +10,16 @@ from flask import send_from_directory
 from flask_cors import cross_origin
 
 # Change root folder to build folder directory
-root = os.path.join(os.getcwd(), "portal_build")
+root = os.getcwd()
+
+arguments = sys.argv
+if "--root" in arguments:
+    index = arguments.index("--root")
+    root = arguments[index + 1]
+    print(f"Has --root setting it to {root}")
 
 if os.getenv("COMMAND_LINE"):
+    root = os.path.join(root, "portal_build")
     sys.path.append(root)
 
 # pylint: disable=wrong-import-position

@@ -57,6 +57,8 @@ async function startBackend() {
     console.log(
       `NODE_ENV in default --- running the backend executable ${exeFileName}`
     );
+    const rootPath = `${app.getAppPath().slice(0, -4)}`;
+    console.log(`Application Running in ${rootPath}`);
     let backend = path.join(root, "dist", exeFileName);
     if (root.endsWith("src")) {
       backend = path.join(root.slice(0, -4), "dist", exeFileName);
@@ -65,6 +67,7 @@ async function startBackend() {
     const execfile = require("child_process").execFile;
     execfile(
       backend,
+      ["--root", rootPath],
       {
         windowsHide: true,
       },
