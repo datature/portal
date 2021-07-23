@@ -84,9 +84,12 @@ async function startBackend() {
 }
 
 async function checkWindowRenderReady() {
-  const response = await fetch("http://localhost:9449/heartbeat", {
-    method: "GET",
-  }).catch(() => {
+  const response = await fetch(
+    "http://localhost:9449/heartbeat?isElectron=true",
+    {
+      method: "GET",
+    }
+  ).catch(() => {
     /* Ignore */
   });
   if (response === undefined || response == null) return false;
