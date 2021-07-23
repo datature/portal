@@ -86,5 +86,5 @@ def initialize() -> None:
     server.run()
 
 
-if not os.getenv("COMMAND_LINE"):
+if not os.getenv("COMMAND_LINE") or os.getenv("IS_ELECTRON"):
     initialize()
