@@ -4,7 +4,6 @@ import os
 import atexit
 import json
 import time
-import logging
 from typing import Union
 import jsonpickle
 
