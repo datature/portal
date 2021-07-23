@@ -18,6 +18,8 @@ import {
   Intent,
 } from "@blueprintjs/core";
 
+import makeEta from "simple-eta";
+
 import {
   PolylineObjectType,
   RenderAssetAnnotations,
@@ -45,6 +47,7 @@ import ImageBar from "./imagebar";
 import SettingsModal from "./settingsmodal";
 import FileModal from "./filemodal";
 import AnnotatorSettings from "./utils/annotatorsettings";
+import FormatTimerSeconds from "./utils/timer";
 import { RegisteredModel } from "./model";
 
 type Point = [number, number];
@@ -187,6 +190,9 @@ export default class Annotator extends Component<
   private menubarElement: HTMLElement | undefined;
   private selectedAnnotation: AnnotationLayer | null;
 
+  /* State for first call on video inference toaster */
+  private isFirstCallPerformed: boolean;
+
   /* States for Toaster */
   private toaster: Toaster;
   private progressToastInterval?: number;
@@ -246,6 +252,8 @@ export default class Annotator extends Component<
     this.project = this.props.project;
     this.menubarRef = React.createRef();
     this.menubarElement = undefined;
+
+    this.isFirstCallPerformed = false;
 
     /* Placeholder Value for Initialization */
     this.currentAsset = {} as AssetAPIObject;
@@ -705,11 +713,14 @@ export default class Annotator extends Component<
       multiplier: 1,
       uiState: "Predicting",
     });
-    if (reanalyse && this.currentAsset.type === "video")
+    if (reanalyse && this.currentAsset.type === "video") {
       this.handleProgressToast(true);
-    else if (reanalyse) this.handleProgressToast();
+      this.videoOverlay.getElement()?.pause();
+    } else if (reanalyse) this.handleProgressToast();
     await this.getInference(this.currentAsset, reanalyse);
     await this.updateImage();
+    if (this.currentAsset.type === "video")
+      this.videoOverlay.getElement()?.play();
     this.setState({
       predictDone: 0,
       uiState: null,
@@ -1026,18 +1037,35 @@ export default class Annotator extends Component<
         }
       }, 200);
     } else {
+      let eta: any;
       this.progressToastInterval = window.setInterval(() => {
         APIGetPredictionProgress().then(response => {
           const { progress, total } = response.data;
-          if (progress === 1 && total === 1) {
+          if (!this.isFirstCallPerformed) {
+            this.isFirstCallPerformed = true;
+            eta = makeEta({
+              min: progress,
+              max: total,
+              historyTimeConstant: 10,
+            });
+            eta.start();
+          } else if (progress === 1 && total === 1) {
             this.toaster.show(
-              this.renderProgress(this.state.predictTotal),
+              this.renderProgress((progress * 100) / total),
               key
             );
             window.clearInterval(this.progressToastInterval);
+            this.isFirstCallPerformed = false;
           } else {
-            const donePercent = (progress / total) * 100;
-            this.toaster.show(this.renderProgress(donePercent), key);
+            eta.report(progress);
+            const secondsLeft = Math.ceil(eta.estimate());
+            this.toaster.show(
+              this.renderProgress(
+                (progress * 100) / total,
+                FormatTimerSeconds(secondsLeft)
+              ),
+              key
+            );
           }
         });
       }, 500);
@@ -1349,9 +1377,9 @@ export default class Annotator extends Component<
     this.setState({ isSyncing: false });
   };
 
-  private renderProgress(amount: number): IToastProps {
-    return {
-      className: this.props.useDarkTheme ? "bp3-dark" : "",
+  private renderProgress(amount: number, message = ""): IToastProps {
+    const toastProps: IToastProps = {
+      className: `bp3-text-muted ${this.props.useDarkTheme ? "bp3-dark" : ""}`,
       icon: "predictive-analysis",
       message: (
         <ProgressBar
@@ -1366,9 +1394,14 @@ export default class Annotator extends Component<
           this.killVideoPrediction();
           window.clearInterval(this.progressToastInterval);
         }
+        this.isFirstCallPerformed = false;
       },
       timeout: amount < 100 ? 0 : 600,
     };
+
+    if (message !== "") toastProps.action = { text: message };
+
+    return toastProps;
   }
 
   /* Hotkey for Quick Annotation Selection */
@@ -1434,14 +1467,6 @@ export default class Annotator extends Component<
           combo={"space"}
           label={"Play/Pause Video"}
           onKeyDown={this.handlePlayPauseVideoOverlay}
-        />
-        <Hotkey
-          global={true}
-          combo={"p"}
-          label={"temp"}
-          onKeyDown={() => {
-            APIGetPredictionProgress().then(resp => console.log(resp.data));
-          }}
         />
         {Object.entries(this.state.tagInfo.tags).map(([tagname], idx) => {
           /* Only Perform Hotkey for First 9 Objects */
