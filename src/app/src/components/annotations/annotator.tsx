@@ -608,6 +608,7 @@ export default class Annotator extends Component<
     }
 
     let numberToBulkAnalysis: number;
+
     switch (this.state.inferenceOptions.bulkAnalysisStatus) {
       case "image":
         numberToBulkAnalysis = this.state.assetList.filter(
@@ -628,8 +629,8 @@ export default class Annotator extends Component<
     }
 
     this.setState({
-      predictTotal: 100,
-      predictDone: 0.01,
+      predictTotal: numberToBulkAnalysis,
+      predictDone: 0,
       multiplier: 1,
       uiState: "Predicting",
     });
