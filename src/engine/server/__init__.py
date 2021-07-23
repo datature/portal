@@ -16,6 +16,37 @@ MODEL_LOAD_LIMIT = 1
 CACHE_OPTION = True
 EPSILON_MULTIPLIER = 0.001
 IDLE_MINUTES = 60 * 5
+try:
+    DEBUG_MODE = (
+        int(os.environ["PORTAL_LOGGING"])
+        if "PORTAL_LOGGING" in os.environ
+        else None
+    )
+except ValueError as e:
+    raise ValueError(
+        "invalid literal for PORTAL_LOGGING variable.\n"
+        "Only 1, 2, 3, 4, 5 are accepted."
+    ) from e
+if DEBUG_MODE is not None:
+    # pylint: disable=wrong-import-position
+    import logging
+
+    # Logging Levels:
+    # CRITICAL = 5
+    # ERROR = 4
+    # WARNING = 3
+    # INFO = 2
+    # DEBUG = 1
+    try:
+        logging.basicConfig(level=DEBUG_MODE * 10)
+        logger = logging.getLogger(__name__)
+    except ValueError as e:
+        raise ValueError(
+            "invalid literal for PORTAL_LOGGING variable.\n"
+            "Only 1, 2, 3, 4, 5 are accepted."
+        ) from e
+else:
+    logger = None
 
 
 class ServerThread(threading.Thread):
