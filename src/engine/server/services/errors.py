@@ -38,7 +38,7 @@ class Errors(Enum):
     INVALIDQUERY = 4003, 406
 
     # PREDICTION ERRORS 5XXX
-    STOPPEDPROCESS = 5000, 410
+    STOPPEDPROCESS = 5000, 400
 
 
 # pylint: disable=too-few-public-methods
