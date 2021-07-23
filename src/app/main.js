@@ -189,7 +189,7 @@ app.on("window-all-closed", async function quit() {
       console.log(`stderr: ${stderr}`);
     });
   }
-  if (process.platform !== "darwin") app.quit();
+  app.quit();
 });
 
 app.on("activate", function activate() {

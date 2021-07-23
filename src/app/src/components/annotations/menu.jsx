@@ -238,7 +238,7 @@ export default class AnnotationMenu extends Component {
      * List of tags to be displayed under Tags tab
      */
     const tagList = (
-      <div className={"tag-list"}>
+      <div className={["tag-list", classes.TagList].join(" ")}>
         {Object.entries(this.props.projectTags)
           .filter(
             ([tag, _]) =>
@@ -281,7 +281,7 @@ export default class AnnotationMenu extends Component {
      * List of annotations to be displayed under Annotations tab
      */
     const annotationList = (
-      <div className={"tag-list"}>
+      <div className={["tag-list", classes.TagList].join(" ")}>
         {this.state.annotations
           .filter(
             ([annotation, _]) =>
