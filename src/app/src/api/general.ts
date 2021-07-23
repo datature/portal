@@ -9,8 +9,8 @@ import {
   CLEAR_GPU,
 } from "@portal/constants/api";
 
-export function APIIsAlive(): Promise<AxiosResponse<any>> {
-  return axios.get(SERVER_ADDRESS + IS_ALIVE);
+export function APIIsAlive(isElectron: boolean): Promise<AxiosResponse<any>> {
+  return axios.get(SERVER_ADDRESS + IS_ALIVE, { params: { isElectron } });
 }
 
 export function APIShutdown(

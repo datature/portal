@@ -1,13 +1,15 @@
 """Module containing the GlobalStore class."""
 import gc
 import os
+import atexit
 import json
 import time
 from typing import Union
 import jsonpickle
 
 from flask import Response
-
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 # Ignore import-error and no-name-in-module due to Pyshell
 # pylint: disable=E0401, E0611
 from server.services.errors import Errors, PortalError
@@ -28,10 +30,11 @@ class GlobalStore:
     """Storage of global variables."""
 
     # MODEL INITIALIZER AND DESTRUCTOR
-    def __init__(self, model_load_limit, caching_system) -> None:
+    def __init__(self, model_load_limit, idle_minutes, caching_system) -> None:
         """Initialize the GlobalStore class."""
         self._global_server_time_ = time.time()
         self._is_cache_called_ = False
+        self._scheduler_ = None
         self._loaded_model_list_ = {}
         self._op_status_ = {"status": None}
         self._op_atomic_ = False
@@ -42,6 +45,7 @@ class GlobalStore:
         self._process_stop_ = False
         self._caught_response_ = {}
         self._model_load_limit_ = model_load_limit
+        self._idle_minutes_ = idle_minutes
 
         # Flag to enable or diable the caching system
         self.caching_system = caching_system
@@ -50,6 +54,49 @@ class GlobalStore:
             "predictions": {},
             "targeted_folders": jsonpickle.encode(self._targeted_folders_),
         }
+
+    def _is_shutdown_server_(self, timer):
+        """Check if the server should be shut down.
+
+        :param timer: The threshold time that would lead to a shut down
+        :return: The decision to shut down.
+        """
+        now = time.time()
+        elapsed_time = now - self._global_server_time_
+        if elapsed_time >= timer:
+            return False
+        return True
+
+    def _schedule_shutdown_(self):
+        """Scheduler Job to check whether there's inactivity within the last 5 minutes
+
+        :return: void
+        """
+        if (
+                self._is_shutdown_server_(self._idle_minutes_)
+                or self._op_atomic_
+        ):
+            time.sleep(5)
+        else:
+            os._exit(0)  # pylint: disable=W0212
+
+    def set_start_scheduler(self):
+        """Start the scheduler
+
+        """
+        if self._scheduler_ is None:
+            self._scheduler_ = BackgroundScheduler(daemon=True)
+            self._scheduler_.add_job(self._schedule_shutdown_, IntervalTrigger(minutes=1))
+            self._scheduler_.start()
+
+            # Shut down the scheduler when exiting the app
+            # pylint: disable=unnecessary-lambda)
+            atexit.register(lambda: self._scheduler_.shutdown())
+
+    def set_still_alive(self):
+        """Updates the global_server_time attribute"""
+        now = time.time()
+        self._global_server_time_ = max(self._global_server_time_, now)
 
     def set_is_cache_called(self, path):
         """Fist initialization in run.py
@@ -104,23 +151,6 @@ class GlobalStore:
     def cache_is_called(self):
         """Sets cache is called"""
         self._is_cache_called_ = True
-
-    def set_still_alive(self):
-        """Updates the global_server_time attribute"""
-        now = time.time()
-        self._global_server_time_ = max(self._global_server_time_, now)
-
-    def is_shutdown_server(self, timer):
-        """Check if the server should be shut down.
-
-        :param timer: The threshold time that would lead to a shut down
-        :return: The decision to shut down.
-        """
-        now = time.time()
-        elapsed_time = now - self._global_server_time_
-        if elapsed_time >= timer:
-            return False
-        return True
 
     # no real need for the in-bulit destructor. This function is called instead.
     def delete_cache(self) -> None:

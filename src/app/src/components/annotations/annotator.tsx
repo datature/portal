@@ -223,7 +223,7 @@ export default class Annotator extends Component<
       confidence: 0.5,
       annotationOptions: {
         isOutlined: true,
-        opacity: 0.3,
+        opacity: 0.45,
       },
       filterArr: [],
       showSelected: true,
@@ -598,8 +598,12 @@ export default class Annotator extends Component<
       return;
     }
 
-    this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
-    this.setState({ uiState: "Predicting" });
+    this.setState({
+      predictTotal: 100,
+      predictDone: 0.01,
+      multiplier: 1,
+      uiState: "Predicting",
+    });
     this.handleProgressToast();
 
     // eslint-disable-next-line no-restricted-syntax
@@ -654,8 +658,12 @@ export default class Annotator extends Component<
       return;
     }
 
-    this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
-    this.setState({ uiState: "Predicting" });
+    this.setState({
+      predictTotal: 100,
+      predictDone: 0.01,
+      multiplier: 1,
+      uiState: "Predicting",
+    });
     if (reanalyse) this.handleProgressToast();
     await this.getInference(this.currentAsset, reanalyse);
     await this.updateImage();
@@ -680,6 +688,8 @@ export default class Annotator extends Component<
     }
 
     const loadedModelHash = this.props.loadedModel.hash;
+    /* Hidden annotations reset every time this is initialized */
+    this.setState({ hiddenAnnotations: new Set<string>() });
 
     if (
       asset.type === "image" &&
