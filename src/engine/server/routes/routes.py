@@ -125,8 +125,8 @@ def kill_video() -> Response:
 @app.route("/api/model/predict/status", methods=["GET"])
 @cross_origin()
 @portal_function_handler(clear_status=False)
-def prediction_status() -> Response:
-    """Get the current status of the prediction.
+def prediction_progress() -> Response:
+    """Get the current progress of the prediction.
 
     Returns payload in the format
     {
@@ -135,7 +135,7 @@ def prediction_status() -> Response:
         "total": 1 (for image/idle) | <total_frames_in_video> (for video),
     }
     """
-    return jsonify(global_store.get_prediction_status())
+    return jsonify(global_store.get_prediction_progress())
 
 
 @app.route("/cache", methods=["POST"])

@@ -105,7 +105,7 @@ def predict_video(
     cap = cv2.VideoCapture(os.path.join(video_directory))
     fps = cap.get(cv2.CAP_PROP_FPS)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    global_store.set_prediction_status("video", 0, total_frames)
+    global_store.set_prediction_progress("video", 0, total_frames)
     output_dict = {"fps": fps, "frames": {}}
     count = 0
     while cap.isOpened():
@@ -134,10 +134,10 @@ def predict_video(
             output_dict["frames"][int(count / fps * 1000)] = single_output
             # move on to the next frame
             count += frame_interval
-            global_store.set_prediction_status("video", count, total_frames)
+            global_store.set_prediction_progress("video", count, total_frames)
         else:
             cap.release()
             break
-    global_store.set_prediction_status("none", 1, 1)
+    global_store.set_prediction_progress("none", 1, 1)
     cv2.destroyAllWindows()
     return output_dict
