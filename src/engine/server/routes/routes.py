@@ -104,6 +104,9 @@ def shutdown():
 @portal_function_handler(clear_status=False)
 def heartbeat() -> tuple:
     """Check if server is alive."""
+    is_electron = request.args.get("isElectron")
+    if is_electron == "true":
+        global_store.set_start_scheduler()
     output = {
         "hasCache": global_store.has_cache(),
         "isCacheCalled": global_store.is_cache_called(),
