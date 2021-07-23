@@ -53,7 +53,7 @@ if os.getenv("COMMAND_LINE"):
 
     @app.route("/")
     @cross_origin()
-    def index():
+    def index_page():
         filepath = os.path.join(root, "out")
         return send_from_directory(filepath, "index.html")
 
