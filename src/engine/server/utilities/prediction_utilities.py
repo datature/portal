@@ -431,6 +431,81 @@ def back_to_tensor(suppressed_output: tuple) -> dict:
     return tensor_dict
 
 
+def _convert_mask_to_contours(reframed_masks: np.array) -> list:
+    """Convert mask detections into contours.
+    :param reframed_masks: Numpy array representing the instance mask.
+    :returns: The list of contours.
+    """
+    _, height, width = reframed_masks.shape
+    contours = []
+    for single_mask in reframed_masks:
+        # 1. Get the contours using cv2.find contours.
+        # The contours may be fragmented,
+        # thereby the result may be a list of contours.
+        found_contours = cv2.findContours(
+            single_mask,
+            cv2.RETR_LIST,
+            cv2.CHAIN_APPROX_NONE,
+        )
+        # Output of cv2.findContours has tuple of single list format ([xxx]).
+        # The outer tuple and list are of the same dimensions
+        # We only need the list, so we take
+        # the inner (single) 0th element of the tuple.
+        inner_contour = found_contours[0]
+
+        # If theres no contours at all we just skip and append an empty list.
+        if not bool(inner_contour):
+            contours.append([])
+        else:
+            polygons = []
+            for single_contour in inner_contour:
+                # 2. Simplfy the contour to get an approximation
+                epsilon = EPSILON_MULTIPLIER * cv2.arcLength(
+                    single_contour, True
+                )
+                approx = cv2.approxPolyDP(single_contour, epsilon, True)
+                # 3. Normalize the approximation
+                approx = [
+                    [item[0][0] / width, item[0][1] / height]
+                    for item in approx
+                ]
+
+                # Min 3 points is needed for polygon to be created
+                if len(approx) >= 3:
+                    polygon = Polygon(approx)
+                    polygons.append(polygon)
+
+            # For the case where approx contour has less than 3 points and
+            # is filtered out, we also just skip and append an empty list.
+            if not bool(polygons):
+                contours.append([])
+            else:
+                # 4. With all Polygons, create a Multipolygon Object
+                multipolygon = MultiPolygon(polygons)
+                # 5. Union all Polygons in Multipolygon Object
+                union_polygon = unary_union(multipolygon)
+                # Output of union may be either
+                # Polygon (All Polygons touching each other previously)
+                # or MultiPolygon (Previously some separated Polygons)
+
+                # 5. For MultiPolygon, get Polygon with the largest area
+                if isinstance(union_polygon, MultiPolygon):
+                    # pylint: disable=E1101
+                    polygon_list = list(union_polygon.geoms)
+                    largest_poly_idx = np.argmax(
+                        [item.area for item in polygon_list]
+                    )
+                    final_polygon = polygon_list[largest_poly_idx]
+
+                # 6. No change for single polygon
+                else:
+                    final_polygon = union_polygon
+
+                # 7. Extract the contour points and append
+                contours.append(list(final_polygon.exterior.coords))
+    return contours
+
+
 def get_detection_json(detections_output: dict, category_map: tuple) -> list:
     """Obtain the json detections given the detection tuple.
     :param detections: Tuple containing bboxes, scores, classes
@@ -450,64 +525,7 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
         contours = None
     else:
         reframed_masks = detections["detection_masks"]
-        _, height, width = reframed_masks.shape
-        contours = []
-        for single_mask in reframed_masks:
-            found_contours = cv2.findContours(
-                single_mask,
-                cv2.RETR_LIST,
-                cv2.CHAIN_APPROX_NONE,
-            )
-            inner_contour = found_contours[0]
-
-            if not bool(inner_contour):
-                contours.append([])
-            else:
-                polygons = []
-                for single_contour in inner_contour:
-                    # 1. Simplfy the contour to get an approximate
-                    epsilon = EPSILON_MULTIPLIER * cv2.arcLength(
-                        single_contour, True
-                    )
-                    approx = cv2.approxPolyDP(single_contour, epsilon, True)
-                    approx = [
-                        [item[0][0] / width, item[0][1] / height]
-                        for item in approx
-                    ]
-
-                    # Min 3 points is needed for polygon to be created
-                    if len(approx) >= 3:
-                        polygon = Polygon(approx)
-                        polygons.append(polygon)
-
-                # For the case where approx contour has
-                # less than 3 points and is filtered out
-                if not bool(polygons):
-                    contours.append([])
-                else:
-                    # 2. With all Polygons, create a Multipolygon Object
-                    multipolygon = MultiPolygon(polygons)
-                    # 3. Union all Polygons in Multipolygon Object
-                    union_polygon = unary_union(multipolygon)
-                    # 4. Output of union may be either
-                    # Polygon (All Polygons touching each other previously)
-                    # or MultiPolygon (Previously some separated Polygons)
-
-                    # 5. For MultiPolygon, get Polygon with the largest area
-                    if isinstance(union_polygon, MultiPolygon):
-                        # pylint: disable=E1101
-                        polygon_list = list(union_polygon.geoms)
-                        largest_poly_idx = np.argmax(
-                            [item.area for item in polygon_list]
-                        )
-                        final_polygon = polygon_list[largest_poly_idx]
-
-                    # 6. No change for single polygon
-                    else:
-                        final_polygon = union_polygon
-
-                    # 7. Extract the contour points and append
-                    contours.append(list(final_polygon.exterior.coords))
+        contours = _convert_mask_to_contours(reframed_masks)
 
     output = []
 
