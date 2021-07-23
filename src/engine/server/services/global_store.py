@@ -236,9 +236,31 @@ class GlobalStore:
 
         :param key: The model key.
         :param _model_: The _model_ class attributed to the model key.
+
+        Cases:
+        same dir    same name   =>  pop old from and add new to existing list
+        same dir    diff name   =>  pop old from and add new to existing list
+        diff dir    same name   =>  ERROR Name has been used
+        diff dir    diff name   =>  add new to existing list
         """
+        model_dir = model.get_info()["directory"]
+        model_name = model.get_info()["name"]
+
+        for item in self._store_["registry"]:
+            if self._store_["registry"][item]["model_dir"] == model_dir:
+                self._store_["registry"].pop(item)
+                break
+            if self._store_["registry"][item]["model_name"] == model_name:
+                raise PortalError(
+                    Errors.INVALIDAPI,
+                    "A model with the same name already exists.",
+                )
         serialized_model_class = jsonpickle.encode(model)
-        self._store_["registry"][key] = serialized_model_class
+        self._store_["registry"][key] = {
+            "class": serialized_model_class,
+            "model_dir": model_dir,
+            "model_name": model_name,
+        }
         self._save_store_()
 
     def get_registered_model(self, key: str) -> BaseModel:
@@ -248,14 +270,14 @@ class GlobalStore:
         :return: The model as a Model class.
         """
         if key in self._store_["registry"]:
-            return jsonpickle.decode(self._store_["registry"][key])
+            return jsonpickle.decode(self._store_["registry"][key]["class"])
         raise PortalError(Errors.INVALIDMODELKEY, "Model not registered.")
 
     def get_registered_model_info(self) -> str:
         """Retrieve directory, description, name of all registered models"""
         return {
-            model_id: jsonpickle.decode(model_class).get_info()
-            for model_id, model_class in self._store_["registry"].items()
+            model_id: jsonpickle.decode(model_dict["class"]).get_info()
+            for model_id, model_dict in self._store_["registry"].items()
         }
 
     def del_registered_model(self, key: str) -> None:
