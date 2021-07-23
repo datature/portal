@@ -33,6 +33,7 @@ import {
   APIGetCacheList,
   APIKillVideoInference,
   APIUpdateAsset,
+  APIGetPredictionProgress,
 } from "@portal/api/annotation";
 
 import { invert, cloneDeep, isEmpty } from "lodash";
@@ -598,9 +599,34 @@ export default class Annotator extends Component<
       return;
     }
 
-    this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
+    let numberToBulkAnalysis: number;
+    switch (this.state.inferenceOptions.bulkAnalysisStatus) {
+      case "image":
+        numberToBulkAnalysis = this.state.assetList.filter(
+          asset => asset.type === "image"
+        ).length;
+        break;
+      case "video":
+        numberToBulkAnalysis = this.state.assetList.filter(
+          asset => asset.type === "video"
+        ).length;
+        break;
+      case "both":
+        numberToBulkAnalysis = this.state.assetList.length;
+        break;
+      default:
+        numberToBulkAnalysis = this.state.assetList.length;
+        break;
+    }
+
+    this.setState({
+      predictTotal: numberToBulkAnalysis,
+      predictDone: 0,
+      multiplier: 1,
+    });
     this.setState({ uiState: "Predicting" });
-    this.handleProgressToast();
+
+    const key = this.toaster.show(this.renderProgress(0));
 
     // eslint-disable-next-line no-restricted-syntax
     for (const asset of this.state.assetList) {
@@ -613,6 +639,24 @@ export default class Annotator extends Component<
       this.selectAsset(asset, false);
       // eslint-disable-next-line no-await-in-loop
       await this.getInference(asset, true);
+      if (
+        this.state.inferenceOptions.bulkAnalysisStatus === "both" ||
+        this.state.inferenceOptions.bulkAnalysisStatus === asset.type
+      ) {
+        this.setState(
+          prevState => {
+            return { predictDone: prevState.predictDone + 1 };
+          },
+          () => {
+            this.toaster.show(
+              this.renderProgress(
+                (this.state.predictDone / this.state.predictTotal) * 100
+              ),
+              key
+            );
+          }
+        );
+      }
       // eslint-disable-next-line no-await-in-loop
       await new Promise(res => setTimeout(res, 1000));
     }
@@ -620,6 +664,7 @@ export default class Annotator extends Component<
     await this.updateImage();
     this.setState({
       predictDone: 0,
+      predictTotal: 100,
       uiState: null,
       killVideoPrediction: false,
     });
@@ -656,7 +701,9 @@ export default class Annotator extends Component<
 
     this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
     this.setState({ uiState: "Predicting" });
-    if (reanalyse) this.handleProgressToast();
+    if (reanalyse && this.currentAsset.type === "video")
+      this.handleProgressToast(true);
+    else if (reanalyse) this.handleProgressToast();
     await this.getInference(this.currentAsset, reanalyse);
     await this.updateImage();
     this.setState({
@@ -944,30 +991,51 @@ export default class Annotator extends Component<
     }
   };
 
-  private handleProgressToast = () => {
+  /**
+   * Generic rendering that handles complex toast rendering
+   */
+  private handleProgressToast = (isSingleVideoPrediction = false) => {
     const key = this.toaster.show(this.renderProgress(0));
-    this.progressToastInterval = window.setInterval(() => {
-      if (
-        this.state.uiState === null ||
-        this.state.predictDone === this.state.predictTotal
-      ) {
-        this.toaster.show(this.renderProgress(100), key);
-        window.clearInterval(this.progressToastInterval);
-      } else {
-        /* Need to shift this over later */
-        const addRand = (Math.random() * 20) / this.state.multiplier;
-        if (this.state.predictDone + addRand < this.state.predictTotal * 0.98)
-          this.setState(prevState => {
-            return {
-              predictDone: prevState.predictDone + addRand,
-              multiplier: prevState.multiplier + 0.2,
-            };
-          });
-        const donePercent =
-          (this.state.predictDone / this.state.predictTotal) * 100;
-        this.toaster.show(this.renderProgress(donePercent), key);
-      }
-    }, 200);
+    if (!isSingleVideoPrediction) {
+      this.progressToastInterval = window.setInterval(() => {
+        if (
+          this.state.uiState === null ||
+          this.state.predictDone === this.state.predictTotal
+        ) {
+          this.toaster.show(this.renderProgress(100), key);
+          window.clearInterval(this.progressToastInterval);
+        } else {
+          /* Need to shift this over later */
+          const addRand = (Math.random() * 15) / this.state.multiplier;
+          if (this.state.predictDone + addRand < this.state.predictTotal * 0.98)
+            this.setState(prevState => {
+              return {
+                predictDone: prevState.predictDone + addRand,
+                multiplier: prevState.multiplier + 0.18,
+              };
+            });
+          const donePercent =
+            (this.state.predictDone / this.state.predictTotal) * 100;
+          this.toaster.show(this.renderProgress(donePercent), key);
+        }
+      }, 200);
+    } else {
+      this.progressToastInterval = window.setInterval(() => {
+        APIGetPredictionProgress().then(response => {
+          const { progress, total } = response.data;
+          if (progress === 1 && total === 1) {
+            this.toaster.show(
+              this.renderProgress(this.state.predictTotal),
+              key
+            );
+            window.clearInterval(this.progressToastInterval);
+          } else {
+            const donePercent = (progress / total) * 100;
+            this.toaster.show(this.renderProgress(donePercent), key);
+          }
+        });
+      }, 500);
+    }
   };
 
   private showToaster(toast: IToastProps) {
@@ -1278,12 +1346,12 @@ export default class Annotator extends Component<
   private renderProgress(amount: number): IToastProps {
     return {
       className: this.props.useDarkTheme ? "bp3-dark" : "",
-      icon: "cloud-upload",
+      icon: "predictive-analysis",
       message: (
         <ProgressBar
           className={"predict-prog"}
           intent={amount < 100 ? "primary" : "success"}
-          value={this.currentAsset.type === "video" ? 1 : amount / 100}
+          value={amount / 100}
         />
       ),
       onDismiss: (didTimeoutExpire: boolean) => {
@@ -1360,6 +1428,14 @@ export default class Annotator extends Component<
           combo={"space"}
           label={"Play/Pause Video"}
           onKeyDown={this.handlePlayPauseVideoOverlay}
+        />
+        <Hotkey
+          global={true}
+          combo={"p"}
+          label={"temp"}
+          onKeyDown={() => {
+            APIGetPredictionProgress().then(resp => console.log(resp.data));
+          }}
         />
         {Object.entries(this.state.tagInfo.tags).map(([tagname], idx) => {
           /* Only Perform Hotkey for First 9 Objects */
