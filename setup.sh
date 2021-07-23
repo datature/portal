@@ -61,7 +61,6 @@ echo "Copying related engine files to portal_build..."
 cp -R ./src/engine/server ./portal_build
 cp ./src/engine/run.py ./portal_build
 
-cd ./src/engine
 echo "Installing Python Environment in portal_build..."
 echo "$OSTYPE"
 if [[ "$OSTYPE" == "msys" ]]; then

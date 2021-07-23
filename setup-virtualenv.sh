@@ -7,7 +7,7 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 trap 'echo "Exiting shell: \"${last_command}\" command failed with exit code $?."' EXIT
 
-declare -a FILES_NEEDED=(./src/app/main.js ./src/app/preload.js ./src/engine/run.py ./src/engine/Pipfile ./src/engine/Pipfile.lock)
+declare -a FILES_NEEDED=(./src/app/main.js ./src/app/preload.js ./src/engine/run.py ./Pipfile ./Pipfile.lock)
 missing_files="false"
 
 check_if_node_exists() {
@@ -59,8 +59,8 @@ cp ./src/app/preload.js ./portal_build
 echo "Copying related engine files to portal_build..."
 cp -R ./src/engine/server ./portal_build
 cp ./src/engine/run.py ./portal_build
-cp ./src/engine/Pipfile.lock ./portal_build
-cp ./src/engine/Pipfile ./portal_build
+cp ./Pipfile.lock ./portal_build
+cp ./Pipfile ./portal_build
 
 cd ./portal_build
 echo "Installing Python Environment in portal_build..."
@@ -72,7 +72,7 @@ else
 python3 -m pip install --upgrade pip
 python3 -m pip install pipenv
 fi
-PIPENV_VENV_IN_PROJECT=1 PIPENV_DEFAULT_PYTHON_VERSION=3.7 pipenv sync -d
+PIPENV_VENV_IN_PROJECT=1 pipenv sync -d
 
 cd ..
 
