@@ -122,7 +122,7 @@ def kill_video() -> Response:
     return Response(status=200)
 
 
-@app.route("/api/model/predict/status", method=["GET"])
+@app.route("/api/model/predict/status", methods=["GET"])
 @cross_origin()
 @portal_function_handler(clear_status=False)
 def prediction_status() -> Response:

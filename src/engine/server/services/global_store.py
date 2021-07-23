@@ -44,7 +44,7 @@ class GlobalStore:
         self._model_load_limit_ = model_load_limit
         self._prediction_status_ = {
             "status": "none",
-            "progress": 0,
+            "progress": 1,
             "total": 1,
         }
 
