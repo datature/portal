@@ -1014,6 +1014,7 @@ export default class Annotator extends Component<
    */
   private handleProgressToast = (isSingleVideoPrediction = false) => {
     const key = this.toaster.show(this.renderProgress(0));
+    /* Case where no ETA is needed */
     if (!isSingleVideoPrediction) {
       this.progressToastInterval = window.setInterval(() => {
         if (
@@ -1037,6 +1038,7 @@ export default class Annotator extends Component<
           this.toaster.show(this.renderProgress(donePercent), key);
         }
       }, 200);
+      /* Case where ETA is needed */
     } else {
       let eta: any;
       this.progressToastInterval = window.setInterval(() => {
@@ -1044,12 +1046,14 @@ export default class Annotator extends Component<
           const { progress, total } = response.data;
           if (!this.isFirstCallPerformed) {
             this.isFirstCallPerformed = true;
+            /* Initialize ETA Instance to record estimated running time */
             eta = makeEta({
               min: progress,
               max: total,
               historyTimeConstant: 10,
             });
             eta.start();
+            /* Default value of API call - when no video prediction */
           } else if (progress === 1 && total === 1) {
             this.toaster.show(
               this.renderProgress((progress * 100) / total),
