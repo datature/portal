@@ -10,9 +10,15 @@ from flask import send_from_directory
 from flask_cors import cross_origin
 
 # Change root folder to build folder directory
-root = os.path.join(os.path.abspath(os.curdir), "portal_build")
+root = os.getcwd()
+
+arguments = sys.argv
+if "--root" in arguments:
+    index = arguments.index("--root")
+    root = arguments[index + 1]
 
 if os.getenv("COMMAND_LINE"):
+    root = os.path.join(root, "portal_build")
     sys.path.append(root)
 
 # pylint: disable=wrong-import-position
@@ -22,7 +28,10 @@ from server import server, app, global_store
 if os.getenv("ROOT_DIR") is not None:
     root = os.path.abspath(os.getenv("ROOT_DIR"))
 
+env = os.getenv("ROOT_DIR")
+
 cache_folder = os.path.join(root, "server/cache")
+
 if not os.path.isdir(cache_folder):
     os.makedirs(cache_folder)
     with open(os.path.join(root, cache_folder, ".gitkeep"), "w") as gitkeep:
@@ -44,9 +53,8 @@ if os.getenv("COMMAND_LINE"):
 
     @app.route("/")
     @cross_origin()
-    def index():
+    def index_page():
         filepath = os.path.join(root, "out")
-        print(filepath)
         return send_from_directory(filepath, "index.html")
 
     @app.route("/<path:path>")
