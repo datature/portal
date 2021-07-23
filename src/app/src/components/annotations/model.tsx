@@ -609,45 +609,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     };
     const registerModelForm = (
       <div className={classes.RegistrationForm}>
-        {this.state.registrationTabId === "hub" ? (
-          <>
-            <FormGroup label="Model Type" labelFor="label-input">
-              <Tooltip
-                content="Only tensorflow model supported for hub"
-                position={Position.RIGHT}
-              >
-                <Button
-                  disabled={true}
-                  text={
-                    this.state.formData.modelType !== ""
-                      ? modelTypes[this.state.formData.modelType]
-                      : "None selected"
-                  }
-                  rightIcon="double-caret-vertical"
-                />
-              </Tooltip>
-            </FormGroup>
-
-            <FormGroup label="Model Key" labelFor="label-input">
-              <InputGroup
-                id="modelKey"
-                name="modelKey"
-                value={this.state.formData.modelKey}
-                placeholder="Enter model key from hub..."
-                onChange={this.handleChangeForm}
-              />
-            </FormGroup>
-            <FormGroup label="Project Secret" labelFor="label-input">
-              <InputGroup
-                id="projectSecret"
-                name="projectSecret"
-                value={this.state.formData.projectSecret}
-                placeholder="Enter project secret from hub..."
-                onChange={this.handleChangeForm}
-              />{" "}
-            </FormGroup>
-          </>
-        ) : (
+        {this.state.registrationTabId === "local" ? (
           <>
             <FormGroup label="Model Type" labelFor="label-input">
               <Popover
@@ -690,7 +652,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               </Popover>
             </FormGroup>
           </>
-        )}
+        ) : null}
         <FormGroup label="Name" labelFor="label-input">
           <InputGroup
             id="name"
@@ -711,7 +673,28 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               rightElement={isElectron() ? browseButton : browseHint}
             />
           </FormGroup>
-        ) : null}
+        ) : (
+          <>
+            <FormGroup label="Model Key" labelFor="label-input">
+              <InputGroup
+                id="modelKey"
+                name="modelKey"
+                value={this.state.formData.modelKey}
+                placeholder="Enter model key from hub..."
+                onChange={this.handleChangeForm}
+              />
+            </FormGroup>
+            <FormGroup label="Project Secret" labelFor="label-input">
+              <InputGroup
+                id="projectSecret"
+                name="projectSecret"
+                value={this.state.formData.projectSecret}
+                placeholder="Enter project secret from hub..."
+                onChange={this.handleChangeForm}
+              />{" "}
+            </FormGroup>
+          </>
+        )}
         <Button
           type="submit"
           text="Register"
