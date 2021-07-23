@@ -2,7 +2,7 @@ name: Portal CI/CD
 
 on:
   push:
-    branches: [hotfix/release-workflow-0.4.0]
+    branches: [release-*]
 jobs:
   build-out:
     runs-on: ubuntu-latest
@@ -33,8 +33,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v1
@@ -56,7 +55,7 @@ jobs:
 
       - name: Extract Version
         shell: bash
-        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-workflow-})"
+        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-})"
         id: extract_version
 
       - name: Extract Executable name
@@ -79,31 +78,25 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install pylint
-          pip install -r ./src/engine/requirements.txt
+          pip install -r ./requirements.txt
           python -m pip install --upgrade pyinstaller
 
       - name: Package Application with pyinstaller
         working-directory: ./src/engine
-        shell: bash
         run: |
           pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ../../portal_build/dist
           if [ -f ../../portal_build/dist/run ]; then
-          echo "Renaming file"
-          ls ../../portal_build/dist
           chmod u+x ../../portal_build/dist/run
           mv ../../portal_build/dist/run ../../portal_build/dist/run.exe
-          ls ../../portal_build/dist
           fi
-          if [ -f ../../portal_build/dist/run.exe ]; then
           chmod u+x ../../portal_build/dist/run.exe
-          fi
 
         # Install Node.js
       - uses: actions/setup-node@v1.4.4
         with:
           node-version: 14
           registry-url: https://npm.pkg.github.com/
-          scope: "@beesaycheese"
+          scope: "@datature"
 
       # Install your dependencies
       - name: Installing Portal dependencies
@@ -136,7 +129,7 @@ jobs:
 
       - name: Extract Version
         shell: bash
-        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-workflow-})"
+        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-})"
         id: extract_version
 
       - name: release
@@ -150,40 +143,40 @@ jobs:
           tag_name: v${{ steps.extract_version.outputs.version }}
           release_name: ${{ steps.extract_branch.outputs.branch }}
 
-      # - uses: actions/download-artifact@v2
-      #   with:
-      #     name: windows-electron
-      #     path: ./application/windows
+      - uses: actions/download-artifact@v2
+        with:
+          name: windows-electron
+          path: ./application/windows
 
-      # - uses: actions/download-artifact@v2
-      #   with:
-      #     name: ubuntu-electron
-      #     path: ./application/linux
+      - uses: actions/download-artifact@v2
+        with:
+          name: ubuntu-electron
+          path: ./application/linux
 
       - uses: actions/download-artifact@v2
         with:
           name: macos-electron
           path: ./application/mac
 
-      # - name: Upload windows to release
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ./application/windows/Portal Setup ${{ steps.extract_version.outputs.version }}.exe
-      #     asset_name: Portal-${{ steps.extract_version.outputs.version }}-windows.exe
-      #     asset_content_type: application/exe
+      - name: Upload windows to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./application/windows/Portal Setup ${{ steps.extract_version.outputs.version }}.exe
+          asset_name: Portal-${{ steps.extract_version.outputs.version }}-windows.exe
+          asset_content_type: application/exe
 
-      # - name: Upload linux to release
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ./application/linux/Portal-${{ steps.extract_version.outputs.version }}.AppImage
-      #     asset_name: Portal-${{ steps.extract_version.outputs.version }}-linux.AppImage
-      #     asset_content_type: application/AppImage
+      - name: Upload linux to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./application/linux/Portal-${{ steps.extract_version.outputs.version }}.AppImage
+          asset_name: Portal-${{ steps.extract_version.outputs.version }}-linux.AppImage
+          asset_content_type: application/AppImage
 
       - name: Upload mac to release
         uses: actions/upload-release-asset@v1
