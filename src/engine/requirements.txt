@@ -11,4 +11,5 @@ opencv-python==4.5.1.48
 Pillow==8.2.0
 scandir==1.10.0
 scantree==0.0.1
+Shapely==1.7.1
 tensorflow==2.3.0

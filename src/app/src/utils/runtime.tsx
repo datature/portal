@@ -32,7 +32,7 @@ export function RuntimeChecker(props: RunTimeProps): JSX.Element {
   let { isConnected } = props;
 
   const checkForHeartbeat = () => {
-    APIIsAlive()
+    APIIsAlive(isElectron())
       .then(result => {
         const askForCache = result.data.hasCache && !result.data.isCacheCalled;
         props.callbacks.HandleHasCache(askForCache);

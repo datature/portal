@@ -204,7 +204,13 @@ export default class HeaderNav extends React.Component {
             >
               <Button icon="cog" className={"bp3-button bp3-minimal"} />
             </Popover>
-            <Button icon="notifications" className={"bp3-button bp3-minimal"} />
+            <Button
+              icon="help"
+              className={"bp3-button bp3-minimal"}
+              onClick={() => {
+                window.open("https://docs.datature.io/portal");
+              }}
+            />
           </NavbarGroup>
         </Navbar>
         <RuntimeChecker

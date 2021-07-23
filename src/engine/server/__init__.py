@@ -1,11 +1,8 @@
 """Set up the Flask app and import the routes."""
 import os
-import atexit
 import threading
 import time
 
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.interval import IntervalTrigger
 from flask import Flask
 from flask_socketio import SocketIO
 
@@ -46,8 +43,7 @@ class ServerThread(threading.Thread):
 # pylint: disable=invalid-name
 app = Flask(__name__)
 server = ServerThread(app)
-global_store = GlobalStore(MODEL_LOAD_LIMIT, caching_system=CACHE_OPTION)
-scheduler = BackgroundScheduler(daemon=True)
+global_store = GlobalStore(MODEL_LOAD_LIMIT, IDLE_MINUTES,  caching_system=CACHE_OPTION)
 
 
 def wait_for_process() -> None:
@@ -55,31 +51,6 @@ def wait_for_process() -> None:
     while global_store.get_atomic():
         time.sleep(0.1)
 
-
-def shutdown_server() -> None:
-    """Shutdown the server."""
-    os._exit(0)  # pylint: disable=W0212
-
-
-def schedule_shutdown():
-    """Scheduler Job to check whether there's inactivity within the last 5 minutes
-
-    :return: void
-    """
-    if (
-        global_store.is_shutdown_server(IDLE_MINUTES)
-        or global_store.get_atomic()
-    ):
-        time.sleep(5)
-    else:
-        shutdown_server()
-
-
-scheduler.add_job(schedule_shutdown, IntervalTrigger(minutes=1))
-scheduler.start()
-# Shut down the scheduler when exiting the app
-# pylint: disable=unnecessary-lambda)
-atexit.register(lambda: scheduler.shutdown())
 
 # pylint: disable=wrong-import-position
 from .routes import routes

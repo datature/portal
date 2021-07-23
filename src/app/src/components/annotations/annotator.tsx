@@ -224,7 +224,7 @@ export default class Annotator extends Component<
       confidence: 0.5,
       annotationOptions: {
         isOutlined: true,
-        opacity: 0.3,
+        opacity: 0.45,
       },
       filterArr: [],
       showSelected: true,
@@ -620,11 +620,11 @@ export default class Annotator extends Component<
     }
 
     this.setState({
-      predictTotal: numberToBulkAnalysis,
-      predictDone: 0,
+      predictTotal: 100,
+      predictDone: 0.01,
       multiplier: 1,
+      uiState: "Predicting",
     });
-    this.setState({ uiState: "Predicting" });
 
     const key = this.toaster.show(this.renderProgress(0));
 
@@ -699,8 +699,12 @@ export default class Annotator extends Component<
       return;
     }
 
-    this.setState({ predictTotal: 100, predictDone: 0.01, multiplier: 1 });
-    this.setState({ uiState: "Predicting" });
+    this.setState({
+      predictTotal: 100,
+      predictDone: 0.01,
+      multiplier: 1,
+      uiState: "Predicting",
+    });
     if (reanalyse && this.currentAsset.type === "video")
       this.handleProgressToast(true);
     else if (reanalyse) this.handleProgressToast();
@@ -727,6 +731,8 @@ export default class Annotator extends Component<
     }
 
     const loadedModelHash = this.props.loadedModel.hash;
+    /* Hidden annotations reset every time this is initialized */
+    this.setState({ hiddenAnnotations: new Set<string>() });
 
     if (
       asset.type === "image" &&

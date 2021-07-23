@@ -2,7 +2,7 @@ export const PrimitiveShapeOptions = {
   bubblingMouseEvents: false,
   weight: 2,
   opacity: 1,
-  fillOpacity: 0.3,
+  fillOpacity: 0.45,
   fillColor: "#AA5050",
   color: "#AA5050",
   annotationID: "",
