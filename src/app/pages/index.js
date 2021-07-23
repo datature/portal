@@ -67,7 +67,8 @@ class Annotation extends React.Component {
       <>
         <Head>
           <title>Portal</title>
-          <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+          <link rel="icon" type="image/x-icon" href="./portal-ico-dark.png" media="(prefers-color-scheme:dark)" />
+          <link rel="icon" type="image/x-icon" href="./portal-ico-light.png" media="(prefers-color-scheme:light)" />
           <link
             rel="stylesheet"
             href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"

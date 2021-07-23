@@ -33,7 +33,8 @@ class Loading extends React.Component {
       <>
         <Head>
           <title>Loading</title>
-          <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+          <link rel="icon" type="image/x-icon" href="./portal-ico-dark.png" media="(prefers-color-scheme:dark)" />
+          <link rel="icon" type="image/x-icon" href="./portal-ico-light.png" media="(prefers-color-scheme:light)" />
           <link href="./static/style/annotation.css" rel="stylesheet" />
           <link
             href={
