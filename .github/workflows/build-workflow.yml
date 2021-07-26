@@ -5,7 +5,7 @@ name: Build Tests
 # events but only for the master branch
 on:
   pull_request:
-    branches: [release, staging, develop]
+    branches: [staging, develop]
     paths: "src/app/**"
 
 # Target Branch Job
@@ -28,6 +28,15 @@ jobs:
       - name: Installing
         working-directory: ./src/app
         run: npm install
+
+      - name: Remove existing out folder
+        shell: bash
+        run: |
+          if [ -d portal_build/out ]; then
+          echo "Directory exists"
+          rm -r portal_build/out/
+          fi
+          ls
 
       # Build NextJS Project
       - name: Building Nexus / NextJS
