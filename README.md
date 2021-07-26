@@ -64,28 +64,31 @@ If you have installed the packages in a virtual environment, you will need to ac
 On firing your Portal application or navigating to http://localhost:9449, you will be greeted with the following interface - The following steps details how you can load your YOLO or TensorFlow model on your image folders. To begin, let's assume we want to register a `tensorflow` model. Start by clicking on the `+` sign and adding the relevant paths
 
 <p align="center">
-  <img alt="Register Model" src="https://github.com/datature/portal/blob/virtuoso98-patch-readme/docs/images/register-model.png?raw=true" width="90%">
+  <img alt="Register Model" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-1.png?raw=true" width="90%">
 </p>
 
 Afterwards, load your model by clicking on the `Load Model..` button, highlighted in red then clicking on the corresponding model name. On the popover dialog bog, click on `I understand` to load your model: 
 
 <p align="center">
-  <img alt="Load Model" src="https://github.com/datature/portal/blob/virtuoso98-patch-readme/docs/images/load-model.png?raw=true" width="90%">
+  <img alt="Load Model" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-2.png?raw=true" width="90%">
 </p>
 
 It is time to load the necessary images to render your predictions. Click on the `Open Folders` button highlighted in pink (Or press `o` on your keyboard) and paste the folder path where your images are loaded. Once you are done, press the `enter` button. The images should appear in the region highlighted in white.
 
 <p align="center">
-  <img alt="Load Assets" src="https://github.com/datature/portal/blob/virtuoso98-patch-readme/docs/images/load-asset.png?raw=true" width="90%">
+  <img alt="Load Assets" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-3.png?raw=true" width="90%">
 </p>
 
-Lastly, load any of the images and click on the `Re-analyse` button highlighted in orange (Or press `r` on your keyboard) to render your predictions:
+Lastly, load any of the images and click on the `Re-analyse` button highlighted in orange (Or press `r` on your keyboard) to render your predictions. We support both Mask and Rectangular bounding box predictions:
 
 <p align="center">
-  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/virtuoso98-patch-readme/docs/images/render-prediction.png?raw=true" width="90%">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-4.png?raw=true" width="90%">
+</p>
+<p align="center">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-5.png?raw=true" width="90%">
 </p>
 
-More detailed documentation about advanced functions of Portal can be found in <a href="https://docs.datature.io/portal/documentation">docs.datature.io</a>
+More detailed documentation about advanced functions of Portal can be found in <a href="https://docs.datature.io/portal/documentation">docs.datature.io</a>.
 
 ## Sample Weights
 

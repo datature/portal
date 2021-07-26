@@ -128,6 +128,22 @@ def kill_video() -> Response:
     return Response(status=200)
 
 
+@app.route("/api/model/predict/status", methods=["GET"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def prediction_progress() -> Response:
+    """Get the current progress of the prediction.
+
+    Returns payload in the format
+    {
+        "status": "none" (for image/idle) | "video" (for video),
+        "progress": 1 (for image/idle) | <current_frame_count> (for video),
+        "total": 1 (for image/idle) | <total_frames_in_video> (for video),
+    }
+    """
+    return jsonify(global_store.get_prediction_progress())
+
+
 @app.route("/cache", methods=["POST"])
 @cross_origin()
 @portal_function_handler(clear_status=False)
