@@ -1,0 +1,48 @@
+## Continuous Integration Workflow
+name: Build Tests
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  pull_request:
+    branches: [release, staging, develop]
+    paths: "src/app/**"
+
+# Target Branch Job
+jobs:
+  Build-Export:
+    # Execute on Ubuntu-Latest Distro
+    runs-on: ubuntu-latest
+    steps:
+      # Check Out Repository
+      - uses: actions/checkout@v1
+
+      # Install Node.js
+      - uses: actions/setup-node@v1.4.4
+        with:
+          node-version: 14
+          registry-url: https://npm.pkg.github.com/
+          scope: "@datature"
+
+      # Install your dependencies
+      - name: Installing
+        working-directory: ./src/app
+        run: npm install
+
+      # Build NextJS Project
+      - name: Building Nexus / NextJS
+        working-directory: ./src/app
+        run: npm run build:static
+
+      - name: Pushing Static Files to Portal Build
+        shell: bash
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -f ./portal_build/out
+          git commit -m "Re-Exported Portal to Portal Build" -a
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.head_ref }}
