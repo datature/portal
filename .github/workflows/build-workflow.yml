@@ -5,7 +5,7 @@ name: Build Tests
 # events but only for the master branch
 on:
   pull_request:
-    branches: [staging, develop]
+    branches: [staging]
     paths: "src/app/**"
 
 # Target Branch Job
@@ -33,10 +33,9 @@ jobs:
         shell: bash
         run: |
           if [ -d portal_build/out ]; then
-          echo "Directory exists"
-          rm -r portal_build/out/
+          echo "Directory exists, removing it"
+          rm -r portal_build/out
           fi
-          ls
 
       # Build NextJS Project
       - name: Building Nexus / NextJS
