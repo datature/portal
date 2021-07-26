@@ -393,9 +393,9 @@ export default class AnnotationMenu extends Component {
                     !this.props.loadedModel ||
                     isEmpty(this.props.currentAsset)
                   }
-                  icon="redo"
-                  text="Re-Analyse"
-                  label={<KeyCombo combo="R" />}
+                  icon="ring"
+                  text="Analyze"
+                  label={<KeyCombo combo="A" />}
                   className={
                     this.props.userEditState === "Re-Analyse"
                       ? "bp3-active"

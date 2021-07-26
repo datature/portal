@@ -1428,8 +1428,8 @@ export default class Annotator extends Component<
         />
         <Hotkey
           global={true}
-          combo={"r"}
-          label={"Re-Analyse"}
+          combo={"A"}
+          label={"Analyze"}
           onKeyDown={() => this.singleAnalysis()}
         />
         <Hotkey
