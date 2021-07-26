@@ -73,12 +73,29 @@ export default class SettingsModal extends React.Component<SettingsModalProps> {
             </div>
             <div className={classes.Section}>
               <ControlGroup className={classes.SubTitle}>
-                <div>IoU</div>
+                <div>IoU Threshold</div>
                 <Tooltip
-                  content="Intersection Over Union index"
+                  content={
+                    <div>
+                      Intersection Over Union index, used to describe extent of
+                      overlap
+                      <br />
+                      between 2 boxes. A higher value means stricter threshold.
+                      <br />
+                      Click to learn more
+                    </div>
+                  }
                   position={Position.TOP}
                 >
-                  <Icon icon="help" className={classes.Icon} />
+                  <Icon
+                    icon="help"
+                    className={classes.Icon}
+                    onClick={() => {
+                      window.open(
+                        "https://docs.datature.io/portal/performing-predictions#intersection-over-union-iou-threshold"
+                      );
+                    }}
+                  />
                 </Tooltip>
               </ControlGroup>
 
@@ -104,10 +121,26 @@ export default class SettingsModal extends React.Component<SettingsModalProps> {
               <ControlGroup className={classes.SubTitle}>
                 <div>Frame Interval</div>
                 <Tooltip
-                  content="Predictions generated per frame"
+                  content={
+                    <div>
+                      Predictions generated per frame. The higher the number,{" "}
+                      <br />
+                      the higher the prediction speed and the lower the quality.
+                      <br />
+                      Click to learn more
+                    </div>
+                  }
                   position={Position.TOP}
                 >
-                  <Icon icon="help" className={classes.Icon} />
+                  <Icon
+                    icon="help"
+                    className={classes.Icon}
+                    onClick={() => {
+                      window.open(
+                        "https://docs.datature.io/portal/performing-predictions#frame-interval"
+                      );
+                    }}
+                  />
                 </Tooltip>
               </ControlGroup>
 
