@@ -608,22 +608,25 @@ export default class Annotator extends Component<
     }
 
     let numberToBulkAnalysis: number;
-
+    let bulkList: any[];
     switch (this.state.inferenceOptions.bulkAnalysisStatus) {
-      case "image":
-        numberToBulkAnalysis = this.state.assetList.filter(
-          asset => asset.type === "image"
-        ).length;
+      case "image": {
+        bulkList = this.state.assetList.filter(asset => asset.type === "image");
+        numberToBulkAnalysis = bulkList.length;
         break;
-      case "video":
-        numberToBulkAnalysis = this.state.assetList.filter(
-          asset => asset.type === "video"
-        ).length;
+      }
+      case "video": {
+        bulkList = this.state.assetList.filter(asset => asset.type === "video");
+        numberToBulkAnalysis = bulkList.length;
         break;
-      case "both":
+      }
+      case "both": {
+        bulkList = this.state.assetList;
         numberToBulkAnalysis = this.state.assetList.length;
         break;
+      }
       default:
+        bulkList = this.state.assetList;
         numberToBulkAnalysis = this.state.assetList.length;
         break;
     }
@@ -638,7 +641,7 @@ export default class Annotator extends Component<
     const key = this.toaster.show(this.renderProgress(0));
 
     // eslint-disable-next-line no-restricted-syntax
-    for (const asset of this.state.assetList) {
+    for (const asset of bulkList) {
       if (this.state.killVideoPrediction) {
         if (asset.type === "image")
           // eslint-disable-next-line no-await-in-loop
