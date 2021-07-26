@@ -18,6 +18,7 @@ import {
   LOADED_MODELS,
   CACHE_LIST,
   KILL_PREDICT_VIDEO,
+  GET_PREDICTION_STATUS,
 } from "@portal/constants/api";
 
 /* Annotation Type */
@@ -219,6 +220,10 @@ export function APIGetImageInference(
       ...(filter ? { filter } : {}),
     },
   });
+}
+
+export function APIGetPredictionProgress(): Promise<AxiosResponse<any>> {
+  return axios.get(SERVER_ADDRESS + GET_PREDICTION_STATUS);
 }
 
 export function APIGetCacheList(modelKey: string): Promise<AxiosResponse<any>> {

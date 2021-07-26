@@ -45,7 +45,13 @@ class GlobalStore:
         self._process_stop_ = False
         self._caught_response_ = {}
         self._model_load_limit_ = model_load_limit
+        self._prediction_progress_ = {
+            "status": "none",
+            "progress": 1,
+            "total": 1,
+        }
         self._idle_minutes_ = idle_minutes
+
 
         # Flag to enable or diable the caching system
         self.caching_system = caching_system
@@ -373,6 +379,22 @@ class GlobalStore:
             .get(key[1], {})
             .get(key[2], {})
         )
+
+    def get_prediction_progress(self) -> dict:
+        """Retrieve the _prediction_progress_ attribute."""
+        return self._prediction_progress_
+
+    def set_prediction_progress(self, status: str, progress: int, total: int):
+        """Update the _prediction_progress_ attribute.
+
+        See routes.py -> prediction_progress()
+        :param status: string of either "none" or "video".
+        :param progress: int of 1 or the current video frame.
+        :param total: int of 1 or the the total frames in the video.
+        """
+        self._prediction_progress_["status"] = status
+        self._prediction_progress_["progress"] = progress
+        self._prediction_progress_["total"] = total
 
     # IMAGE AND FOLDERS
     def add_targeted_folder(self, new_path):
