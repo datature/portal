@@ -576,7 +576,7 @@ export default class Annotator extends Component<
   }
 
   private async killVideoPrediction() {
-    this.setState({ killVideoPrediction: true });
+    this.setState({ killVideoPrediction: true, uiState: null });
     if (this.currentAsset.type === "video") {
       await APIKillVideoInference().catch(error => {
         let message = "Failed to kill video prediction.";
@@ -649,8 +649,9 @@ export default class Annotator extends Component<
       // eslint-disable-next-line no-await-in-loop
       await this.getInference(asset, true);
       if (
-        this.state.inferenceOptions.bulkAnalysisStatus === "both" ||
-        this.state.inferenceOptions.bulkAnalysisStatus === asset.type
+        (this.state.inferenceOptions.bulkAnalysisStatus === "both" ||
+          this.state.inferenceOptions.bulkAnalysisStatus === asset.type) &&
+        this.state.uiState === "Predicting"
       ) {
         this.setState(
           prevState => {
