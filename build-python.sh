@@ -24,8 +24,10 @@ pip install --upgrade pyinstaller
 echo "Creating flask executable..."
 if [[ "$OSTYPE" == "msys" ]]; then
 pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ./dist
+chmod u+x ./dist/run.exe
 else
 DYLD_LIBRARY_PATH=".venv/bin" pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ./dist
+chmod u+x ./dist/run
 if [ -f ./dist/run ]; then
 echo "Renaming file"
 mv ./dist/run ./dist/run.exe

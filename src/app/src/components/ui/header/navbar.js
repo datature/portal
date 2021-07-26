@@ -155,13 +155,7 @@ export default class HeaderNav extends React.Component {
         <Navbar>
           <NavbarGroup align={Alignment.LEFT}>
             <AnchorButton
-              icon={
-                this.props.GlobalSetting.useDarkTheme ? (
-                  <DarkLogo />
-                ) : (
-                  <LightLogo />
-                )
-              }
+              icon={<DarkLogo />}
               minimal={true}
               onClick={() => {
                 Router.push({ pathname: "/" });
@@ -268,9 +262,45 @@ export default class HeaderNav extends React.Component {
  */
 
 const DarkLogo = () => {
-  return <img src="./static/img/portal-icon-dm.png" alt="logo" height="24px" />;
-};
-
-const LightLogo = () => {
-  return <img src="./static/img/portal-icon-lm.png" alt="logo" height="24px" />;
+  return (
+    <svg width="30" height="30" viewBox="0 0 512 512" className={"NexusLogo"}>
+      <rect style={{ fill: "#fff" }} x="94" y="181" width="80" height="80" />
+      <rect
+        id="Rectangle_1_copy_3"
+        data-name="Rectangle 1 copy 3"
+        style={{ fill: "#fff" }}
+        x="94"
+        y="354"
+        width="80"
+        height="80"
+      />
+      <rect
+        id="Rectangle_1_copy"
+        data-name="Rectangle 1 copy"
+        style={{ fill: "#fff" }}
+        x="173"
+        y="100"
+        width="244"
+        height="80"
+      />
+      <rect
+        id="Rectangle_1_copy-2"
+        data-name="Rectangle 1 copy"
+        style={{ fill: "#fff" }}
+        x="94"
+        y="283"
+        width="252"
+        height="71"
+      />
+      <rect
+        id="Rectangle_1_copy-3"
+        data-name="Rectangle 1 copy"
+        style={{ fill: "#fff" }}
+        x="346"
+        y="100"
+        width="71"
+        height="183"
+      />
+    </svg>
+  );
 };

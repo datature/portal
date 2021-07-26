@@ -10,7 +10,7 @@ from flask_cors import cross_origin
 # pylint: disable=cyclic-import
 # pylint: disable=undefined-variable
 
-from server import app, global_store, server, wait_for_process
+from server import app, global_store, logger, server, wait_for_process
 from server.services import decode, encode
 
 from server.services.errors import Errors, PortalError
@@ -54,6 +54,8 @@ def portal_function_handler(clear_status: bool) -> callable:
                 response = fn_output
 
             except PortalError as e:
+                if logger is not None:
+                    logger.exception(e)
                 e.set_fail_location(
                     " - ".join([func.__module__, func.__name__])
                 )
@@ -61,7 +63,8 @@ def portal_function_handler(clear_status: bool) -> callable:
                     global_store.clear_status()
                 response = e.output()
             except Exception as e:  # pylint: disable=broad-except
-
+                if logger is not None:
+                    logger.exception(e)
                 if clear_status:
                     global_store.clear_status()
 
