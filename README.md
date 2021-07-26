@@ -54,7 +54,7 @@ If you'd like to use virtual environments for this project - you can use a helpf
 
 ### Running from Portal Executable
 
-Portal comes with an installable version that essentiall runs on `electron.js` - this helps to provide a desktop application feel and ease of access of setting up. To install, please download the latest Portal release from <a href="https://github.com/datature/portal/releases">Github Releases</a> and run the Portal installer.
+Portal comes with an installable version that essentially runs on `electron.js` - this helps to provide a desktop application feel and ease of access of setting up. To install, please download the latest Portal release from <a href="https://github.com/datature/portal/releases">Github Releases</a> and run the Portal installer.
 
 ### Activate the virtual environment
 
