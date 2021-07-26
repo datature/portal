@@ -31,7 +31,7 @@ Portal is built using `python 3.7`. Ensure that you have this version (and up) b
 ```.bash
 git clone https://github.com/datature/portal
 cd portal
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ./setup.sh
 ```
 
