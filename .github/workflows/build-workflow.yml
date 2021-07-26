@@ -29,7 +29,7 @@ jobs:
         working-directory: ./src/app
         run: npm install
 
-       name: Remove existing out folder
+      - name: Remove existing out folder
         shell: bash
         run: rm -r portal_build/out/
       
