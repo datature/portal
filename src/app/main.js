@@ -210,6 +210,13 @@ ipcMain.on("select-dirs", async event => {
   event.sender.send("select-dirs-reply", result.filePaths);
 });
 
+ipcMain.on("select-model", async event => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ["openDirectory"],
+  });
+  event.sender.send("select-model-reply", result.filePaths);
+});
+
 ipcMain.on("restart-server", async event => {
   await startBackend();
   event.sender.send("restart-server-reply");
