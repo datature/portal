@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { Classes } from "@blueprintjs/core";
 import { setConfiguration } from "react-grid-system";
 import HeaderNav from "@portal/components/ui/header/navbar";
+import { APIGetGPU } from "@portal/api/general";
 
 /* Global Setting / Styling */
 const THEME_LOCAL_STORAGE_KEY = "nexus-theme";
@@ -24,19 +25,29 @@ class Annotation extends React.Component {
 
     /* Global Setting / Styling State */
     this.state = {
-      useDarkTheme: false,
+      isGPU: false,
+      useDarkTheme: true,
       loadedModel: undefined,
+      isConnected: false,
     };
 
     /* Grid Layout Configuration */
     setConfiguration({ gutterWidth: 12 });
     this.setTheme = this.setTheme.bind(this);
+    this.setGPU = this.setGPU.bind(this);
   }
 
   componentDidMount() {
     const theme = localStorage.getItem(THEME_LOCAL_STORAGE_KEY);
     this.setState({
-      useDarkTheme: theme == null ? false : theme === "true",
+      useDarkTheme: theme == null ? true : theme === "true",
+    });
+
+    // Call for the gpu settings from the backend
+    APIGetGPU().then(res => {
+      if (res.data === 0) {
+        this.setState({ isGPU: true });
+      }
     });
   }
 
@@ -47,12 +58,27 @@ class Annotation extends React.Component {
     });
   }
 
+  async setGPU(flag) {
+    this.setState({ isGPU: flag });
+  }
+
   render() {
     return (
       <>
         <Head>
-          <title>Annotator</title>
-          <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+          <title>Portal</title>
+          <link
+            rel="icon"
+            type="image/x-icon"
+            href="./portal-ico-dark.png"
+            media="(prefers-color-scheme:dark)"
+          />
+          <link
+            rel="icon"
+            type="image/x-icon"
+            href="./portal-ico-light.png"
+            media="(prefers-color-scheme:light)"
+          />
           <link
             rel="stylesheet"
             href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
@@ -75,12 +101,16 @@ class Annotation extends React.Component {
         <div className={this.state.useDarkTheme ? Classes.DARK : ""}>
           <HeaderNav
             active={"Annotations"}
-            useDarkTheme={this.state.useDarkTheme}
             GlobalSetting={this.state}
-            GlobalSettingCallback={this.setTheme}
-            {...this.props}
-            handleModelChange={loadedModel => {
-              this.setState({ loadedModel });
+            GlobalSettingCallback={{
+              setTheme: this.setTheme,
+              setGPU: this.setGPU,
+              handleIsConnected: isConnected => {
+                this.setState({ isConnected });
+              },
+              handleModelChange: loadedModel => {
+                this.setState({ loadedModel });
+              },
             }}
           />
 

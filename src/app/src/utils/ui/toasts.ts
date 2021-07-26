@@ -10,7 +10,9 @@ import { Toaster, Position } from "@blueprintjs/core";
 export function CreateGenericToast(
   message: string,
   intent: string,
-  timeout: number
+  timeout: number,
+  icon?: any,
+  action?: any
 ) {
   (CreateGenericToast as any)._ToasterInstance =
     (CreateGenericToast as any)._ToasterInstance ||
@@ -20,9 +22,19 @@ export function CreateGenericToast(
     });
 
   /* Render Toast */
-  (CreateGenericToast as any)._ToasterInstance.show({
+  return (CreateGenericToast as any)._ToasterInstance.show({
     message,
     intent,
     timeout,
+    icon,
+    action,
   });
+}
+
+export function ClearAllGenericToast() {
+  (CreateGenericToast as any)._ToasterInstance.clear();
+}
+
+export function DissmissToast(key: string) {
+  (CreateGenericToast as any)._ToasterInstance.dismiss(key);
 }

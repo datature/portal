@@ -18,9 +18,15 @@ import {
   InputGroup,
   TagInput,
   Button,
+  Tooltip,
+  Position,
+  ControlGroup,
+  IconSize,
 } from "@blueprintjs/core";
 
 import { TagColours } from "@portal/constants/annotation";
+
+import { isEmpty } from "lodash";
 
 import classes from "./menu.module.css";
 
@@ -232,7 +238,7 @@ export default class AnnotationMenu extends Component {
      * List of tags to be displayed under Tags tab
      */
     const tagList = (
-      <div className={"tag-list"}>
+      <div className={["tag-list", classes.TagList].join(" ")}>
         {Object.entries(this.props.projectTags)
           .filter(
             ([tag, _]) =>
@@ -240,8 +246,8 @@ export default class AnnotationMenu extends Component {
               guard against some returning false on empty arrays */
               this.props.filterArr.length === 0 ||
               /* Check if tag is present in filter (CASE-INSENSITIVE) */
-              this.props.filterArr.some(filter =>
-                tag.toLowerCase().includes(filter.toLowerCase())
+              this.props.filterArr.some(
+                filter => tag.toLowerCase() === filter.toLowerCase()
               ) === this.props.showSelected
           )
           /* Update mapping */
@@ -275,7 +281,7 @@ export default class AnnotationMenu extends Component {
      * List of annotations to be displayed under Annotations tab
      */
     const annotationList = (
-      <div className={"tag-list"}>
+      <div className={["tag-list", classes.TagList].join(" ")}>
         {this.state.annotations
           .filter(
             ([annotation, _]) =>
@@ -349,40 +355,72 @@ export default class AnnotationMenu extends Component {
       <>
         <Menu className={"main-menu bp3-elevation-1"}>
           <MenuItem icon={"graph"} text="Annotator Controls" />
-          <MenuDivider title="Project Folder" />
-          <MenuItem
-            icon="folder-new"
-            text="Open Folder"
-            label={<KeyCombo combo="O" />}
-            className={
-              this.props.userEditState === "Open Folder" ? "bp3-active" : ""
-            }
-            onClick={this.props.callbacks.OpenFileManagement}
-          />
-          <MenuDivider title="Inference" />
-          {this.props.predictDone === 0 ? (
+          <MenuDivider title="Assets Folder" />
+          {this.props.isSyncing ? (
+            <Spinner size={30} className={classes.Spin} />
+          ) : (
             <>
               <MenuItem
-                icon="redo"
-                text="Re-Analyse"
-                label={<KeyCombo combo="R" />}
-                className={
-                  this.props.userEditState === "Re-Analyse" ? "bp3-active" : ""
-                }
-                onClick={this.props.callbacks.GetInference}
+                icon="folder-new"
+                text="Open Folder"
+                label={<KeyCombo combo="O" />}
+                onClick={this.props.callbacks.OpenFileManagement}
               />
               <MenuItem
-                icon="heat-grid"
-                text="Bulk Analysis"
-                label={<KeyCombo combo="B" />}
-                className={
-                  this.props.userEditState === "Bulk Analysis"
-                    ? "bp3-active"
-                    : ""
-                }
-                onClick={this.props.callbacks.GetInference}
+                icon="repeat"
+                text="Sync All Folders"
+                label={<KeyCombo combo="S" />}
+                onClick={this.props.callbacks.SyncAllFolders}
               />
             </>
+          )}
+          <MenuDivider title="Inference" />
+
+          {this.props.predictDone === 0 ? (
+            <Tooltip
+              content="Load Model and Image before analysing"
+              position={Position.TOP}
+              disabled={
+                this.props.isConnected &&
+                this.props.loadedModel &&
+                !isEmpty(this.props.assetList)
+              }
+            >
+              <div className={classes.InferenceMenuItem}>
+                <MenuItem
+                  disabled={
+                    !this.props.isConnected ||
+                    !this.props.loadedModel ||
+                    isEmpty(this.props.currentAsset)
+                  }
+                  icon="ring"
+                  text="Analyze"
+                  label={<KeyCombo combo="A" />}
+                  className={
+                    this.props.userEditState === "Re-Analyse"
+                      ? "bp3-active"
+                      : ""
+                  }
+                  onClick={() => this.props.callbacks.SingleAnalysis()}
+                />
+                <MenuItem
+                  disabled={
+                    !this.props.isConnected ||
+                    !this.props.loadedModel ||
+                    isEmpty(this.props.assetList)
+                  }
+                  icon="heat-grid"
+                  text="Bulk Analysis"
+                  label={<KeyCombo combo="B" />}
+                  className={
+                    this.props.userEditState === "Bulk Analysis"
+                      ? "bp3-active"
+                      : ""
+                  }
+                  onClick={this.props.callbacks.BulkAnalysis}
+                />
+              </div>
+            </Tooltip>
           ) : (
             <Spinner size={30} className={classes.Spin} />
           )}

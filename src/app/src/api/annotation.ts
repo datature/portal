@@ -16,6 +16,9 @@ import {
   MODEL_TAGS,
   PREDICT_VIDEO,
   LOADED_MODELS,
+  CACHE_LIST,
+  KILL_PREDICT_VIDEO,
+  GET_PREDICTION_STATUS,
 } from "@portal/constants/api";
 
 /* Annotation Type */
@@ -45,6 +48,7 @@ export interface AssetAPIObject {
   localPath: string;
   annotations: Array<AnnotationAPIObject>;
   type: string;
+  isCached: boolean;
   metadata: {
     height: number;
     width: number;
@@ -99,16 +103,24 @@ export function APIGetAssetsTree(): Promise<AxiosResponse<any>> {
   return axios.get(SERVER_ADDRESS + GET_PROJECT_ASSETS_TREE);
 }
 
-export function APIUpdateAsset(directory: string): Promise<AxiosResponse<any>> {
+export function APIUpdateAsset(
+  directory?: string
+): Promise<AxiosResponse<any>> {
   const config = {
-    directory,
+    ...(directory ? { directory } : {}),
   };
 
   return axios.post(SERVER_ADDRESS + UPDATE_PROJECT_ASSETS, config);
 }
 
-export function APIDeleteAsset(path: string): Promise<AxiosResponse<any>> {
-  return axios.delete(SERVER_ADDRESS + DELETE_PROJECT_ASSETS + path);
+export function APIDeleteAsset(
+  folderpath: string
+): Promise<AxiosResponse<any>> {
+  return axios.delete(SERVER_ADDRESS + DELETE_PROJECT_ASSETS, {
+    params: {
+      folderpath,
+    },
+  });
 }
 
 /* -------------- MODEL API -------------- */
@@ -119,6 +131,7 @@ export function APIGetRegisteredModels(): Promise<AxiosResponse<any>> {
 
 export function APIRegisterModel(
   type: string,
+  modelType: string,
   name: string,
   description: string,
   directory: string,
@@ -127,6 +140,7 @@ export function APIRegisterModel(
 ): Promise<AxiosResponse<any>> {
   const config = {
     type,
+    modelType,
     name,
     description,
     credentials: {
@@ -136,6 +150,10 @@ export function APIRegisterModel(
     directory,
   };
   return axios.post(SERVER_ADDRESS + REGISTER_MODEL, config);
+}
+
+export function APIKillVideoInference(): Promise<AxiosResponse<any>> {
+  return axios.post(SERVER_ADDRESS + KILL_PREDICT_VIDEO);
 }
 
 export function APIGetLoadedModel(): Promise<AxiosResponse<any>> {
@@ -160,9 +178,10 @@ export function APIGetModelTags(modelKey: string): Promise<AxiosResponse<any>> {
   return axios.get(SERVER_ADDRESS + MODEL_TAGS(modelKey));
 }
 
-export function APIGetVideoPrediction(
+export function APIGetVideoInference(
   modelKey: string,
   filepath: string,
+  reanalyse: boolean,
   frameInterval: number,
   iou?: number,
   confidence?: number,
@@ -173,6 +192,7 @@ export function APIGetVideoPrediction(
   return axios.get(route, {
     params: {
       filepath,
+      reanalyse,
       frameInterval,
       ...(iou ? { iou } : {}),
       ...(confidence ? { confidence } : {}),
@@ -181,9 +201,10 @@ export function APIGetVideoPrediction(
   });
 }
 
-export function APIGetInferenceFlask(
+export function APIGetImageInference(
   modelKey: string,
   filepath: string,
+  reanalyse: boolean,
   iou?: number,
   format?: string,
   filter?: string
@@ -193,9 +214,24 @@ export function APIGetInferenceFlask(
   return axios.get(route, {
     params: {
       filepath,
+      reanalyse,
       ...(iou ? { iou } : {}),
       ...(format ? { format } : {}),
       ...(filter ? { filter } : {}),
     },
   });
+}
+
+export function APIGetPredictionProgress(): Promise<AxiosResponse<any>> {
+  return axios.get(SERVER_ADDRESS + GET_PREDICTION_STATUS);
+}
+
+export function APIGetCacheList(modelKey: string): Promise<AxiosResponse<any>> {
+  return axios.get(SERVER_ADDRESS + CACHE_LIST(modelKey));
+}
+
+export function APIDeleteCacheList(
+  modelKey: string
+): Promise<AxiosResponse<any>> {
+  return axios.delete(SERVER_ADDRESS + CACHE_LIST(modelKey));
 }

@@ -20,7 +20,7 @@ class Errors(Enum):
 
     # MODEL ERRORS 2XXX
     UNINITIALIZED = 2000, 412
-    FAILEDTENSORFLOW = 2001, 500
+    FAILEDPREDICTION = 2001, 500
     INVALIDMODELKEY = 2002, 404
     OVERLOADED = 2003, 406
     HUBERROR = 2004, 400
@@ -37,13 +37,18 @@ class Errors(Enum):
     INVALIDTYPE = 4002, 406
     INVALIDQUERY = 4003, 406
 
+    # PREDICTION ERRORS 5XXX
+    STOPPEDPROCESS = 5000, 400
+
 
 # pylint: disable=too-few-public-methods
 class PortalError(Exception):
     """Error class to handle the errors and exceptions thrown."""
 
     # pylint: disable=super-init-not-called
-    def __init__(self, error: Errors, message: str, fail_location: str = None) -> None:
+    def __init__(
+        self, error: Errors, message: str, fail_location: str = None
+    ) -> None:
         """Initialize the PortalError class.
 
         :param error: An enum member of the Errors class.
