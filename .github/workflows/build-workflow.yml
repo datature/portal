@@ -29,6 +29,10 @@ jobs:
         working-directory: ./src/app
         run: npm install
 
+      - name: Remove existing out folder
+        shell: bash
+        run: rm -r portal_build/out/
+      
       # Build NextJS Project
       - name: Building Nexus / NextJS
         working-directory: ./src/app
