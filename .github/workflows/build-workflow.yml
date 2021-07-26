@@ -33,6 +33,7 @@ jobs:
         shell: bash
         run: |
           if [ -d portal_build/out ]; then
+          echo "Directory exists"
           rm -r portal_build/out/
           fi
           ls
