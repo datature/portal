@@ -1,10 +1,11 @@
 {
   "name": "portal",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "author": "Datature",
   "private": true,
   "main": "./src/app/main.js",
   "scripts": {
+    "portal_build": "cross-env NODE_ENV=portalbuild ROOT_DIR=./portal_build npx electron ./portal_build/main.js",
     "portal-dev": "cross-env NODE_ENV=development npx electron ./src/app",
     "portal-prod": "npx electron ./src/app",
     "build:dev": "chmod +x setup.sh && . ./setup.sh",
@@ -26,15 +27,15 @@
     },
     "extraResources": [
       {
-        "from": "./dist",
+        "from": "./portal_build/out",
+        "to": "./app/out"
+      },
+      {
+        "from": "./portal_build/dist",
         "to": "./dist"
       }
     ],
     "extraFiles": [
-      {
-        "from": "./server/cache",
-        "to": "./server/cache"
-      },
       "./build/icon.*"
     ],
     "mac": {
@@ -43,6 +44,9 @@
     "win": {
       "target": "nsis"
     },
+    "linux": {
+      "target": "AppImage"
+    },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
@@ -50,7 +54,11 @@
   },
   "dependencies": {
     "cross-env": "^7.0.3",
-    "electron-squirrel-startup": "^1.0.0"
+    "electron-log": "^4.3.5",
+    "electron-squirrel-startup": "^1.0.0",
+    "fs": "0.0.1-security",
+    "node-fetch": "^2.6.1",
+    "python-shell": "^1.0.8"
   },
   "devDependencies": {
     "electron": "^13.1.2",

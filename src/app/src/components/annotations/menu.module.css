@@ -23,3 +23,15 @@
 .Slider > bp3-slider-axis {
   display: none;
 }
+
+.Icon {
+  margin-top: 7px;
+}
+
+.InferenceMenuItem {
+  min-width: 170px;
+}
+
+.TagList {
+  max-height: calc(100vh - 580px);
+}

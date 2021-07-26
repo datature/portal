@@ -19,7 +19,6 @@ import {
   Tabs,
   Tab,
   TabId,
-  TextArea,
   Icon,
   IconName,
   Alert,
@@ -28,8 +27,8 @@ import {
   Navbar,
   NavbarGroup,
   IconSize,
-  ControlGroup,
   PopoverInteractionKind,
+  Tooltip,
 } from "@blueprintjs/core";
 import {
   APIGetRegisteredModels,
@@ -61,11 +60,13 @@ export type FormData = {
   directory: string;
   modelKey: string;
   projectSecret: string;
+  modelType: "tensorflow" | "darknet" | "";
 };
 
 interface ModelProps {
   project: string;
   useDarkTheme: boolean;
+  isConnected: boolean;
   callbacks: {
     HandleModelChange: (model: RegisteredModel | undefined) => void;
   };
@@ -75,6 +76,7 @@ interface ModelState {
   registeredModelList: { [key: string]: RegisteredModel } | any;
   currentModel: RegisteredModel | undefined;
   chosenModel: RegisteredModel | undefined;
+  waitForRuntime: boolean;
   isConfirmLoad: boolean;
   isUnloadModelAPI: boolean;
   isLoadModelAPI: boolean;
@@ -83,6 +85,7 @@ interface ModelState {
   isAPIcalled: boolean;
   isGetTagAPI: boolean;
   isOpenDrawer: boolean;
+  isOpenRegistraionForm: boolean;
   formData: FormData;
   drawerTabId: TabId;
   registrationTabId: TabId;
@@ -97,6 +100,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       registeredModelList: {},
       currentModel: undefined,
       chosenModel: undefined,
+      waitForRuntime: true,
       isConfirmLoad: false,
       isConfirmUnload: false,
       isConfirmDelete: false,
@@ -105,10 +109,12 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       isLoadModelAPI: false,
       isGetTagAPI: false,
       isOpenDrawer: false,
+      isOpenRegistraionForm: false,
       generalIcon: undefined,
       projectTags: {},
       formData: {
         type: "local",
+        modelType: "tensorflow",
         name: "",
         description: "",
         directory: "",
@@ -132,16 +138,17 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     if (
       this.state.formData.type === "hub" &&
       (this.state.formData.modelKey === "" ||
-        this.state.formData.projectSecret === "")
+        this.state.formData.projectSecret === "" ||
+        this.state.formData.name === "")
     ) {
       CreateGenericToast(
-        "Please fill in the model key and project secret of the model you want to load from hub.",
+        "Please fill in the name,  model key and project secret of the model you want to load from hub.",
         Intent.WARNING,
         3000
       );
     } else if (
-      this.state.formData.name === "" ||
-      this.state.formData.directory === ""
+      this.state.formData.type === "local" &&
+      (this.state.formData.name === "" || this.state.formData.directory === "")
     ) {
       CreateGenericToast(
         "Please fill in the name and path of the model.",
@@ -151,6 +158,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     } else {
       await APIRegisterModel(
         this.state.formData.type,
+        this.state.formData.modelType,
         this.state.formData.name,
         this.state.formData.description,
         this.state.formData.directory,
@@ -171,9 +179,16 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           this.setState({
             generalIcon: { name: "cross", intent: Intent.DANGER },
           });
-          let message = `Failed to register model. ${error}`;
+          let message = "Failed to register model.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            if (error.response.data.error_code === 3001) {
+              if (this.state.formData.modelType === "tensorflow")
+                message = "Are you sure this is a TensorFlow Model?";
+              else if (this.state.formData.modelType === "darknet")
+                message = "Are you sure this is a Darknet Model?";
+            } else {
+              message = `${error.response.data.message}`;
+            }
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
@@ -184,24 +199,15 @@ export default class Model extends React.Component<ModelProps, ModelState> {
 
   private handleGetLoadedModel = async () => {
     this.setState({ isLoadModelAPI: true });
-    await APIGetLoadedModel()
-      .then(result => {
-        if (result.status === 200) {
-          this.setState(prevState => {
-            const model = prevState.registeredModelList[result.data[0]];
-            this.props.callbacks.HandleModelChange(model);
-            return { currentModel: model };
-          });
-        }
-      })
-      .catch(error => {
-        let message = `Failed to get loaded model. ${error}`;
-        if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
-        }
-
-        CreateGenericToast(message, Intent.DANGER, 3000);
-      });
+    await APIGetLoadedModel().then(result => {
+      if (result.status === 200) {
+        this.setState(prevState => {
+          const model = prevState.registeredModelList[result.data[0]];
+          this.props.callbacks.HandleModelChange(model);
+          return { currentModel: model };
+        });
+      }
+    });
     this.setState({ isLoadModelAPI: false });
   };
 
@@ -216,9 +222,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         }
       })
       .catch(error => {
-        let message = `Failed to refresh model list. ${error}`;
+        let message = "Failed to refresh model list.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
 
         CreateGenericToast(message, Intent.DANGER, 3000);
@@ -239,15 +245,19 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           }
         })
         .catch(error => {
-          let message = `Failed to unload current model. ${error}`;
+          let message = "Failed to unload current model.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
     }
-    this.setState({ isUnloadModelAPI: false, isConfirmUnload: false });
+    this.setState({
+      isUnloadModelAPI: false,
+      isConfirmUnload: false,
+      isOpenDrawer: false,
+    });
   };
 
   private handleUnloadAndLoadModel = async () => {
@@ -283,9 +293,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         }
       })
       .catch(error => {
-        let message = `Cannot load model. ${error}`;
+        let message = "Cannot load model.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
 
         CreateGenericToast(message, Intent.DANGER, 3000);
@@ -306,16 +316,40 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           }
         })
         .catch(error => {
-          let message = `Failed to delete model. ${error}`;
+          let message = "Failed to delete model.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
         });
+
+      await APIGetRegisteredModels()
+        .then(async result => {
+          if (result.status === 200) {
+            this.setState({
+              registeredModelList: this.generateRegisteredModelList(
+                result.data
+              ),
+            });
+            if (this.state.registeredModelList !== {}) {
+              // eslint-disable-next-line no-await-in-loop
+              await this.handleGetLoadedModel();
+            }
+          }
+        })
+        .catch(() => {
+          /** Do Nothing */
+        });
     }
 
-    this.setState({ isAPIcalled: false, isConfirmDelete: false });
+    this.setState({
+      isOpenDrawer: false,
+      isAPIcalled: false,
+      isConfirmDelete: false,
+      currentModel: undefined,
+      chosenModel: undefined,
+    });
   };
 
   private handleGetModelTags = async () => {
@@ -328,9 +362,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           }
         })
         .catch(error => {
-          let message = `Failed to get model tags. ${error}`;
+          let message = "Failed to get model tags.";
           if (error.response) {
-            message = `${error.response.data.error}: ${error.response.data.message}`;
+            message = `${error.response.data.message}`;
           }
 
           CreateGenericToast(message, Intent.DANGER, 3000);
@@ -381,41 +415,45 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     const modelArr: string[] = Object.keys(this.state.registeredModelList);
     return modelArr.map(key => {
       const model = this.state.registeredModelList[key];
-      const rightBuuttons = (
-        <>
+      const icon = (
+        <span className={"bp3-menu-item-label"}>
+          <Icon
+            icon="dot"
+            intent={
+              model.hash === this.state.currentModel?.hash
+                ? Intent.SUCCESS
+                : Intent.DANGER
+            }
+          />
+        </span>
+      );
+      const rightButtons = (
+        <div>
           <Button
+            icon="cog"
+            intent={Intent.NONE}
             minimal
-            disabled={this.state.isAPIcalled}
-            onClick={() => {
-              this.setState({ chosenModel: model, isConfirmLoad: true });
-            }}
-          >
-            <Icon
-              icon="dot"
-              iconSize={14}
-              intent={
-                model.hash === this.state.currentModel?.hash
-                  ? Intent.SUCCESS
-                  : Intent.DANGER
-              }
-            />
-          </Button>
-          <Button
-            minimal
-            onClick={() => {
+            onClick={event => {
               this.handleOpenDrawer(model);
+              event.stopPropagation();
             }}
-          >
-            <Icon icon="cog" iconSize={14} intent={Intent.NONE} />
-          </Button>
-        </>
+          />
+        </div>
       );
       return (
         <MenuItem
+          shouldDismissPopover={false}
+          className={classes.MenuItems}
+          icon={icon}
           text={this.formatLongStringName(model.name, 35)}
           id={model.hash}
           key={model.hash}
-          labelElement={rightBuuttons}
+          labelElement={rightButtons}
+          disabled={this.state.isAPIcalled}
+          onClick={() => {
+            if (!this.state.isOpenDrawer)
+              this.setState({ chosenModel: model, isConfirmLoad: true });
+          }}
         />
       );
     });
@@ -438,6 +476,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     this.setState({
       formData: {
         type: tabId.toString(),
+        modelType: "tensorflow",
         name: "",
         description: "",
         directory: "",
@@ -471,13 +510,33 @@ export default class Model extends React.Component<ModelProps, ModelState> {
   };
 
   async componentDidMount(): Promise<void> {
-    await this.handleRefreshModelList();
-    if (this.state.registeredModelList !== {}) {
-      this.handleGetLoadedModel();
-    }
     if (isElectron()) {
       const { ipcRenderer } = window.require("electron");
       ipcRenderer.on("select-dirs-reply", this.handleElectronChangeDirListener);
+    }
+    while (this.state.waitForRuntime) {
+      // eslint-disable-next-line no-await-in-loop
+      await APIGetRegisteredModels()
+        .then(async result => {
+          if (result.status === 200) {
+            this.setState({
+              registeredModelList: this.generateRegisteredModelList(
+                result.data
+              ),
+            });
+            if (this.state.registeredModelList !== {}) {
+              // eslint-disable-next-line no-await-in-loop
+              await this.handleGetLoadedModel();
+            }
+            this.setState({ waitForRuntime: false });
+          }
+        })
+        .catch(() => {
+          /** Do Nothing */
+        });
+
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(res => setTimeout(res, 25000));
     }
   }
 
@@ -492,7 +551,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
   }
 
   public render(): JSX.Element {
-    const addButton = (
+    const browseButton = (
       <Button
         text="Browse"
         icon="folder-new"
@@ -504,11 +563,30 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       />
     );
 
+    const browseHint = (
+      <Tooltip
+        content={
+          // eslint-disable-next-line react/jsx-wrap-multilines
+          <>
+            <p>
+              Type the path of the folder that contains the model and
+              label_map.pbtxt
+            </p>
+            <b>Example</b>
+            <p>
+              <pre>/user/example/folder</pre>
+            </p>
+          </>
+        }
+        position={Position.TOP}
+      >
+        <Icon icon="help" className={classes.HintIcon} />
+      </Tooltip>
+    );
+
     const menuOfModels = (
       <Menu className={classes.PopOverMenu}>
-        {Object.keys(this.state.registeredModelList).length > 0 ? (
-          this.createMenuItems()
-        ) : (
+        {Object.keys(this.state.registeredModelList).length === 0 ? (
           <div className={classes.NonIdealPopOver}>
             <div className="bp3-non-ideal-state">
               <div className="bp3-non-ideal-state-visual">
@@ -519,13 +597,83 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               </h5>
             </div>
           </div>
+        ) : (
+          this.createMenuItems()
         )}
       </Menu>
     );
 
+    const modelTypes = {
+      tensorflow: "TensorFlow 2.0",
+      darknet: "DarkNet (YOLO v3, YOLO v4)",
+    };
     const registerModelForm = (
       <div className={classes.RegistrationForm}>
-        {this.state.registrationTabId === "hub" ? (
+        {this.state.registrationTabId === "local" ? (
+          <>
+            <FormGroup label="Model Type" labelFor="label-input">
+              <Popover
+                minimal
+                content={
+                  // eslint-disable-next-line react/jsx-wrap-multilines
+                  <Menu>
+                    <Menu.Item
+                      shouldDismissPopover={false}
+                      text={modelTypes.tensorflow}
+                      onClick={() => {
+                        const event = {
+                          target: { name: "modelType", value: "tensorflow" },
+                        };
+                        this.handleChangeForm(event);
+                      }}
+                    />
+                    <Menu.Item
+                      shouldDismissPopover={false}
+                      text={modelTypes.darknet}
+                      onClick={() => {
+                        const event = {
+                          target: { name: "modelType", value: "darknet" },
+                        };
+                        this.handleChangeForm(event);
+                      }}
+                    />
+                  </Menu>
+                }
+                placement="bottom-start"
+              >
+                <Button
+                  text={
+                    this.state.formData.modelType !== ""
+                      ? modelTypes[this.state.formData.modelType]
+                      : "None selected"
+                  }
+                  rightIcon="double-caret-vertical"
+                />
+              </Popover>
+            </FormGroup>
+          </>
+        ) : null}
+        <FormGroup label="Name" labelFor="label-input">
+          <InputGroup
+            id="name"
+            name="name"
+            value={this.state.formData.name}
+            placeholder="Enter name of the model..."
+            onChange={this.handleChangeForm}
+          />
+        </FormGroup>
+        {this.state.registrationTabId === "local" ? (
+          <FormGroup label="Folder Path" labelFor="label-input">
+            <InputGroup
+              id="directory"
+              name="directory"
+              value={this.state.formData.directory}
+              placeholder={"Enter model folder path..."}
+              onChange={this.handleChangeForm}
+              rightElement={isElectron() ? browseButton : browseHint}
+            />
+          </FormGroup>
+        ) : (
           <>
             <FormGroup label="Model Key" labelFor="label-input">
               <InputGroup
@@ -546,42 +694,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               />{" "}
             </FormGroup>
           </>
-        ) : null}
-        <FormGroup label="Name" labelFor="label-input">
-          <InputGroup
-            id="name"
-            name="name"
-            value={this.state.formData.name}
-            placeholder="Enter name of the model..."
-            onChange={this.handleChangeForm}
-          />
-        </FormGroup>
-        <FormGroup label="Folder Path" labelFor="label-input">
-          <InputGroup
-            id="directory"
-            name="directory"
-            value={this.state.formData.directory}
-            placeholder={
-              this.state.registrationTabId === "hub"
-                ? "Enter the folder path to save the model..."
-                : "Enter model folder path..."
-            }
-            onChange={this.handleChangeForm}
-            rightElement={addButton}
-          />
-        </FormGroup>
-        <FormGroup label="Description" labelFor="label-input">
-          <TextArea
-            placeholder="Optional"
-            className="bp3-fill"
-            growVertically={false}
-            small
-            intent={Intent.PRIMARY}
-            name="description"
-            value={this.state.formData.description}
-            onChange={this.handleChangeForm}
-          />
-        </FormGroup>
+        )}
         <Button
           type="submit"
           text="Register"
@@ -605,14 +718,6 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     const detailsPanel = (
       <div className={classes.Panel}>
         <div className={["bp3-elevation-2", classes.Section].join(" ")}>
-          <h6 className="bp3-heading">
-            {/* <Icon icon="draw" /> */}
-            About Model
-          </h6>
-          <p className="bp3-running-text">
-            {this.state.chosenModel?.description}
-          </p>
-
           <h6 className="bp3-heading">
             {/* <Icon icon="folder-open" /> */}
             Directory
@@ -704,35 +809,37 @@ export default class Model extends React.Component<ModelProps, ModelState> {
             {this.state.drawerTabId === "details" ? detailsPanel : null}
           </div>
         </div>
-        <div>
-          <ControlGroup className={classes.Right}>
+        <div
+          className={[
+            Classes.DIALOG_FOOTER_ACTIONS,
+            Classes.DRAWER_FOOTER,
+          ].join(" ")}
+        >
+          <Button
+            type="button"
+            text="Unload"
+            disabled={
+              this.state.chosenModel?.hash !== this.state.currentModel?.hash ||
+              this.state.isUnloadModelAPI
+            }
+            onClick={() => {
+              this.setState({ isConfirmUnload: true });
+            }}
+          />
+          <Popover
+            interactionKind={PopoverInteractionKind.HOVER}
+            content={<div className={classes.Section}>Delete</div>}
+          >
             <Button
-              minimal
               type="button"
-              text="Unload"
-              disabled={
-                this.state.chosenModel?.hash !==
-                  this.state.currentModel?.hash || this.state.isUnloadModelAPI
-              }
+              intent={Intent.DANGER}
+              disabled={this.state.isAPIcalled}
+              icon="trash"
               onClick={() => {
-                this.setState({ isConfirmUnload: true });
+                this.setState({ isConfirmDelete: true });
               }}
             />
-            <Popover
-              interactionKind={PopoverInteractionKind.HOVER}
-              content={<div className={classes.Section}>Delete</div>}
-            >
-              <Button
-                minimal
-                type="button"
-                disabled={this.state.isAPIcalled}
-                icon="trash"
-                onClick={() => {
-                  this.setState({ isConfirmDelete: true });
-                }}
-              />
-            </Popover>
-          </ControlGroup>
+          </Popover>
         </div>
       </Drawer>
     );
@@ -747,21 +854,47 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               className={classes.PopOver}
               content={menuOfModels}
               placement="bottom"
+              isOpen={this.state.isOpenDrawer ? false : undefined}
+              disabled={this.state.waitForRuntime && !this.props.isConnected}
             >
-              <Button
-                style={{ minWidth: "140px", alignContent: "left" }}
-                alignText={Alignment.LEFT}
-                minimal
-                rightIcon="caret-down"
-                text={
-                  this.state.currentModel !== undefined
-                    ? this.formatLongStringName(
-                        this.state.currentModel.name,
-                        15
-                      )
-                    : "Choose Model.."
+              <Tooltip
+                content="Select a Model to Load"
+                disabled={
+                  Object.keys(this.state.registeredModelList).length === 0 ||
+                  !!this.state.currentModel
                 }
-              />
+                isOpen={
+                  !this.state.isOpenRegistraionForm &&
+                  !this.state.isOpenDrawer &&
+                  !this.state.currentModel &&
+                  Object.keys(this.state.registeredModelList).length > 0
+                    ? true
+                    : undefined
+                }
+              >
+                <Button
+                  disabled={
+                    this.state.waitForRuntime && !this.props.isConnected
+                  }
+                  className={
+                    this.state.waitForRuntime && !this.props.isConnected
+                      ? "bp3-skeleton"
+                      : ""
+                  }
+                  style={{ minWidth: "140px", alignContent: "left" }}
+                  alignText={Alignment.LEFT}
+                  minimal
+                  rightIcon="caret-down"
+                  text={
+                    this.state.currentModel !== undefined
+                      ? this.formatLongStringName(
+                          this.state.currentModel.name,
+                          15
+                        )
+                      : "Load Model.."
+                  }
+                />
+              </Tooltip>
             </Popover>
           )}
         </div>
@@ -782,7 +915,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                     renderActiveTabPanelOnly={true}
                   >
                     <Tab id="local" title="Local" />
-                    <Tab id="hub" title="Hub" />
+                    <Tab id="hub" title="Datature Hub" />
                     <Tabs.Expander />
                   </Tabs>
                 </NavbarGroup>{" "}
@@ -791,12 +924,14 @@ export default class Model extends React.Component<ModelProps, ModelState> {
             </>
           }
           placement="left-end"
+          onOpening={() => this.setState({ isOpenRegistraionForm: true })}
           onClosed={() => {
             this.setState({
               generalIcon: undefined,
 
               formData: {
                 type: "local",
+                modelType: "tensorflow",
                 name: "",
                 description: "",
                 directory: "",
@@ -804,10 +939,17 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 projectSecret: "",
               },
               registrationTabId: "local",
+              isOpenRegistraionForm: false,
             });
           }}
         >
-          <Button minimal icon="plus" />
+          <Tooltip
+            disabled={Object.keys(this.state.registeredModelList).length > 0}
+            content="Add a Model Here"
+            isOpen={Object.keys(this.state.registeredModelList).length === 0}
+          >
+            <Button minimal icon="plus" />
+          </Tooltip>
         </Popover>
 
         {drawer}

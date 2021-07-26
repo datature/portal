@@ -1,7 +1,6 @@
 """Module containing the prediction function"""
 import os
 import cv2
-import tensorflow as tf
 
 # pylint: disable=E0401, E0611
 from server.utilities.prediction_utilities import (
@@ -11,14 +10,14 @@ from server.utilities.prediction_utilities import (
     visualize,
     save_to_bytes,
 )
+from server.models.abstract.BaseModel import BaseModel
+
 from server.services.errors import PortalError, Errors
+from server import global_store
 
 # pylint: disable=R0913
 def _predict_single_image(
-    model,
-    model_height,
-    model_width,
-    label_map,
+    model_dict,
     format_arg,
     iou,
     image_array,
@@ -26,27 +25,21 @@ def _predict_single_image(
 ):
     """Make predictions on a single image.
 
-    :param model: The loaded model.
-    :param model_height: The height of the images that the model accepts.
-    :param model_width: The width of the images that the model accepts.
-    :param label_map: The label maps showing the labels accepted by the model.
+    :param model_dict: A dictionary of the loaded model and its model class.
     :param format_arg: The output format.
     :param iou: The intersection of union threshold.
     :param image_array: The single image as an array.
     :param confidence: The confidence threshold.
     :return: The predictions in the format requested by format_arg.
     """
+    model = model_dict["model"]
+    model_class: BaseModel = model_dict["model_class"]
+    label_map = model_class.get_label_map()
     image_array = cv2.cvtColor(image_array, cv2.COLOR_BGRA2RGB)
-    image_tensor = tf.convert_to_tensor(
-        cv2.resize(
-            image_array,
-            (model_height, model_width),
-        )
-    )[tf.newaxis, ...]
-    try:
-        detections = model(image_tensor)
-    except Exception as e:  # pylint: disable=broad-except
-        raise PortalError(Errors.FAILEDTENSORFLOW, str(e)) from e
+    detections = model_class.predict(
+        model=model,
+        image_array=image_array,
+    )
     suppressed_output = get_suppressed_output(
         detections=detections,
         image_array=image_array,
@@ -55,7 +48,7 @@ def _predict_single_image(
         confidence=confidence,
     )
     if format_arg == "json":
-        output = output = get_detection_json(
+        output = get_detection_json(
             back_to_tensor(suppressed_output),
             label_map,
         )
@@ -70,32 +63,22 @@ def _predict_single_image(
 
 
 def predict_image(
-    model,
-    model_height,
-    model_width,
-    label_map,
+    model_dict,
     format_arg,
     iou,
     image_directory,
 ):
     """Make predictions on a single image.
 
-    :param model: The loaded model.
-    :param model_height: The height of the images that the model accepts.
-    :param model_width: The width of the images that the model accepts.
-    :param label_map: The label maps showing the labels accepted by the model.
+    :param model_dict: A dictionary of the loaded model and its model class.
     :param format_arg: The output format.
     :param iou: The intersection of union threshold.
     :param image_directory: The directory of the single image.
     :return: The predictions in the format requested by format_arg.
     """
     image_arr = cv2.imread(image_directory)
-
     return _predict_single_image(
-        model=model,
-        model_height=model_height,
-        model_width=model_width,
-        label_map=label_map,
+        model_dict=model_dict,
         format_arg=format_arg,
         iou=iou,
         image_array=image_arr,
@@ -104,10 +87,7 @@ def predict_image(
 
 # pylint: disable=R0913
 def predict_video(
-    model,
-    model_height,
-    model_width,
-    label_map,
+    model_dict,
     iou,
     video_directory,
     frame_interval,
@@ -115,10 +95,7 @@ def predict_video(
 ):
     """Make predictions on a multiple images within the video.
 
-    :param model: The loaded model.
-    :param model_height: The height of the images that the model accepts.
-    :param model_width: The width of the images that the model accepts.
-    :param label_map: The label maps showing the labels accepted by the model.
+    :param model_dict: A dictionary of the loaded model and its model class.
     :param iou: The intersection of union threshold.
     :param video_directory: The directory of the video.
     :param frame_interval: The sampling interval of the video.
@@ -126,36 +103,41 @@ def predict_video(
     :return: The predictions in the format requested by format_arg.
     """
     cap = cv2.VideoCapture(os.path.join(video_directory))
-    fps = cap.get(cv2.cv2.CAP_PROP_FPS)
-    image_list = []
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    global_store.set_prediction_progress("video", 0, total_frames)
+    output_dict = {"fps": fps, "frames": {}}
     count = 0
     while cap.isOpened():
+        # check between each iteration if the process-stop flag is set.
+        # kills the video prediction if it has been set.
+        if global_store.get_stop():
+            cap.release()
+            cv2.destroyAllWindows()
+            global_store.clear_stop()
+            raise PortalError(
+                Errors.STOPPEDPROCESS, "video prediction killed."
+            )
         # Capture frame-by-frame
         ret, frame = cap.read()
         if ret:
             cap.set(1, count)
-            # Saves image of the current frame into jpg file
-            image_list.append(frame)
+            # make inference the frame
+            single_output = _predict_single_image(
+                model_dict=model_dict,
+                format_arg="json",
+                iou=iou,
+                image_array=frame,
+                confidence=confidence,
+            )
+            # add the inferences into the dictionary
+            output_dict["frames"][int(count / fps * 1000)] = single_output
+            # move on to the next frame
             count += frame_interval
-
+            global_store.set_prediction_progress("video", count, total_frames)
         else:
             cap.release()
             break
+    global_store.set_prediction_progress("none", 1, 1)
     cv2.destroyAllWindows()
-    output_dict = {"fps": fps, "frames": {}}
-    for index, image in enumerate(image_list):
-        single_output = _predict_single_image(
-            model=model,
-            model_height=model_height,
-            model_width=model_width,
-            label_map=label_map,
-            format_arg="json",
-            iou=iou,
-            image_array=image,
-            confidence=confidence,
-        )
-        output_dict["frames"][
-            int((index * frame_interval) / fps * 1000)
-        ] = single_output
-
     return output_dict

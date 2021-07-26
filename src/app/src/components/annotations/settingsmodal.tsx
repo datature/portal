@@ -9,6 +9,8 @@ import {
   Slider,
   Position,
   ControlGroup,
+  RadioGroup,
+  Radio,
 } from "@blueprintjs/core";
 import classes from "./settingsmodal.module.css";
 
@@ -43,6 +45,32 @@ export default class SettingsModal extends React.Component<SettingsModalProps> {
         <div className={classes.Dialog}>
           <div className={Classes.DIALOG_BODY}>
             <div>General</div>
+            <div className={classes.Section}>
+              <ControlGroup className={classes.SubTitle}>
+                <div>Bulk Analysis</div>
+                <Tooltip
+                  content="Types of files to analyse in bulk"
+                  position={Position.TOP}
+                >
+                  <Icon icon="help" className={classes.Icon} />
+                </Tooltip>
+              </ControlGroup>
+              <RadioGroup
+                inline={true}
+                name="bulkAnalysisStatus"
+                onChange={event => {
+                  this.props.callbacks.HandleChangeInSettings(
+                    event.currentTarget.value,
+                    "bulkAnalysisStatus"
+                  );
+                }}
+                selectedValue={this.props.inferenceOptions.bulkAnalysisStatus}
+              >
+                <Radio label="Image Only" value="image" />
+                <Radio label="Video Only" value="video" />
+                <Radio label="Image and Video" value="both" />
+              </RadioGroup>
+            </div>
             <div className={classes.Section}>
               <ControlGroup className={classes.SubTitle}>
                 <div>IoU</div>

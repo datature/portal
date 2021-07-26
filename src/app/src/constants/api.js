@@ -1,6 +1,7 @@
 // Base Server URL
-export const SERVER_ADDRESS = "http://localhost:5000";
+export const SERVER_ADDRESS = "http://localhost:9449";
 export const IS_ALIVE = `/heartbeat`;
+export const SHUTDOWN = `/shutdown`;
 export const CACHE = `/cache`;
 
 // Assets/folders routes
@@ -9,12 +10,14 @@ export const GET_PROJECT_ASSETS = `/api/project/assets`;
 export const GET_PROJECT_ASSETS_TREE = `/api/project/assets/tree`;
 export const GET_PROJECT_IMAGE_DATA = `/api/project/assets/image`;
 export const UPDATE_PROJECT_ASSETS = `/api/project/sync`;
-export const DELETE_PROJECT_ASSETS = `/api/project/`;
+export const DELETE_PROJECT_ASSETS = `/api/project`;
 
 // Model Routes
 export const MODEL = `/api/model`;
 export const REGISTER_MODEL = `/api/model/register`;
 export const LOADED_MODELS = `/api/model/loadedList`;
+export const KILL_PREDICT_VIDEO = `/api/model/predict/video/kill`;
+export const GET_PREDICTION_STATUS = `/api/model/predict/status`;
 export const LOAD_MODEL = modelKey => {
   return `/api/model/${modelKey}/load`;
 };
@@ -33,3 +36,11 @@ export const PREDICT_VIDEO = modelKey => {
 export const GET_INFERENCE_FLASK = modelKey => {
   return `/api/model/${modelKey}/predict`;
 };
+export const CACHE_LIST = modelKey => {
+  return `/api/model/${modelKey}/cachelist`;
+};
+
+// GPU Routes
+export const CLEAR_GPU = `/clear_gpu`;
+export const SET_GPU = `/set_gpu`;
+export const GET_GPU = `/get_gpu`;

@@ -17,6 +17,7 @@ import {
   ControlGroup,
   Icon,
   Intent,
+  Position,
 } from "@blueprintjs/core";
 import {
   APIGetAssetsTree,
@@ -80,9 +81,9 @@ export default class FileModal extends React.Component<
         }
       })
       .catch(error => {
-        let message = `Failed to obtain current folders. ${error}`;
+        let message = "Failed to obtain current folders.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
 
         CreateGenericToast(message, Intent.DANGER, 3000);
@@ -96,14 +97,13 @@ export default class FileModal extends React.Component<
       .then(result => {
         if (result.status === 200) {
           this.refreshTree();
-          console.log("Successfully registered");
           this.props.callbacks.UpdateImage();
         }
       })
       .catch(error => {
-        let message = `Failed to register folder. ${error}`;
+        let message = "Failed to register folder.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
         CreateGenericToast(message, Intent.DANGER, 3000);
       });
@@ -153,6 +153,7 @@ export default class FileModal extends React.Component<
   };
 
   private handleUpdateFolder = async (path: string) => {
+    this.setState({ isAPICalled: true });
     await APIUpdateAsset(path)
       .then(result => {
         if (result.status === 200) {
@@ -172,17 +173,20 @@ export default class FileModal extends React.Component<
         if (index < 0) {
           this.setState(prevState => {
             const arr = prevState.notFoundFolder;
-            console.log(arr);
             arr.push(path);
             return { notFoundFolder: arr };
           });
         }
 
-        let message = `Failed to update folder. ${error}`;
+        let message = "Failed to update folder.";
+        let intent: Intent = Intent.DANGER;
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          if (error.response.data.error_code === 3002) {
+            intent = Intent.PRIMARY;
+          }
+          message = `${error.response.data.message}`;
         }
-        CreateGenericToast(message, Intent.DANGER, 3000);
+        CreateGenericToast(message, intent, 3000);
       });
     this.refreshTree();
     this.setState({ isAPICalled: false });
@@ -197,9 +201,9 @@ export default class FileModal extends React.Component<
         this.props.callbacks.UpdateImage();
       })
       .catch(error => {
-        let message = `Failed to delete folder. ${error}`;
+        let message = "Failed to delete folder.";
         if (error.response) {
-          message = `${error.response.data.error}: ${error.response.data.message}`;
+          message = `${error.response.data.message}`;
         }
         CreateGenericToast(message, Intent.DANGER, 3000);
       });
@@ -338,7 +342,7 @@ export default class FileModal extends React.Component<
   };
 
   public render(): JSX.Element {
-    const addButton = (
+    const browseButton = (
       <Button
         text="Browse"
         icon="folder-new"
@@ -348,6 +352,23 @@ export default class FileModal extends React.Component<
           this.handleElectronFileDialog();
         }}
       />
+    );
+    const browseHint = (
+      <Tooltip
+        content={
+          // eslint-disable-next-line react/jsx-wrap-multilines
+          <>
+            <p>Type the path of the folder and press Enter</p>
+            <b>Example</b>
+            <p>
+              <pre>/user/example/folder</pre>
+            </p>
+          </>
+        }
+        position={Position.TOP}
+      >
+        <Icon icon="help" className={classes.HintIcon} />
+      </Tooltip>
     );
     return (
       <>
@@ -366,8 +387,8 @@ export default class FileModal extends React.Component<
             <FormGroup label="Add new folder" labelFor="label-input">
               <InputGroup
                 id="label-input"
-                placeholder="Enter file path..."
-                rightElement={addButton}
+                placeholder="Enter folder path..."
+                rightElement={isElectron() ? browseButton : browseHint}
                 onKeyDown={this.handleKeyDown}
                 value={this.state.text}
                 onChange={event => {

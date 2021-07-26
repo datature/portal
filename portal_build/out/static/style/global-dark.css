@@ -1,0 +1,27 @@
+body {
+  min-width: 600px;
+  overflow: hidden;
+  background-color: #394b59;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+}
+
+.profile-badge {
+  -webkit-background-size: 32px 32px;
+  background-size: 32px 32px;
+  border: 0;
+  -webkit-border-radius: 50%;
+  border-radius: 50%;
+  display: block;
+  margin-top: 3px;
+  position: relative;
+  height: 24px;
+  width: 24px;
+  z-index: 0;
+  cursor: pointer;
+}
+
+:focus:not(button, input) {
+  outline: none !important;
+}
