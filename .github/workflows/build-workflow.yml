@@ -5,7 +5,7 @@ name: Build Tests
 # events but only for the master branch
 on:
   pull_request:
-    branches: [release, staging]
+    branches: [release, staging, develop]
     paths: "src/app/**"
 
 # Target Branch Job
