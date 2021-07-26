@@ -96,10 +96,10 @@ We have provided sample weights for you to test portal:
 
 | Dataset                          | Description                                                    |     Download Link      |
 | -------------------------------- | -------------------------------------------------------------- | :--------------------: |
-| Yolo-v3                          | DarkNet model obtained from [pjreddie/darknet][darknet]        |      [Yolo][yolo]      |
-| SSD MobileNet V2 FPNLite 640x640 | Tensorflow model obtained from [tensorflow/models][tensorflow] | [MobileNet][mobilenet] |
+| YOLO-v3                          | DarkNet Model based off [pjreddie/darknet][darknet]        |      [YOLOv3][yolo]      |
+| SSD MobileNet V2 FPNLite 640x640 | Tensorflow Model from [tensorflow/models][tensorflow] | [MobileNet][mobilenet] |
 
 [darknet]: https://github.com/pjreddie/darknet
 [tensorflow]: https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2_detection_zoo.md
-[yolo]: https://github.com/datature/portal/releases/download/release-0.4.0/yolo.zip
-[mobilenet]: https://github.com/datature/portal/releases/download/release-0.4.0/mobilenet.zip
+[yolo]: https://drive.google.com/file/d/12gtZdta0LhPn48s4LHqFKFahqcgAML9-/view?usp=sharing
+[mobilenet]: http://download.tensorflow.org/models/object_detection/tf2/20200711/ssd_mobilenet_v2_fpnlite_640x640_coco17_tpu-8.tar.gz
