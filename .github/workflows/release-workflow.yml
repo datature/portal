@@ -84,6 +84,7 @@ jobs:
 
       - name: Package Application with pyinstaller
         working-directory: ./src/engine
+        shell: bash
         run: |
           pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ../../portal_build/dist
           if [ -f ../../portal_build/dist/run ]; then
