@@ -1055,12 +1055,10 @@ export default class Annotator extends Component<
             eta.start();
             /* Default value of API call - when no video prediction */
           } else if (progress === 1 && total === 1) {
-            this.toaster.show(
-              this.renderProgress((progress * 100) / total),
-              key
-            );
+            this.toaster.show(this.renderProgress(100), key);
             window.clearInterval(this.progressToastInterval);
             this.isFirstCallPerformed = false;
+            this.toaster.clear();
           } else {
             eta.report(progress);
             const secondsLeft = Math.ceil(eta.estimate());
