@@ -383,7 +383,7 @@ export default class AnnotationMenu extends Component {
               disabled={
                 this.props.isConnected &&
                 this.props.loadedModel &&
-                !isEmpty(this.state.assetList)
+                !isEmpty(this.props.assetList)
               }
             >
               <div className={classes.InferenceMenuItem}>
