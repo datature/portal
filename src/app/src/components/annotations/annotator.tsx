@@ -576,7 +576,7 @@ export default class Annotator extends Component<
   }
 
   private async killVideoPrediction() {
-    this.setState({ killVideoPrediction: true });
+    this.setState({ killVideoPrediction: true, uiState: null });
     if (this.currentAsset.type === "video") {
       await APIKillVideoInference().catch(error => {
         let message = "Failed to kill video prediction.";
@@ -608,22 +608,25 @@ export default class Annotator extends Component<
     }
 
     let numberToBulkAnalysis: number;
-
+    let bulkList: any[];
     switch (this.state.inferenceOptions.bulkAnalysisStatus) {
-      case "image":
-        numberToBulkAnalysis = this.state.assetList.filter(
-          asset => asset.type === "image"
-        ).length;
+      case "image": {
+        bulkList = this.state.assetList.filter(asset => asset.type === "image");
+        numberToBulkAnalysis = bulkList.length;
         break;
-      case "video":
-        numberToBulkAnalysis = this.state.assetList.filter(
-          asset => asset.type === "video"
-        ).length;
+      }
+      case "video": {
+        bulkList = this.state.assetList.filter(asset => asset.type === "video");
+        numberToBulkAnalysis = bulkList.length;
         break;
-      case "both":
+      }
+      case "both": {
+        bulkList = this.state.assetList;
         numberToBulkAnalysis = this.state.assetList.length;
         break;
+      }
       default:
+        bulkList = this.state.assetList;
         numberToBulkAnalysis = this.state.assetList.length;
         break;
     }
@@ -638,7 +641,7 @@ export default class Annotator extends Component<
     const key = this.toaster.show(this.renderProgress(0));
 
     // eslint-disable-next-line no-restricted-syntax
-    for (const asset of this.state.assetList) {
+    for (const asset of bulkList) {
       if (this.state.killVideoPrediction) {
         if (asset.type === "image")
           // eslint-disable-next-line no-await-in-loop
@@ -648,10 +651,7 @@ export default class Annotator extends Component<
       this.selectAsset(asset, false);
       // eslint-disable-next-line no-await-in-loop
       await this.getInference(asset, true);
-      if (
-        this.state.inferenceOptions.bulkAnalysisStatus === "both" ||
-        this.state.inferenceOptions.bulkAnalysisStatus === asset.type
-      ) {
+      if (this.state.uiState === "Predicting") {
         this.setState(
           prevState => {
             return { predictDone: prevState.predictDone + 1 };
