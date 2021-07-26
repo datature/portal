@@ -7,13 +7,13 @@
 
 Portal is an open-source browser-based app written in `TypeScript`, `React` and `Flask`.
 
-Made with `<3` by [Datature](https://datature.io)
+Made with `♥` by [Datature](https://datature.io)
 
 <p align="center">
   <img alt="Portal User Experience" src="https://github.com/datature/portal/blob/develop/docs/images/portal-demo-image.gif?raw=true" width="90%">
 </p>
 
-Portal works on both images and videos - allowing you to use it as a sandbox for testing your model's performance. Additionally, Portal supports Datature Hub, TensorFlow and DarkNet models (PyTorch Support Incoming) and runs on either our electron app or your browser.
+Portal works on both images and videos - bounding boxes and masks - allowing you to use it as a sandbox for testing your model's performance. Additionally, Portal supports Datature Hub, TensorFlow and DarkNet models (PyTorch Support Incoming) and runs on either our electron app or your browser.
 
 <p align="center">
   <img alt="Portal User Experience" src="https://github.com/datature/portal/blob/develop/docs/images/portal-demo-video.gif?raw=true" width="45%">
@@ -22,11 +22,11 @@ Portal works on both images and videos - allowing you to use it as a sandbox for
 
 ## Setting up Portal
 
-Portal can be used as a Web Application or through downloading and installing an Electron Application package via <a href="https://github.com/datature/portal/releases">Github Releases</a>. Procedures for both these methods are covered below. 
+Portal can be used as a Web Application or through downloading and installing our Electron package via <a href="https://github.com/datature/portal/releases"> Portal Releases</a>.
 
-### Running Portal as Web Application
+### Running Portal as a Web Application
 
-No installation required. Portal is built using `python 3.7`. Ensure that you have this version (and up) in order before beginning. There are 2 ways to go about this. Firstly, you could clone the repository and then navigate to the directory where `requirements.txt` is and install all necessary dependencies:
+Portal is built using `python 3.7`. Ensure that you have this version (and up) before beginning. Clone the repository and then navigate to the directory where `requirements.txt` is and install all necessary dependencies and setup using `setup.sh`:
 
 ```.bash
 git clone https://github.com/datature/portal
@@ -37,16 +37,16 @@ pip install -r requirements.txt
 
 Running the following command will open the Portal application on the browser via http://localhost:9449.
 
-> If you wish to run the application on gpu, add the `--gpu` flag.
+> If you wish to run the application on gpu, add a trailing `--gpu` flag (This only works for TensorFlow Models)
 
 ```.bash
 python3 portal.py
 ```
 
 
-#### Using Virtual Environments
+#### Using Virtual Environment
 
-If you'd like to use virtual environments for this project - you can use a helpful script below to achieve this 
+If you'd like to use virtual environments for this project - you can use a helpful script below to before activating the virtualenv -
 
 ```
 ./setup-virtualenv.sh
@@ -54,41 +54,36 @@ If you'd like to use virtual environments for this project - you can use a helpf
 
 ### Running from Portal Executable
 
-Portal comes with an installable version that essentiall runs on `electron.js` - this helps to provide a desktop application feel and ease of access of setting up. To install, please download the latest Portal release from <a href="https://github.com/datature/portal/releases">Github Releases</a> and run the Portal installer.
+Portal comes with an installable version that runs on `electron.js` - this helps to provide a desktop application feel and ease of access of setting up. To install, please download the latest <a href="https://github.com/datature/portal/releases">Portal Releases</a> and run the Portal installer for your OS.
 
-### Activate the virtual environment
-
-If you have installed the packages in a virtual environment, you will need to activate it before running the application. This step is not necessary if you are running the application globally.
 
 ## Navigating Portal
-On firing your Portal application or navigating to http://localhost:9449, you will be greeted with the following interface - The following steps details how you can load your YOLO or TensorFlow model on your image folders. To begin, let's assume we want to register a `tensorflow` model. Start by clicking on the `+` sign and adding the relevant paths
+On starting Portal or navigating to http://localhost:9449 - The following steps details how you can load your YOLO or TensorFlow model on your image folders. To begin, let's assume we want to register a `tf2.0` model. On Portal, a concept we use is that you can register multiple models but load one at each time.
+
+#### Registering and Loading Portal
+Start by clicking on the `+` sign and adding the relevant filepaths, e.g. `/user/portal/downloads/MobileNet/` and a name. You will be prompted to load the model as seen below. Simply click on the model you'd like to load and the engine wil
 
 <p align="center">
-  <img alt="Register Model" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-1.png?raw=true" width="90%">
+  <img alt="Register Model" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-1.png?raw=true" width="45%">
+  <img alt="Load Model" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-2.png?raw=true" width="45%">
 </p>
 
-Afterwards, load your model by clicking on the `Load Model..` button, highlighted in red then clicking on the corresponding model name. On the popover dialog bog, click on `I understand` to load your model: 
-
-<p align="center">
-  <img alt="Load Model" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-2.png?raw=true" width="90%">
-</p>
-
-It is time to load the necessary images to render your predictions. Click on the `Open Folders` button highlighted in pink (Or press `o` on your keyboard) and paste the folder path where your images are loaded. Once you are done, press the `enter` button. The images should appear in the region highlighted in white.
+#### Loading Your Images / Videos
+To load your dataset (images / videos), click on the `Open Folders` button in the menu and paste your folder path to your dataswr. Once you are done, press the `enter` button. The images should appear in the asset menu below. You can load and synchronize multiple folders at once on Portal.
 
 <p align="center">
   <img alt="Load Assets" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-3.png?raw=true" width="90%">
 </p>
 
-Lastly, load any of the images and click on the `Re-analyse` button highlighted in orange (Or press `r` on your keyboard) to render your predictions. We support both Mask and Rectangular bounding box predictions:
+#### Running Inferences 
+Click on any image or video, press `Analyze`, and Portal will make the inference and render the results. You can then adjust the confidence threshold or filter various classes as needed. Note that Portal run inferences on videos frame-by-frame, so that will take some time. You can change the inference settings, such as **IoU** or **Frame Settings** under `Advanced Settings`
 
 <p align="center">
-  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-4.png?raw=true" width="90%">
-</p>
-<p align="center">
-  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-5.png?raw=true" width="90%">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-4.png?raw=true" width="45%">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-5.png?raw=true" width="45%">
 </p>
 
-More detailed documentation about advanced functions of Portal can be found in <a href="https://docs.datature.io/portal/documentation">docs.datature.io</a>.
+Detailed documentatiosn about advanced features of Portal can be found here : <a href="https://docs.datature.io/portal/documentation">Portal Documentation</a>
 
 ## Sample Weights
 
