@@ -38,7 +38,6 @@ class Annotation extends React.Component {
   }
 
   componentDidMount() {
-    console.log("Test test");
     const theme = localStorage.getItem(THEME_LOCAL_STORAGE_KEY);
     this.setState({
       useDarkTheme: theme == null ? true : theme === "true",

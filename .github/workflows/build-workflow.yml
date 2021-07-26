@@ -5,7 +5,7 @@ name: Build Tests
 # events but only for the master branch
 on:
   pull_request:
-    branches: [release, staging, develop]
+    branches: [staging]
     paths: "src/app/**"
 
 # Target Branch Job
@@ -32,7 +32,7 @@ jobs:
       - name: Remove existing out folder
         shell: bash
         run: rm -r portal_build/out/
-      
+
       # Build NextJS Project
       - name: Building Nexus / NextJS
         working-directory: ./src/app
