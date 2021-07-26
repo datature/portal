@@ -33,7 +33,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [macos-latest]
 
     steps:
       - uses: actions/checkout@v1
@@ -55,7 +56,7 @@ jobs:
 
       - name: Extract Version
         shell: bash
-        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-})"
+        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/release-})"
         id: extract_version
 
       - name: Extract Executable name
@@ -129,7 +130,7 @@ jobs:
 
       - name: Extract Version
         shell: bash
-        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/hotfix/release-})"
+        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF#refs/heads/release-})"
         id: extract_version
 
       - name: release
