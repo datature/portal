@@ -651,11 +651,7 @@ export default class Annotator extends Component<
       this.selectAsset(asset, false);
       // eslint-disable-next-line no-await-in-loop
       await this.getInference(asset, true);
-      if (
-        (this.state.inferenceOptions.bulkAnalysisStatus === "both" ||
-          this.state.inferenceOptions.bulkAnalysisStatus === asset.type) &&
-        this.state.uiState === "Predicting"
-      ) {
+      if (this.state.uiState === "Predicting") {
         this.setState(
           prevState => {
             return { predictDone: prevState.predictDone + 1 };
