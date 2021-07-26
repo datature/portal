@@ -76,14 +76,14 @@ To load your dataset (images / videos), click on the `Open Folders` button in th
 </p>
 
 #### Running Inferences 
-Click on any image or video, press `Analyze`, and Portal will make the inference and render the results. You can then adjust the confidence threshold or filter various classes as needed. Note that Portal run inferences on videos frame-by-frame, so that will take some time. You can change the inference settings, such as **IoU** or **Frame Settings** under `Advanced Settings`
+Click on any image or video, press `Analyze`, and Portal will make the inference and render the results. You can then adjust the confidence threshold or filter various classes as needed. Note that Portal run inferences on videos frame-by-frame, so that will take some time. You can change the inference settings, such as **IoU** or **Frame Settings** under `Advanced Settings`. 
 
 <p align="center">
   <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-4.png?raw=true" width="45%">
   <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-5.png?raw=true" width="45%">
 </p>
 
-Detailed documentatiosn about advanced features of Portal can be found here : <a href="https://docs.datature.io/portal/documentation">Portal Documentation</a>
+**Portal works on both Mask and Bounding Box models.** For detailed documentations about advanced features of Portal can be found here : <a href="https://docs.datature.io/portal/documentation">Portal Documentation</a>
 
 ## Sample Weights
 
