@@ -19,6 +19,7 @@ from server.services.errors import Errors, PortalError
 from server.services.filesystem.folder_target import FolderTargets
 
 from server.models.abstract.BaseModel import BaseModel
+from server.models.abstract.Model import Model
 
 
 def _delete_store_():
@@ -119,6 +120,14 @@ class GlobalStore:
                 self._targeted_folders_ = jsonpickle.decode(
                     self._store_["targeted_folders"]
                 )
+                for _, value in self._store_["registry"].items():
+                    reg_model = Model(
+                        value["model_type"],
+                        value["model_dir"],
+                        value["model_name"],
+                        "",
+                    )
+                    self.add_registered_model(*reg_model.register())
                 self._is_cache_called_ = True
         else:
             raise PortalError(
@@ -132,10 +141,22 @@ class GlobalStore:
 
         Transfers data from self._store_ into "./server/cache/store.portalCache"
         """
-        print(self.caching_system)
         if self.caching_system:
+            cache_store = self._store_.copy()
+            updated_registry = {
+                registry_key: {
+                    key: value
+                    for key, value in self._store_["registry"][
+                        registry_key
+                    ].items()
+                    if key in ["model_type", "model_dir", "model_name"]
+                }
+                for registry_key in list(self._store_["registry"].keys())
+            }
+            cache_store["registry"] = updated_registry
+
             with open(os.getenv("CACHE_DIR"), "w+") as cache:
-                json.dump(self._store_, cache)
+                json.dump(cache_store, cache)
 
     # pylint: disable=R0201
     def has_cache(self):
@@ -249,7 +270,7 @@ class GlobalStore:
         """
         model_dir = model.get_info()["directory"]
         model_name = model.get_info()["name"]
-
+        model_type = model.get_info()["type"]
         for item in self._store_["registry"]:
             if self._store_["registry"][item]["model_dir"] == model_dir:
                 self._store_["registry"].pop(item)
@@ -259,12 +280,10 @@ class GlobalStore:
                     Errors.INVALIDAPI,
                     "A model with the same name already exists.",
                 )
-        if self.caching_system:
-            model_class = jsonpickle.encode(model)
-        else:
-            model_class = model
+        model_class = model
         self._store_["registry"][key] = {
             "class": model_class,
+            "model_type": model_type,
             "model_dir": model_dir,
             "model_name": model_name,
         }
@@ -277,21 +296,13 @@ class GlobalStore:
         :return: The model as a Model class.
         """
         if key in self._store_["registry"]:
-            if self.caching_system:
-                return jsonpickle.decode(
-                    self._store_["registry"][key]["class"]
-                )
             return self._store_["registry"][key]["class"]
         raise PortalError(Errors.INVALIDMODELKEY, "Model not registered.")
 
     def get_registered_model_info(self) -> str:
         """Retrieve directory, description, name of all registered models"""
         return {
-            model_id: (
-                jsonpickle.decode(model_dict["class"]).get_info()
-                if self.caching_system
-                else model_dict["class"].get_info()
-            )
+            model_id: model_dict["class"].get_info()
             for model_id, model_dict in self._store_["registry"].items()
         }
 

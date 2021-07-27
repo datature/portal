@@ -4,12 +4,14 @@
 class BaseModel:
     def __init__(
         self,
+        model_type: str,
         directory: str,
         name: str,
         description: str,
         height: int = None,
         width: int = None,
     ):
+        self._type_ = model_type
         self._directory_ = directory
         self._name_ = name
         self._description_ = description
@@ -19,11 +21,12 @@ class BaseModel:
         self._label_map_ = {}
 
     def get_info(self):
-        """Returns the name, directory and description of the model."""
+        """Returns the name, type, directory and description of the model."""
         return {
             "directory": self._directory_,
             "description": self._description_,
             "name": self._name_,
+            "type": self._type_,
         }
 
     def get_key(self):

@@ -8,7 +8,7 @@ def Model(
 ):
     """Factory function that routes the model to the specific class."""
 
-    args = [directory, name, description]
+    args = [model_type, directory, name, description]
 
     model_class = {
         "tensorflow": TensorflowModel,
