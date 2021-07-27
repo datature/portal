@@ -386,7 +386,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
   private handleElectronFileDialog = () => {
     if (isElectron()) {
       const { ipcRenderer } = window.require("electron");
-      ipcRenderer.send("select-dirs");
+      ipcRenderer.send("select-model");
     } else {
       CreateGenericToast(
         "This feature is not alvailable in web browser.",
@@ -512,7 +512,10 @@ export default class Model extends React.Component<ModelProps, ModelState> {
   async componentDidMount(): Promise<void> {
     if (isElectron()) {
       const { ipcRenderer } = window.require("electron");
-      ipcRenderer.on("select-dirs-reply", this.handleElectronChangeDirListener);
+      ipcRenderer.on(
+        "select-model-reply",
+        this.handleElectronChangeDirListener
+      );
     }
     while (this.state.waitForRuntime) {
       // eslint-disable-next-line no-await-in-loop
@@ -544,7 +547,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     if (isElectron()) {
       const { ipcRenderer } = window.require("electron");
       ipcRenderer.removeListener(
-        "select-dirs-reply",
+        "select-model-reply",
         this.handleElectronChangeDirListener
       );
     }
