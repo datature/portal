@@ -10,6 +10,7 @@ import jsonpickle
 from flask import Response
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+
 # Ignore import-error and no-name-in-module due to Pyshell
 # pylint: disable=E0401, E0611
 from server.services.errors import Errors, PortalError
@@ -52,7 +53,6 @@ class GlobalStore:
         }
         self._idle_minutes_ = idle_minutes
 
-
         # Flag to enable or diable the caching system
         self.caching_system = caching_system
         self._store_ = {
@@ -78,21 +78,18 @@ class GlobalStore:
 
         :return: void
         """
-        if (
-                self._is_shutdown_server_(self._idle_minutes_)
-                or self._op_atomic_
-        ):
+        if self._is_shutdown_server_(self._idle_minutes_) or self._op_atomic_:
             time.sleep(5)
         else:
             os._exit(0)  # pylint: disable=W0212
 
     def set_start_scheduler(self):
-        """Start the scheduler
-
-        """
+        """Start the scheduler"""
         if self._scheduler_ is None:
             self._scheduler_ = BackgroundScheduler(daemon=True)
-            self._scheduler_.add_job(self._schedule_shutdown_, IntervalTrigger(minutes=1))
+            self._scheduler_.add_job(
+                self._schedule_shutdown_, IntervalTrigger(minutes=1)
+            )
             self._scheduler_.start()
 
             # Shut down the scheduler when exiting the app
@@ -135,6 +132,7 @@ class GlobalStore:
 
         Transfers data from self._store_ into "./server/cache/store.portalCache"
         """
+        print(self.caching_system)
         if self.caching_system:
             with open(os.getenv("CACHE_DIR"), "w+") as cache:
                 json.dump(self._store_, cache)
@@ -261,9 +259,12 @@ class GlobalStore:
                     Errors.INVALIDAPI,
                     "A model with the same name already exists.",
                 )
-        serialized_model_class = jsonpickle.encode(model)
+        if self.caching_system:
+            model_class = jsonpickle.encode(model)
+        else:
+            model_class = model
         self._store_["registry"][key] = {
-            "class": serialized_model_class,
+            "class": model_class,
             "model_dir": model_dir,
             "model_name": model_name,
         }
@@ -276,13 +277,21 @@ class GlobalStore:
         :return: The model as a Model class.
         """
         if key in self._store_["registry"]:
-            return jsonpickle.decode(self._store_["registry"][key]["class"])
+            if self.caching_system:
+                return jsonpickle.decode(
+                    self._store_["registry"][key]["class"]
+                )
+            return self._store_["registry"][key]["class"]
         raise PortalError(Errors.INVALIDMODELKEY, "Model not registered.")
 
     def get_registered_model_info(self) -> str:
         """Retrieve directory, description, name of all registered models"""
         return {
-            model_id: jsonpickle.decode(model_dict["class"]).get_info()
+            model_id: (
+                jsonpickle.decode(model_dict["class"]).get_info()
+                if self.caching_system
+                else model_dict["class"].get_info()
+            )
             for model_id, model_dict in self._store_["registry"].items()
         }
 
