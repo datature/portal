@@ -125,7 +125,15 @@ The **Engine** is now configured to accept a new type of model. Next, we configu
 6.  In the [model](../src/app/src/components/annotations/model.tsx) file `src/app/src/components/annotations/model.tsx`:
     - In `FormData -> modelType` add your custom model string
       ```ts
-      export type FormData = { type: string; name: string; description: string; directory: string; modelKey: string; projectSecret: string; modelType: "tensorflow" | "darknet" | "custom" | ""; //<----Add here };
+      export type FormData = {
+        type: string;
+        name: string;
+        description: string;
+        directory: string;
+        modelKey: string;
+        projectSecret: string;
+        modelType: "tensorflow" | "darknet" | "example" | ""; //<----Add here
+      };
       ```
     * In `Model -> render() -> modelTypes`, add your custom model
       ```ts
