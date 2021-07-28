@@ -137,7 +137,11 @@ The **Engine** is now configured to accept a new type of model. Next, we configu
       ```
     * In `Model -> render() -> modelTypes`, add your custom model
       ```ts
-      const modelTypes = { tensorflow: "TensorFlow 2.0", darknet: "DarkNet (YOLO v3, YOLO v4)", example: "Example Model", //<-------------Add here };
+      const modelTypes = {
+        tensorflow: "TensorFlow 2.0",
+        darknet: "DarkNet (YOLO v3, YOLO v4)",
+        example: "Example Model", //<-------------Add here
+      };
       ```
     * In `Model -> render() -> registerModelForm`, add a new `Menu.Item` in the `Menu` component
       ```typescript
