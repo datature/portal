@@ -1,6 +1,6 @@
 # Contributing to Portal
 
-Hi Developers! Thank you so much for contributing to Portal!
+👋 Hi Developers! Thank you so much for contributing to Portal!
 
 This file serves as a guide for you to contribute your ideas onto the Portal platform.
 
@@ -9,6 +9,8 @@ This file serves as a guide for you to contribute your ideas onto the Portal pla
 [What are the Components of Portal?](#components)
 
 [How do I Get Started on Contributing?](#contributing)
+
+[How do I Handle Errors while Contributing?](#errors)
 
 ## What are the Components of Portal? <a name="components"></a>
 
@@ -180,3 +182,57 @@ The **Engine** is now configured to accept a new type of model. Next, we configu
       ```
 
 Now restart Portal and you should be able to see the changes!
+
+## How do I Handle Errors while Contributing? <a name="errors"></a>
+
+**Portal Error Codes**
+
+In Portal **Engine**, all errors are raised as a customised `PortalError`, which are readable and displayed by **App**. `PortalError` have different types, all of which can be found in [src/engine.server/services/errors.py](../src/engine/server/services/errors.py).
+
+While contributing, whenever you need to raise an error, you can do so using this method:
+
+```python
+from server.services.errors import Errors, PortalError
+
+raise PortalError(Errors.YOURERROR, "Your error string")
+```
+
+Should there be a scenario whereby an error that you wish to raise does not fall in the category of any of the primary errors provided by Portal, you may add your own PortalError type here in the Errors class of [src/engine.server/services/errors.py](../src/engine/server/services/errors.py).
+
+```python
+class Errors(Enum):
+    # insert in this class
+    YOURERROR = XXXX, YYY
+    # where integer XXXX will be your custom error code
+    # and integer YYY will be its HTTP return status.
+```
+
+_Note that all exceptions raised that are not_ `PortalError` _will be automatically converted to_ `PortalError` _with error type_ `UNKNOWN` _and error string transferred from the original exception._
+
+**Debug Mode**
+
+As `PortalError` will not cause **Engine** to exit, the error message will only be shown in **App**, but not in the terminal where **Engine** is running in.
+
+To be able to display the traceback of **Engine**, you can enable `debug mode` by setting the environment variable `PORTAL_LOGGING` before starting engine:
+
+<ins>Unix/Mac</ins>
+
+```bash
+$ export PORTAL_LOGGING=1
+```
+
+<ins>Windows</ins>
+
+```bash
+> set PORTAL_LOGGING=1
+```
+
+`PORTAL_LOGGING` accepts the values 1 to 5 inclusive, with the values signifying:
+
+| Value | Threshold |
+| :---: | :-------: |
+|   1   |   Debug   |
+|   2   |   Info    |
+|   3   |  Warning  |
+|   4   |   Error   |
+|   5   | Critical  |
