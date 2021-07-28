@@ -11,7 +11,7 @@ Made with `♥` by [Datature](https://datature.io)
 
 ---
 
-<b>Update : We have also launched on ProductHunt! Show us some love at our <a href="https://www.producthunt.com/posts/datature-portal">ProductHunt Page</a>! </b>
+<b>We have also launched on ProductHunt! Show us some love at our <a href="https://www.producthunt.com/posts/datature-portal">ProductHunt Page</a>! </b>
 
 <p align="center">
 <a href="https://www.producthunt.com/posts/datature-portal?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-datature-portal" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=306279&theme=light" alt="Datature Portal - Portal is the fastest way to inspect your vision models | Product Hunt" style="justify-content: center; align-items: center; position: absolute;" width="180" height="54" /></a>
