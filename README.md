@@ -9,6 +9,15 @@ Portal is an open-source browser-based app written in `TypeScript`, `React` and 
 
 Made with `♥` by [Datature](https://datature.io)
 
+---
+
+<b>We have also launched on ProductHunt! Show us some love at our <a href="https://www.producthunt.com/posts/datature-portal">ProductHunt Page</a>! </b>
+
+<p align="center">
+<a href="https://www.producthunt.com/posts/datature-portal?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-datature-portal" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=306279&theme=light" alt="Datature Portal - Portal is the fastest way to inspect your vision models | Product Hunt" style="justify-content: center; align-items: center; position: absolute;" width="180" height="54" /></a>
+</p>
+
+<br>
 <p align="center">
   <img alt="Portal User Experience" src="https://github.com/datature/portal/blob/develop/docs/images/portal-demo-image.gif?raw=true" width="90%">
 </p>
@@ -43,7 +52,6 @@ Running the following command will open the Portal application on the browser vi
 python3 portal.py
 ```
 
-
 #### Using Virtual Environment
 
 If you'd like to use virtual environments for this project - you can use a helpful script below to before activating the virtualenv -
@@ -56,11 +64,12 @@ If you'd like to use virtual environments for this project - you can use a helpf
 
 Portal comes with an installable version that runs on `electron.js` - this helps to provide a desktop application feel and ease of access of setting up. To install, please download the latest <a href="https://github.com/datature/portal/releases">Portal Releases</a> and run the Portal installer for your OS.
 
-
 ## Navigating Portal
+
 On starting Portal or navigating to http://localhost:9449 - The following steps details how you can load your YOLO or TensorFlow model on your image folders. To begin, let's assume we want to register a `tf2.0` model. On Portal, a concept we use is that you can register multiple models but load one at each time.
 
 #### Registering and Loading Portal
+
 Start by clicking on the `+` sign and adding the relevant filepaths, e.g. `/user/portal/downloads/MobileNet/` and a name. You will be prompted to load the model as seen below. Simply click on the model you'd like to load and the engine wil
 
 <p align="center">
@@ -69,14 +78,16 @@ Start by clicking on the `+` sign and adding the relevant filepaths, e.g. `/user
 </p>
 
 #### Loading Your Images / Videos
+
 To load your dataset (images / videos), click on the `Open Folders` button in the menu and paste your folder path to your dataswr. Once you are done, press the `enter` button. The images should appear in the asset menu below. You can load and synchronize multiple folders at once on Portal.
 
 <p align="center">
   <img alt="Load Assets" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-3.png?raw=true" width="90%">
 </p>
 
-#### Running Inferences 
-Click on any image or video, press `Analyze`, and Portal will make the inference and render the results. You can then adjust the confidence threshold or filter various classes as needed. Note that Portal run inferences on videos frame-by-frame, so that will take some time. You can change the inference settings, such as **IoU** or **Frame Settings** under `Advanced Settings`. 
+#### Running Inferences
+
+Click on any image or video, press `Analyze`, and Portal will make the inference and render the results. You can then adjust the confidence threshold or filter various classes as needed. Note that Portal run inferences on videos frame-by-frame, so that will take some time. You can change the inference settings, such as **IoU** or **Frame Settings** under `Advanced Settings`.
 
 <p align="center">
   <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-4.png?raw=true" width="45%">
@@ -89,9 +100,9 @@ Click on any image or video, press `Analyze`, and Portal will make the inference
 
 We have provided sample weights for you to test portal:
 
-| Dataset                          | Description                                                    |     Download Link      |
-| -------------------------------- | -------------------------------------------------------------- | :--------------------: |
-| YOLO-v3                          | DarkNet Model based off [pjreddie/darknet][darknet]        |      [YOLOv3][yolo]      |
+| Dataset                          | Description                                           |     Download Link      |
+| -------------------------------- | ----------------------------------------------------- | :--------------------: |
+| YOLO-v3                          | DarkNet Model based off [pjreddie/darknet][darknet]   |     [YOLOv3][yolo]     |
 | SSD MobileNet V2 FPNLite 640x640 | Tensorflow Model from [tensorflow/models][tensorflow] | [MobileNet][mobilenet] |
 
 [darknet]: https://github.com/pjreddie/darknet
