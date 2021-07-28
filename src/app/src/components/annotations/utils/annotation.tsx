@@ -60,21 +60,6 @@ export const AttachAnnotationHandlers = (
 
   // eslint-disable-next-line no-param-reassign
   (layer.options as any).annotationID = annotationID;
-
-  const Tags: { [tag: string]: number } = (annotationGroup as any).tags;
-
-  const InvertedTags = invert(Tags);
-
-  /**
-   * Layer Tooltip (Obtained from Inverting the Tags and Indexing via
-   * TagHash)
-   */
-  layer.bindTooltip(`${InvertedTags[layer.options.annotationTag]}`);
-
-  /**
-   * Atach a listener for on Edit
-   */
-
   return layer;
 };
 

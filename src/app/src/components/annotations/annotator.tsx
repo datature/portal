@@ -1117,6 +1117,25 @@ export default class Annotator extends Component<
 
         this.annotationGroup.addLayer(annotationToCommit);
       });
+
+    const InvertedTags = invert(this.state.tagInfo.tags);
+
+    this.annotationGroup.eachLayer((layer: any) => {
+      console.log(layer);
+      layer.bindTooltip(
+        `<div style='background:${
+          layer.options.color
+        }; color: white; border: 3px solid ${
+          layer.options.color
+        }; margin: 0px !important; padding: 0px !important;'><b>${
+          InvertedTags[layer.options.annotationTag]
+        }</b></div>`,
+        {
+          interactive: false,
+          permanent: true,
+        }
+      );
+    });
   }
 
   /**
