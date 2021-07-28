@@ -21,7 +21,7 @@ The **Engine** performs the more complicated computations. The **Engine** receiv
 
 ## How do I Get Started on Contributing? <a name="contributing"></a>
 
-To begin contributing to Portal, first fork the repository, make your changes, then submit a pull request into the Portal's develop branch.
+To begin contributing to Portal, first fork the repository, make your changes, then submit a pull request into the Portal's `develop` branch.
 
 Here are some suggestions for you to begin contributing to Portal. However, you may contribute to portal in any way, so do not be restricted by this list!
 
@@ -107,7 +107,7 @@ The steps to creating a custom model can be done in a several steps:
 
     You may also define other functions, but these functions are the basic necessity.
 
-5.  In the [Model Factory](../src/engine/server/models/abstract/BaseModel.py) `src/engine/server/models/abstract/Model.py`, import and add your your custom model class into the `model_class` dictionary.
+5.  In the [Model Factory](../src/engine/server/models/abstract/Model.py) `src/engine/server/models/abstract/Model.py`, import and add your your custom model class into the `model_class` dictionary.
 
     ```python
     from server.models.example_model import ExampleModel
