@@ -28,7 +28,6 @@ import {
 import { CreateGenericToast } from "@portal/utils/ui/toasts";
 import isElectron from "is-electron";
 import classes from "./filemodal.module.css";
-import { Dictionary } from "lodash";
 
 type NodePath = number[];
 
