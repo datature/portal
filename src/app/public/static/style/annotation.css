@@ -228,30 +228,16 @@
 }
 
 .leaflet-tooltip {
+  border: 0px solid;
   padding: 0px;
-  border: 1px solid #bfccd6;
-  background-color: #bfccd6;
+  /*  background-color: #bfccd6; */
 }
 
-.leaflet-popup-tip {
-  background: rgba(0, 0, 0, 0) !important;
-  box-shadow: none !important;
-}
-
-.leaflet-tooltip-top:before {
-  border-top-color: #bfccd6;
-}
-
-.leaflet-tooltip-bottom:before {
-  border-bottom-color: #bfccd6;
-}
-
-.leaflet-tooltip-left:before {
-  border-left-color: #bfccd6;
-}
-
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
 .leaflet-tooltip-right:before {
-  border-right-color: #bfccd6;
+  border: none !important;
 }
 
 .annotator-settings-button {
