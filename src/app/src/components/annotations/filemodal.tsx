@@ -28,6 +28,7 @@ import {
 import { CreateGenericToast } from "@portal/utils/ui/toasts";
 import isElectron from "is-electron";
 import classes from "./filemodal.module.css";
+import { Dictionary } from "lodash";
 
 type NodePath = number[];
 
@@ -44,10 +45,13 @@ interface FileModalProps {
 }
 
 interface FileModalState {
+  /** Array of the folder tree */
   parsedTree: Array<any>;
-  // flattenedTree: Array<string>;
+  /** Boolean state to check is api is called */
   isAPICalled: boolean;
+  /** Text to be shown in the filePath Input Area */
   text: string;
+  /** Folders that are not found */
   notFoundFolder: Array<string>;
 }
 
@@ -70,6 +74,25 @@ export default class FileModal extends React.Component<
     this.handleNodeExpand = this.handleNodeExpand.bind(this);
   }
 
+  componentDidMount(): void {
+    this.refreshTree();
+    if (isElectron()) {
+      const { ipcRenderer } = window.require("electron");
+      ipcRenderer.on("select-dirs-reply", this.handleElectronRegisterListener);
+    }
+  }
+
+  componentWillUnmount(): void {
+    if (isElectron()) {
+      const { ipcRenderer } = window.require("electron");
+      ipcRenderer.removeListener(
+        "select-dirs-reply",
+        this.handleElectronRegisterListener
+      );
+    }
+  }
+
+  /** Calls the get assets in tree format API to refresh the parsedTree */
   private refreshTree = async () => {
     this.setState({ isAPICalled: true });
     await APIGetAssetsTree()
@@ -91,6 +114,11 @@ export default class FileModal extends React.Component<
     this.setState({ isAPICalled: false });
   };
 
+  /** Calls the register folders API
+   * After registrations, refreshes the tree and
+   * Updates the Image bar via the UpdateImage callback
+   * @param {string} path: folder path
+   */
   private handleRegisterImages = async (path: string) => {
     const encodedPath = encodeURIComponent(path);
     await APIPostRegisterImage(encodedPath)
@@ -109,36 +137,7 @@ export default class FileModal extends React.Component<
       });
   };
 
-  private handleElectronRegisterListener = (event: any, args: string[]) => {
-    this.setState({ text: args[0] });
-    this.handleRegisterImages(args[0]);
-  };
-
-  componentDidMount(): void {
-    this.refreshTree();
-    if (isElectron()) {
-      const { ipcRenderer } = window.require("electron");
-      ipcRenderer.on("select-dirs-reply", this.handleElectronRegisterListener);
-    }
-  }
-
-  componentWillUnmount(): void {
-    if (isElectron()) {
-      const { ipcRenderer } = window.require("electron");
-      ipcRenderer.removeListener(
-        "select-dirs-reply",
-        this.handleElectronRegisterListener
-      );
-    }
-  }
-
-  /** Methods related to Registering new folders */
-  private handleKeyDown = async (event: any) => {
-    if (event.key === "Enter") {
-      this.handleRegisterImages(this.state.text);
-    }
-  };
-
+  /** Sets up a call for electron to browse the file dialog directory */
   private handleElectronFileDialog = () => {
     if (isElectron()) {
       const { ipcRenderer } = window.require("electron");
@@ -152,6 +151,26 @@ export default class FileModal extends React.Component<
     }
   };
 
+  /** Listener for electron to automatically register the folder when ipcrender sends a reply
+   * @param {string[]} args: array of selected folder path
+   */
+  private handleElectronRegisterListener = (event: any, args: string[]) => {
+    this.setState({ text: args[0] });
+    this.handleRegisterImages(args[0]);
+  };
+
+  /** Handles registration when the user presses Enter key */
+  private handleKeyDown = async (event: any) => {
+    if (event.key === "Enter") {
+      this.handleRegisterImages(this.state.text);
+    }
+  };
+
+  /** Calls the update assets API which updates the server cached asset folders
+   * Refreshes the tree after updating the assets
+   * Updates the notfoundFolder is the folder is not found in the directory
+   * @param {string} path: folder path to be updated
+   */
   private handleUpdateFolder = async (path: string) => {
     this.setState({ isAPICalled: true });
     await APIUpdateAsset(path)
@@ -192,6 +211,10 @@ export default class FileModal extends React.Component<
     this.setState({ isAPICalled: false });
   };
 
+  /** Calls the delete assets API which deletes folder from the assets
+   * Refreshes the tree after updating the assets
+   * @param {string} path: folder path to be deleted
+   */
   private handleDeleteFolder = async (path: string) => {
     await APIDeleteAsset(path)
       .then(result => {
@@ -210,9 +233,16 @@ export default class FileModal extends React.Component<
     this.setState({ isAPICalled: false });
   };
 
-  /** Methods related to oarsing the Tree */
-  private createFile(folderPath: string, name: string, disable: boolean) {
-    let path = decodeURIComponent(folderPath);
+  /** ------- Methods related to parsing the Tree ------- */
+
+  /** Create File
+   * @param {string} filePath: file path
+   * @param {string} name: name of file
+   * @param {boolean} disable: determine if the file node should be disabled (true when the file is not found)
+   * @returns {Dictionary} Dict with file info
+   */
+  private createFile(filePath: string, name: string, disable: boolean) {
+    let path = decodeURIComponent(filePath);
     if (path.includes("\\")) {
       path = `${path}\\${name}`;
     } else {
@@ -233,6 +263,15 @@ export default class FileModal extends React.Component<
     };
   }
 
+  /** Create Folder
+   * @param {string} path: folder path
+   * @param {string} name: name of folder
+   * @param {Array<string>} images: array of filepaths
+   * @param {Array<any>} folders: array of folders
+   * @param {boolean} secondaryLabel: determine if a secondary label is needed
+   * @param {boolean} disable: determine if the file node should be disabled (true when the file is not found)
+   * @returns {Dictionary} Dict with folder info
+   */
   private createFolder(
     path: string,
     name: string,
@@ -295,6 +334,10 @@ export default class FileModal extends React.Component<
     };
   }
 
+  /** Creates the tree nodes
+   * @param {Array<any>} trees: array of folders in tree format
+   * @returns {Array<any>} Array of Dict with folder info
+   */
   private setTreeNodeInfo(trees: Array<any>) {
     return trees.map(folder => {
       let disable = false;
@@ -311,7 +354,9 @@ export default class FileModal extends React.Component<
     });
   }
 
-  /** Methods related to manipulation of parsedTree State */
+  /** -------- Methods related to manipulation of parsedTree State -------- */
+
+  /** General handler to manipulate the chosen node */
   private forNodeAtPath(
     nodes: TreeNodeInfo[],
     path: NodePath,
@@ -320,6 +365,7 @@ export default class FileModal extends React.Component<
     callback(Tree.nodeFromPath(path, nodes));
   }
 
+  /** Handles scenario to collpse the tree nodes */
   private handleNodeCollapse = (_node: TreeNodeInfo, nodePath: NodePath) => {
     const tree = this.state.parsedTree;
     const newState = cloneDeep(tree);
@@ -330,6 +376,7 @@ export default class FileModal extends React.Component<
     this.setState({ parsedTree: newState });
   };
 
+  /** Handles scenario to expand the tree nodes */
   private handleNodeExpand = (_node: TreeNodeInfo, nodePath: NodePath) => {
     // "SET_IS_EXPANDED"
     const tree = this.state.parsedTree;
