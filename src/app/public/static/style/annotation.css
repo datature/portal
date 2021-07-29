@@ -227,6 +227,33 @@
   padding: 0px !important;
 }
 
+.leaflet-tooltip {
+  padding: 0px;
+  border: 1px solid #bfccd6;
+  background-color: #bfccd6;
+}
+
+.leaflet-popup-tip {
+  background: rgba(0, 0, 0, 0) !important;
+  box-shadow: none !important;
+}
+
+.leaflet-tooltip-top:before {
+  border-top-color: #bfccd6;
+}
+
+.leaflet-tooltip-bottom:before {
+  border-bottom-color: #bfccd6;
+}
+
+.leaflet-tooltip-left:before {
+  border-left-color: #bfccd6;
+}
+
+.leaflet-tooltip-right:before {
+  border-right-color: #bfccd6;
+}
+
 .annotator-settings-button {
   position: absolute;
   z-index: 100;

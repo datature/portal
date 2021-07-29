@@ -48,6 +48,7 @@ import SettingsModal from "./settingsmodal";
 import FileModal from "./filemodal";
 import AnnotatorSettings from "./utils/annotatorsettings";
 import FormatTimerSeconds from "./utils/timer";
+import injectTooltipCss from "./utils/injecttooltipcss";
 import { RegisteredModel } from "./model";
 
 type Point = [number, number];
@@ -1121,15 +1122,10 @@ export default class Annotator extends Component<
     const InvertedTags = invert(this.state.tagInfo.tags);
 
     this.annotationGroup.eachLayer((layer: any) => {
-      console.log(layer);
       layer.bindTooltip(
-        `<div style='background:${
-          layer.options.color
-        }; color: white; border: 3px solid ${
-          layer.options.color
-        }; margin: 0px !important; padding: 0px !important;'><b>${
+        `<span class="bp3-tag">${
           InvertedTags[layer.options.annotationTag]
-        }</b></div>`,
+        }</span>`,
         {
           interactive: false,
           permanent: true,
