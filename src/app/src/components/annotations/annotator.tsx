@@ -1121,17 +1121,37 @@ export default class Annotator extends Component<
     const InvertedTags = invert(this.state.tagInfo.tags);
 
     /* Had to inject custom CSS */
-    this.annotationGroup.eachLayer((layer: any) => {
+    this.annotationGroup.eachLayer((layer: L.Layer | any) => {
       layer.bindTooltip(
         `<span class='bp3-tag' 
         style='color: #FFFFFF; 
-        background-color: ${layer.options.color}'>
+        background-color: ${layer.options.color};'>
           ${InvertedTags[layer.options.annotationTag]}
         </span>`,
         {
           interactive: false,
           permanent: true,
-          opacity: 1.0,
+          opacity: 0.8,
+          position: "left",
+        }
+      );
+      const TooltipElem: HTMLElement = layer.getTooltip().getElement();
+      const widthCompensation = -0.5 * TooltipElem.offsetWidth;
+      const leftOffset = -0.4 * TooltipElem.offsetLeft;
+      layer.unbindTooltip();
+      console.log(widthCompensation);
+      layer.bindTooltip(
+        `<span class='bp3-tag' 
+        style='color: #FFFFFF; 
+        background-color: ${layer.options.color};'>
+          ${InvertedTags[layer.options.annotationTag]}
+        </span>`,
+        {
+          interactive: false,
+          permanent: true,
+          opacity: 0.8,
+          position: "left",
+          offset: new L.Point(widthCompensation + leftOffset, 0),
         }
       );
     });
