@@ -2,8 +2,6 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-prototype-builtins */
 
-import { invert } from "lodash";
-
 /**
  * @file This file contains methods for generating and converting traditional
  * annotation format to leaflet-polyline objects. And vice-versa.
