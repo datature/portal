@@ -1122,6 +1122,7 @@ export default class Annotator extends Component<
 
     /* Had to inject custom CSS */
     this.annotationGroup.eachLayer((layer: L.Layer | any) => {
+      /* Render base tooltip first to check offset */
       layer.bindTooltip(
         `<span class='bp3-tag' 
         style='color: #FFFFFF; 
@@ -1135,11 +1136,13 @@ export default class Annotator extends Component<
           direction: "right",
         }
       );
+      /* Collect Horizontal and Vertical offset relative to centre */
       const TooltipElem: HTMLElement = layer.getTooltip().getElement();
       const widthCompensation = -0.5 * TooltipElem.offsetWidth;
       const leftOffset = -TooltipElem.offsetLeft;
+      /* Remove base tooltip */
       layer.unbindTooltip();
-      console.log(widthCompensation);
+      /* Render new tooltip with offset to align button to centre of box */
       layer.bindTooltip(
         `<span class='bp3-tag' 
         style='color: #FFFFFF; 
