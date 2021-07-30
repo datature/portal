@@ -1132,12 +1132,12 @@ export default class Annotator extends Component<
           interactive: false,
           permanent: true,
           opacity: 0.8,
-          position: "left",
+          direction: "right",
         }
       );
       const TooltipElem: HTMLElement = layer.getTooltip().getElement();
       const widthCompensation = -0.5 * TooltipElem.offsetWidth;
-      const leftOffset = -0.4 * TooltipElem.offsetLeft;
+      const leftOffset = -TooltipElem.offsetLeft;
       layer.unbindTooltip();
       console.log(widthCompensation);
       layer.bindTooltip(
@@ -1150,7 +1150,7 @@ export default class Annotator extends Component<
           interactive: false,
           permanent: true,
           opacity: 0.8,
-          position: "left",
+          direction: "right",
           offset: new L.Point(widthCompensation + leftOffset, 0),
         }
       );
