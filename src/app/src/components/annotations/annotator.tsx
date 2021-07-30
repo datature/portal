@@ -1120,15 +1120,14 @@ export default class Annotator extends Component<
 
     const InvertedTags = invert(this.state.tagInfo.tags);
 
+    /* Had to inject custom CSS */
     this.annotationGroup.eachLayer((layer: any) => {
       layer.bindTooltip(
-        `<div style='background:${layer.options.color};
-        border: 2px solid; border-color: ${layer.options.color};
-        border-radius: 1px'>
-          <strong style='color:white;'>
-            ${InvertedTags[layer.options.annotationTag]} 
-          <strong>
-        </div>`,
+        `<span class='bp3-tag' 
+        style='color: #FFFFFF; 
+        background-color: ${layer.options.color}'>
+          ${InvertedTags[layer.options.annotationTag]}
+        </span>`,
         {
           interactive: false,
           permanent: true,
