@@ -62,9 +62,12 @@ class TensorflowModel(BaseModel):
         loaded_model = tf.saved_model.load(
             os.path.join(self._directory_, "saved_model")
         )
-        return loaded_model
+        self._model_ = loaded_model
 
-    def predict(self, model, image_array):
+    def predict(self, image_array):
+        if self._model_ is None:
+            raise PortalError(Errors.NOTFOUND, "Model is not Loaded")
+        model = self._model_
         image_tensor = tf.convert_to_tensor(
             cv2.resize(
                 image_array,

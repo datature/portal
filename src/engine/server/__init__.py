@@ -74,7 +74,9 @@ class ServerThread(threading.Thread):
 # pylint: disable=invalid-name
 app = Flask(__name__)
 server = ServerThread(app)
-global_store = GlobalStore(MODEL_LOAD_LIMIT, IDLE_MINUTES,  caching_system=CACHE_OPTION)
+global_store = GlobalStore(
+    MODEL_LOAD_LIMIT, IDLE_MINUTES, caching_system=CACHE_OPTION
+)
 
 
 def wait_for_process() -> None:
