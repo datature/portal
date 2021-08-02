@@ -320,14 +320,13 @@ class GlobalStore:
         """Check if current registered models exceeds the model limit."""
         return len(self._loaded_model_list_) >= self._model_load_limit_
 
-    def load_model(self, key: str, model_dict: dict) -> None:
+    def load_model(self, key: str, model_class: BaseModel) -> None:
         """Add a model into the loaded model list.
 
         :param key: The model key.
-        :param model_dict: A dictionary of the loaded model
-            and its model class.
+        :param model_class: The model class that the model key represents.
         """
-        self._loaded_model_list_[key] = model_dict
+        self._loaded_model_list_[key] = model_class
 
     def get_loaded_model_keys(self) -> list:
         """Retrieve all model keys in the loaded model list."""
@@ -345,11 +344,11 @@ class GlobalStore:
 
         self._save_store_()
 
-    def get_model_dict(self, key: str) -> tuple:
+    def get_model_class(self, key: str) -> tuple:
         """Retrieve the model, label map, height and width given the model key.
 
         :param key: The model key.
-        :return: A dictionary of the loaded model and its model class.
+        :return: The model class that the model key represents.
         """
         return self._loaded_model_list_[key]
 

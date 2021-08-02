@@ -1,6 +1,9 @@
 """Module containing the prediction function"""
 import os
 import cv2
+from typing import Optional
+
+import numpy as np
 
 # pylint: disable=E0401, E0611
 from server.utilities.prediction_utilities import (
@@ -17,27 +20,25 @@ from server import global_store
 
 # pylint: disable=R0913
 def _predict_single_image(
-    model_dict,
-    format_arg,
-    iou,
-    image_array,
-    confidence=0.001,
+    model_class: BaseModel,
+    format_arg: str,
+    iou: float,
+    image_array: np.ndarray,
+    confidence: Optional[float] = 0.001,
 ):
     """Make predictions on a single image.
 
-    :param model_dict: A dictionary of the loaded model and its model class.
+    :param model_class: A dictionary of the loaded model and its model class.
     :param format_arg: The output format.
     :param iou: The intersection of union threshold.
     :param image_array: The single image as an array.
     :param confidence: The confidence threshold.
     :return: The predictions in the format requested by format_arg.
     """
-    model = model_dict["model"]
-    model_class: BaseModel = model_dict["model_class"]
+    print("model_class", model_class)
     label_map = model_class.get_label_map()
     image_array = cv2.cvtColor(image_array, cv2.COLOR_BGRA2RGB)
     detections = model_class.predict(
-        model=model,
         image_array=image_array,
     )
     suppressed_output = get_suppressed_output(
@@ -63,14 +64,14 @@ def _predict_single_image(
 
 
 def predict_image(
-    model_dict,
-    format_arg,
-    iou,
-    image_directory,
+    model_class: BaseModel,
+    format_arg: str,
+    iou: float,
+    image_directory: str,
 ):
     """Make predictions on a single image.
 
-    :param model_dict: A dictionary of the loaded model and its model class.
+    :param model_class: A dictionary of the loaded model and its model class.
     :param format_arg: The output format.
     :param iou: The intersection of union threshold.
     :param image_directory: The directory of the single image.
@@ -78,7 +79,7 @@ def predict_image(
     """
     image_arr = cv2.imread(image_directory)
     return _predict_single_image(
-        model_dict=model_dict,
+        model_class=model_class,
         format_arg=format_arg,
         iou=iou,
         image_array=image_arr,
@@ -87,15 +88,15 @@ def predict_image(
 
 # pylint: disable=R0913
 def predict_video(
-    model_dict,
-    iou,
-    video_directory,
-    frame_interval,
-    confidence,
+    model_class: BaseModel,
+    iou: float,
+    video_directory: str,
+    frame_interval: int,
+    confidence: float,
 ):
     """Make predictions on a multiple images within the video.
 
-    :param model_dict: A dictionary of the loaded model and its model class.
+    :param model_class: A dictionary of the loaded model and its model class.
     :param iou: The intersection of union threshold.
     :param video_directory: The directory of the video.
     :param frame_interval: The sampling interval of the video.
@@ -124,7 +125,7 @@ def predict_video(
             cap.set(1, count)
             # make inference the frame
             single_output = _predict_single_image(
-                model_dict=model_dict,
+                model_class=model_class,
                 format_arg="json",
                 iou=iou,
                 image_array=frame,

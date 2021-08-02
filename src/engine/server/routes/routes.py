@@ -488,10 +488,10 @@ def predict_single_image(model_id: str) -> tuple:
             if model_id not in global_store.get_loaded_model_keys():
                 raise PortalError(Errors.NOTFOUND, "model_id not loaded.")
 
-            model_dict = global_store.get_model_dict(model_id)
+            model_class = global_store.get_model_class(model_id)
 
             output = predict_image(
-                model_dict, format_arg, iou, image_directory
+                model_class, format_arg, iou, image_directory
             )
             global_store.add_predictions(prediction_key, output)
 
@@ -585,10 +585,10 @@ def predict_video_fn(model_id: str) -> tuple:
                 raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
             if model_id not in global_store.get_loaded_model_keys():
                 raise PortalError(Errors.NOTFOUND, "model_id not loaded.")
-            model_dict = global_store.get_model_dict(model_id)
+            model_class = global_store.get_model_class(model_id)
 
             output = predict_video(
-                model_dict,
+                model_class,
                 iou=iou,
                 video_directory=video_directory,
                 frame_interval=frame_interval,
