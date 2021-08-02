@@ -1,15 +1,19 @@
+from server.services.errors import PortalError, Errors
+
 """Base model class that should be inherited by all other models."""
 
 
 class BaseModel:
     def __init__(
         self,
+        model_type: str,
         directory: str,
         name: str,
         description: str,
         height: int = None,
         width: int = None,
     ):
+        self._type_ = model_type
         self._directory_ = directory
         self._name_ = name
         self._description_ = description
@@ -17,14 +21,25 @@ class BaseModel:
         self._height_ = height
         self._width_ = width
         self._label_map_ = {}
+        self._model_ = None
 
     def get_info(self):
-        """Returns the name, directory and description of the model."""
+        """Returns the name, type, directory and description of the model."""
         return {
             "directory": self._directory_,
             "description": self._description_,
             "name": self._name_,
+            "type": self._type_,
         }
+
+    def get_model(self):
+        """Returns self._model_ if it is not None
+
+        Throws PortalError Errors.NOTFOUND if model is not found.
+        """
+        if self._model_ is None:
+            raise PortalError(Errors.NOTFOUND, "Model not found")
+        return self._model_
 
     def get_key(self):
         """Returns the model key."""
