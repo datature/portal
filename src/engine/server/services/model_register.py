@@ -71,10 +71,21 @@ def register_hub(
         raise PortalError(Errors.HUBERROR, str(e)) from e
 
 
-def register_endpoint(model_key: str, project_secret: str) -> None:
+def register_endpoint(
+    model_key: str, project_secret: str, name: str, description: str
+) -> None:
     """Register a model from an endpoint.
 
     :param model_key: The model key obtained from the endpoint.
     :param project_secret: The proejct secret obtained from the endpoint.
     """
-    raise NotImplementedError("model_loading_services - load_endpoint")
+    reg_model = Model(
+        "endpoint",
+        "",
+        name,
+        description,
+        model_key=model_key,
+        project_secret=project_secret,
+    )
+    global_store.add_registered_model(*reg_model.register())
+    # raise NotImplementedError("model_loading_services - load_endpoint")

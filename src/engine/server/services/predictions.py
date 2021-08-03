@@ -35,7 +35,6 @@ def _predict_single_image(
     :param confidence: The confidence threshold.
     :return: The predictions in the format requested by format_arg.
     """
-    print("model_class", model_class)
     label_map = model_class.get_label_map()
     image_array = cv2.cvtColor(image_array, cv2.COLOR_BGRA2RGB)
     detections = model_class.predict(

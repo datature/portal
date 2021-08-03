@@ -126,6 +126,7 @@ class GlobalStore:
                         value["model_dir"],
                         value["model_name"],
                         "",
+                        **value["model_kwargs"],
                     )
                     self.add_registered_model(*reg_model.register())
                 self._is_cache_called_ = True
@@ -149,7 +150,13 @@ class GlobalStore:
                     for key, value in self._store_["registry"][
                         registry_key
                     ].items()
-                    if key in ["model_type", "model_dir", "model_name"]
+                    if key
+                    in [
+                        "model_type",
+                        "model_dir",
+                        "model_name",
+                        "model_kwargs",
+                    ]
                 }
                 for registry_key in list(self._store_["registry"].keys())
             }
@@ -271,6 +278,7 @@ class GlobalStore:
         model_dir = model.get_info()["directory"]
         model_name = model.get_info()["name"]
         model_type = model.get_info()["type"]
+        model_kwargs = model.get_info()["kwargs"]
         for item in self._store_["registry"]:
             if self._store_["registry"][item]["model_dir"] == model_dir:
                 self._store_["registry"].pop(item)
@@ -286,6 +294,7 @@ class GlobalStore:
             "model_type": model_type,
             "model_dir": model_dir,
             "model_name": model_name,
+            "model_kwargs": model_kwargs,
         }
         self._save_store_()
 
