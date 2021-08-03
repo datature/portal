@@ -1,8 +1,8 @@
 """Module containing the prediction function"""
 import os
-import cv2
 from typing import Optional
 
+import cv2
 import numpy as np
 
 # pylint: disable=E0401, E0611

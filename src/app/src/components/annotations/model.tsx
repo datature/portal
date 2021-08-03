@@ -521,8 +521,11 @@ export default class Model extends React.Component<ModelProps, ModelState> {
   /** Render Tab Input Settings based on registrationTabId.
    * @param registrationTabId : the tab id of the tab to be rendered
    * @return jsx : the tab input settings
-  */
-  private renderTabSettings = (registrationTabId: TabId, browseButton: JSX.Element, browseHint: JSX.Element) => {
+   */
+  private renderTabSettings = (
+    registrationTabId: TabId,
+    browseButton: JSX.Element,
+    browseHint: JSX.Element) => {
     switch (registrationTabId) {
       case "local":
         return (
@@ -585,8 +588,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         );
       default:
         return null;
-    };
-  };
+    }};
 
 
   /** Create MenuItems from the registereModelList
@@ -801,7 +803,10 @@ export default class Model extends React.Component<ModelProps, ModelState> {
             onChange={this.handleChangeForm}
           />
         </FormGroup>
-        {this.renderTabSettings(this.state.registrationTabId, browseButton, browseHint)}
+        {this.renderTabSettings(
+          this.state.registrationTabId,
+          browseButton,
+          browseHint)}
         <Button
           type="submit"
           text="Register"
