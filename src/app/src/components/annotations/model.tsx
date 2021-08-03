@@ -590,7 +590,6 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     }
   };
 
-
   /** Create MenuItems from the registereModelList
    * @return {Array<MenuItem>} An array of registered models in the format of MenuItems
    */
