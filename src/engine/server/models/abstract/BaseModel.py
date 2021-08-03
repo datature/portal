@@ -12,6 +12,7 @@ class BaseModel:
         description: str,
         height: int = None,
         width: int = None,
+        **kwargs,
     ):
         self._type_ = model_type
         self._directory_ = directory
@@ -22,6 +23,7 @@ class BaseModel:
         self._width_ = width
         self._label_map_ = {}
         self._model_ = None
+        self.kwargs = kwargs
 
     def get_info(self):
         """Returns the name, type, directory and description of the model."""
@@ -30,6 +32,7 @@ class BaseModel:
             "description": self._description_,
             "name": self._name_,
             "type": self._type_,
+            "kwargs": self.kwargs,
         }
 
     def get_model(self):

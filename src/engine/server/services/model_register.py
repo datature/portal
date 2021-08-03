@@ -79,13 +79,13 @@ def register_endpoint(
     :param model_key: The model key obtained from the endpoint.
     :param project_secret: The proejct secret obtained from the endpoint.
     """
-    # reg_model = Model(
-    #     "Endpoint",
-    #     "",
-    #     name,
-    #     description,
-    #     model_key=model_key,
-    #     projct_secret=project_secret,
-    # )
-    # global_store.add_registered_model(*reg_model.register())
+    reg_model = Model(
+        "endpoint",
+        "",
+        name,
+        description,
+        model_key=model_key,
+        project_secret=project_secret,
+    )
+    global_store.add_registered_model(*reg_model.register())
     # raise NotImplementedError("model_loading_services - load_endpoint")
