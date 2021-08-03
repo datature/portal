@@ -213,6 +213,19 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         Intent.WARNING,
         3000
       );
+    } else if (
+      this.state.formData.type === "endpoint" &&
+      (
+        this.state.formData.modelKey === "" ||
+        this.state.formData.projectSecret === "" ||
+        this.state.formData.name === ""
+      )
+    ) {
+      CreateGenericToast(
+        "Please fill in the name,  model key and project secret of the model you want to load from endpoint.",
+        Intent.WARNING,
+        3000
+      );
     } else {
       await APIRegisterModel(
         this.state.formData.type,
@@ -718,6 +731,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
           />
         </FormGroup>
         {this.state.registrationTabId === "local" ? (
+          // registration tab is local
           <FormGroup label="Folder Path" labelFor="label-input">
             <InputGroup
               id="directory"
@@ -728,7 +742,8 @@ export default class Model extends React.Component<ModelProps, ModelState> {
               rightElement={isElectron() ? browseButton : browseHint}
             />
           </FormGroup>
-        ) : (
+        ) : this.state.registrationTabId === "hub" ? (
+          // registration tab is hub
           <>
             <FormGroup label="Model Key" labelFor="label-input">
               <InputGroup
@@ -745,6 +760,28 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 name="projectSecret"
                 value={this.state.formData.projectSecret}
                 placeholder="Enter project secret from hub..."
+                onChange={this.handleChangeForm}
+              />{" "}
+            </FormGroup>
+          </>
+        ) : (
+          // else, registration tab is endpoint
+          <>
+            <FormGroup label="Model Key" labelFor="label-input">
+              <InputGroup
+                id="modelKey"
+                name="modelKey"
+                value={this.state.formData.modelKey}
+                placeholder="Enter model key from endpoint..."
+                onChange={this.handleChangeForm}
+              />
+            </FormGroup>
+            <FormGroup label="Project Secret" labelFor="label-input">
+              <InputGroup
+                id="projectSecret"
+                name="projectSecret"
+                value={this.state.formData.projectSecret}
+                placeholder="Enter project secret from endpoint..."
                 onChange={this.handleChangeForm}
               />{" "}
             </FormGroup>
@@ -971,6 +1008,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   >
                     <Tab id="local" title="Local" />
                     <Tab id="hub" title="Datature Hub" />
+                    <Tab id="endpoint" title="Datature Endpoint" />
                     <Tabs.Expander />
                   </Tabs>
                 </NavbarGroup>{" "}
