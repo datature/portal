@@ -215,11 +215,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       );
     } else if (
       this.state.formData.type === "endpoint" &&
-      (
-        this.state.formData.modelKey === "" ||
+      (this.state.formData.modelKey === "" ||
         this.state.formData.projectSecret === "" ||
-        this.state.formData.name === ""
-      )
+        this.state.formData.name === "")
     ) {
       CreateGenericToast(
         "Please fill in the name,  model key and project secret of the model you want to load from endpoint.",
@@ -525,7 +523,8 @@ export default class Model extends React.Component<ModelProps, ModelState> {
   private renderTabSettings = (
     registrationTabId: TabId,
     browseButton: JSX.Element,
-    browseHint: JSX.Element) => {
+    browseHint: JSX.Element
+  ) => {
     switch (registrationTabId) {
       case "local":
         return (
@@ -588,7 +587,8 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         );
       default:
         return null;
-    }};
+    }
+  };
 
 
   /** Create MenuItems from the registereModelList
@@ -806,7 +806,8 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         {this.renderTabSettings(
           this.state.registrationTabId,
           browseButton,
-          browseHint)}
+          browseHint
+        )}
         <Button
           type="submit"
           text="Register"
