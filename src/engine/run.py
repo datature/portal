@@ -90,8 +90,7 @@ if os.getenv("COMMAND_LINE"):
 
 
 def initialize() -> None:
-    if use_cache == "1":
-        global_store.set_is_cache_called(cache_dir)
+    global_store.set_is_cache_called(cache_dir)
 
     if use_gpu == "-1":
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
