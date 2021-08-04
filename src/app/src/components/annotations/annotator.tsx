@@ -127,6 +127,8 @@ interface AnnotatorState {
   currentAssetAnnotations: any;
   /* Filter state to filter out tag labels */
   filterArr: Array<string>;
+  /* Boolean to Always Show Label */
+  alwaysShowLabel: boolean;
   /* Choose whether to show or hide selected labels */
   showSelected: boolean;
   /* Metadata related to inference */
@@ -233,6 +235,7 @@ export default class Annotator extends Component<
         opacity: 0.45,
       },
       filterArr: [],
+      alwaysShowLabel: false,
       showSelected: true,
       inferenceOptions: {
         bulkAnalysisStatus: "both",
@@ -1122,39 +1125,20 @@ export default class Annotator extends Component<
 
     /* Had to inject custom CSS */
     this.annotationGroup.eachLayer((layer: L.Layer | any) => {
+      layer.unbindTooltip();
       /* Render base tooltip first to check offset */
       layer.bindTooltip(
         `<span class='bp3-tag' 
         style='color: #FFFFFF; 
+        border-radius: 6px !important;
         background-color: ${layer.options.color};'>
           ${InvertedTags[layer.options.annotationTag]}
         </span>`,
         {
-          interactive: false,
-          permanent: true,
-          opacity: 0.8,
-          direction: "right",
-        }
-      );
-      /* Collect Horizontal and Vertical offset relative to centre */
-      const TooltipElem: HTMLElement = layer.getTooltip().getElement();
-      const widthCompensation = -0.5 * TooltipElem.offsetWidth;
-      const leftOffset = -TooltipElem.offsetLeft;
-      /* Remove base tooltip */
-      layer.unbindTooltip();
-      /* Render new tooltip with offset to align button to centre of box */
-      layer.bindTooltip(
-        `<span class='bp3-tag' 
-        style='color: #FFFFFF; 
-        background-color: ${layer.options.color};'>
-          ${InvertedTags[layer.options.annotationTag]}
-        </span>`,
-        {
-          interactive: false,
-          permanent: true,
-          opacity: 0.8,
-          direction: "right",
-          offset: new L.Point(widthCompensation + leftOffset, 0),
+          interactive: !this.state.alwaysShowLabel,
+          permanent: this.state.alwaysShowLabel,
+          opacity: 0.9,
+          direction: "center",
         }
       );
     });
@@ -1486,12 +1470,28 @@ export default class Annotator extends Component<
         <Hotkey
           global={true}
           combo={"h"}
-          label={"Hide Annotations"}
+          label={"Show / Hide Annotations"}
           onKeyDown={() => {
             /* Allow Toggling of Layer Hiding */
             if (this.map.hasLayer(this.annotationGroup))
               this.map.removeLayer(this.annotationGroup);
             else this.map.addLayer(this.annotationGroup);
+          }}
+        />
+        <Hotkey
+          global={true}
+          combo={"l"}
+          label={"Show / Hide Label"}
+          onKeyDown={() => {
+            /* Allow Toggling of Layer Hiding */
+            this.setState(
+              prevState => ({
+                alwaysShowLabel: !prevState.alwaysShowLabel,
+              }),
+              () => {
+                this.filterAnnotationVisibility();
+              }
+            );
           }}
         />
         <Hotkey

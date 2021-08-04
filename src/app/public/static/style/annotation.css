@@ -230,7 +230,12 @@
 .leaflet-tooltip {
   border: 0px solid;
   padding: 0px;
-  /*  background-color: #bfccd6; */
+  border-radius: 8px !important;
+}
+
+.leaflet-tooltip > .bp3-tag {
+  font-size: 10px !important;
+  line-height: 12px !important;
 }
 
 .leaflet-tooltip-top:before,
