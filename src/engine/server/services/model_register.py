@@ -88,4 +88,3 @@ def register_endpoint(
         project_secret=project_secret,
     )
     global_store.add_registered_model(*reg_model.register())
-    # raise NotImplementedError("model_loading_services - load_endpoint")

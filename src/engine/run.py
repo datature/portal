@@ -21,33 +21,56 @@ if os.getenv("COMMAND_LINE"):
     root = os.path.join(root, "portal_build")
     sys.path.append(root)
 
-# pylint: disable=wrong-import-position
-from server import server, app, global_store
-
-
 if os.getenv("ROOT_DIR") is not None:
     root = os.path.abspath(os.getenv("ROOT_DIR"))
 
 env = os.getenv("ROOT_DIR")
 
 cache_folder = os.path.join(root, "server/cache")
+model_folder = os.path.join(root, "server/hub_models")
+variables_folder = os.path.join(root, "server/var")
 
-if not os.path.isdir(cache_folder):
-    os.makedirs(cache_folder)
-    with open(os.path.join(root, cache_folder, ".gitkeep"), "w") as gitkeep:
-        pass
+# If these folders do not exist (perhaps first time using the program),
+# create the folders.
+for folder in [cache_folder, model_folder, variables_folder]:
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
 
-model_dir = os.path.join(root, "server/hub_models")
-cache_dir = os.path.join(root, cache_folder, "store.portalCache")
-gpu_dir = os.path.join(root, cache_folder, "use_gpu")
+use_gpu_dir = os.path.join(variables_folder, "gpu.var")
+cache_dir = os.path.join(cache_folder, "store.portalCache")
+use_cache_dir = os.path.join(variables_folder, "cache.var")
 
+# predefine the variables
 use_gpu = "0"
-if os.path.isfile(gpu_dir):
-    with open(gpu_dir, "r") as gpu_flag:
+use_cache = "0"
+
+# update the variables
+if os.path.isfile(use_gpu_dir):
+    with open(use_gpu_dir, "r") as gpu_flag:
         use_gpu = gpu_flag.read()
 else:
-    with open(gpu_dir, "w") as gpu_flag:
+    with open(use_gpu_dir, "w") as gpu_flag:
         gpu_flag.write(use_gpu)
+
+
+if os.path.isfile(use_cache_dir):
+    with open(use_cache_dir, "r") as cache_flag:
+        use_cache = cache_flag.read()
+else:
+    with open(use_cache_dir, "w") as cache_flag:
+        cache_flag.write("use_cache")
+
+
+os.environ["ROOT_DIR"] = root
+os.environ["CACHE_DIR"] = cache_dir
+os.environ["GPU_DIR"] = use_gpu_dir
+os.environ["MODEL_DIR"] = model_folder
+os.environ["USE_CACHE"] = use_cache
+os.environ["USE_CACHE_DIR"] = use_cache_dir
+
+
+# pylint: disable=wrong-import-position
+from server import server, app, global_store
 
 if os.getenv("COMMAND_LINE"):
 
@@ -67,11 +90,8 @@ if os.getenv("COMMAND_LINE"):
 
 
 def initialize() -> None:
-    os.environ["ROOT_DIR"] = root
-    os.environ["CACHE_DIR"] = cache_dir
-    os.environ["GPU_DIR"] = gpu_dir
-    os.environ["MODEL_DIR"] = model_dir
-    global_store.set_is_cache_called(cache_dir)
+    if use_cache == "1":
+        global_store.set_is_cache_called(cache_dir)
 
     if use_gpu == "-1":
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
