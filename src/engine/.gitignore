@@ -67,9 +67,9 @@ instance/
 .webassets-cache
 
 # Flask Server Caches
-cache/
-var/
-hub_models/
+server/cache/
+server/var/
+server/hub_models/
 
 # Scrapy stuff:
 .scrapy
