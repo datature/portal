@@ -326,39 +326,28 @@ def get_suppressed_output(
     )
 
 
-def back_to_tensor(suppressed_output: tuple) -> dict:
+def back_to_array(suppressed_output: tuple) -> dict:
     """Convert a list of lists back into a tensor.
     :param suppressed_output:
         Tuple of suppressed bbox, suppressed scores and suppressed classes.
     :returns: Dictionary containing the suppressed outputs in tensor form.
     """
     tensor_dict = {
-        "num_detections": tf.convert_to_tensor(
-            np.array(
-                [
-                    float(len(tf.convert_to_tensor(suppressed_output[2]))),
-                ],
-                dtype=np.float32,
-            ),
-            dtype=tf.float32,
+        "num_detections": np.array(
+            [
+                float(len(suppressed_output[2])),
+            ],
+            dtype=np.float32,
         ),
-        "detection_boxes": tf.convert_to_tensor(
-            np.array([suppressed_output[0]], dtype=np.float32),
-            dtype=tf.float32,
-        ),
-        "detection_scores": tf.convert_to_tensor(
-            np.array([suppressed_output[1]], dtype=np.float32),
-            dtype=tf.float32,
-        ),
-        "detection_classes": tf.convert_to_tensor(
-            np.array([suppressed_output[2]], dtype=np.float32),
-            dtype=tf.float32,
+        "detection_boxes": np.array([suppressed_output[0]], dtype=np.float32),
+        "detection_scores": np.array([suppressed_output[1]], dtype=np.float32),
+        "detection_classes": np.array(
+            [suppressed_output[2]], dtype=np.float32
         ),
     }
     if suppressed_output[3] is not None:
-        tensor_dict["detection_masks"] = tf.convert_to_tensor(
-            np.array([suppressed_output[3]], dtype=np.uint8),
-            dtype=tf.uint8,
+        tensor_dict["detection_masks"] = np.array(
+            [suppressed_output[3]], dtype=np.uint8
         )
     return tensor_dict
 
@@ -446,7 +435,7 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
     """
     num_detections = int(detections_output.pop("num_detections"))
     detections = {
-        key: value[0, :num_detections].numpy()
+        key: value[0, :num_detections]
         for key, value in detections_output.items()
     }
     # Extract predictions
