@@ -315,7 +315,6 @@ def get_suppressed_output(
         )
         if detection_masks is None
         else _non_max_suppress_mask(
-            img_arr=image_array,
             bbox=detection_boxes,
             scores=detection_scores,
             classes=detection_classes,
