@@ -280,7 +280,7 @@ def register_model() -> tuple:
 
         if input_type == "endpoint":
             register_endpoint(
-                model_key=model_key,
+                link=model_key,
                 project_secret=project_secret,
                 name=model_name,
                 description=model_description,

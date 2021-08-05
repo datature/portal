@@ -72,7 +72,7 @@ def register_hub(
 
 
 def register_endpoint(
-    model_key: str, project_secret: str, name: str, description: str
+    link: str, project_secret: str, name: str, description: str
 ) -> None:
     """Register a model from an endpoint.
 
@@ -84,7 +84,7 @@ def register_endpoint(
         "",
         name,
         description,
-        model_key=model_key,
+        link=link,
         project_secret=project_secret,
     )
     global_store.add_registered_model(*reg_model.register())
