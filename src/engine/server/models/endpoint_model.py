@@ -31,7 +31,7 @@ class EndpointModel(BaseModel):
     def predict(self, image_array):
         # convert potential rgba to rgb:
         # get array height and width:
-        height, width, channels = image_array
+        height, width, channels = image_array.shape
         # convert the array back to bgr for exporting
 
         image_array = (
