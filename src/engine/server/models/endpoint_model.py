@@ -55,6 +55,7 @@ class EndpointModel(BaseModel):
         boxes = []
         classes = []
         scores = []
+        masks = []
 
         for single_detection in output:
             # 1. bounds to bbox:
@@ -83,12 +84,18 @@ class EndpointModel(BaseModel):
 
             # 4. convert polygons to masks
             bound_type = single_detection["boundType"]
-            masks = None
-            if bound_type != "masks":
+            if bound_type == "masks":
                 polygon = single_detection["contour"]
+                for index, point in enumerate(polygon):
+                    list_point = list(point)
+                    list_point[0] = int(list_point[0] * width)
+                    list_point[1] = int(list_point[1] * height)
+                    polygon[index] = tuple(list_point)
                 mask_img = Image.new("L", (width, height), 0)
                 ImageDraw.Draw(mask_img).polygon(polygon, outline=1, fill=1)
-                masks = np.array(mask_img)
+                mask = np.expand_dims(np.array(mask_img), axis=0)
+                masks.append(mask)
+        masks = np.concatenate(masks) if masks != [] else None
 
         # 4. package them into the required detections output
         detections = {}
@@ -97,4 +104,3 @@ class EndpointModel(BaseModel):
         detections["detection_scores"] = np.squeeze(np.array(scores))
         detections["detection_classes"] = np.squeeze(np.array(classes))
         return detections
-        # return output.text
