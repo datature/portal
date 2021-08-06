@@ -217,9 +217,9 @@ def register_model() -> tuple:
         model_description: str = data["description"]
         model_key: str = input_credentials["modelKey"]
         project_secret: str = input_credentials["projectSecret"]
+        model_url: str = input_credentials["modelURL"]
         model_type: str = data["modelType"]
         input_directory: str = data["directory"]
-
         if global_store.set_status("register_model_" + model_key):
             wait_for_process()
             return global_store.get_caught_response("register_model_")
@@ -253,12 +253,22 @@ def register_model() -> tuple:
                 Errors.INVALIDAPI,
                 "model_key needs to be given if input_type is 'hub'.",
             )
+        if input_type == "endpoint" and (
+            model_url == "" or project_secret == ""
+        ):
+            raise PortalError(
+                Errors.INVALIDAPI,
+                "Endpoint URL / project_secret "
+                "needs to be given if input_type is 'endpoint'.",
+            )
         if model_type not in ["darknet", "tensorflow", "pytorch"]:
             raise PortalError(
                 Errors.INVALIDAPI,
                 "model_type needs to be one of 'darknet', 'tensorflow' or 'pytorch'.",
             )
-        if input_type == "hub" and model_type != "tensorflow":
+        if (
+            input_type == "hub" or input_type == "endpoint"
+        ) and model_type != "tensorflow":
             raise PortalError(
                 Errors.INVALIDAPI,
                 "only tensorflow models are supported for Hub.",
@@ -280,7 +290,7 @@ def register_model() -> tuple:
 
         if input_type == "endpoint":
             register_endpoint(
-                link=model_key,
+                link=model_url,
                 project_secret=project_secret,
                 name=model_name,
                 description=model_description,

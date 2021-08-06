@@ -76,8 +76,8 @@ def register_endpoint(
 ) -> None:
     """Register a model from an endpoint.
 
-    :param model_key: The model key obtained from the endpoint.
-    :param project_secret: The proejct secret obtained from the endpoint.
+    :param link: The URL of the endpoint.
+    :param project_secret: The proejct secret to access the endpoint.
     """
     reg_model = Model(
         "endpoint",

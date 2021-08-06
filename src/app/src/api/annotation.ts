@@ -136,7 +136,8 @@ export function APIRegisterModel(
   description: string,
   directory: string,
   modelKey: string,
-  projectSecret: string
+  projectSecret: string,
+  modelURL: string
 ): Promise<AxiosResponse<any>> {
   const config = {
     type,
@@ -146,6 +147,7 @@ export function APIRegisterModel(
     credentials: {
       modelKey,
       projectSecret,
+      modelURL,
     },
     directory,
   };
