@@ -13,9 +13,12 @@ from server.services.global_store import GlobalStore
 
 os.environ["WERKZEUG_RUN_MAIN"] = "true"
 MODEL_LOAD_LIMIT = 1
-CACHE_OPTION = True
 EPSILON_MULTIPLIER = 0.001
 IDLE_MINUTES = 60 * 5
+CACHE_OPTION = (
+    True if os.environ["USE_CACHE"] == "1"
+    else False
+)
 try:
     DEBUG_MODE = (
         int(os.environ["PORTAL_LOGGING"])

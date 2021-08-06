@@ -6,7 +6,11 @@ import dynamic from "next/dynamic";
 import { Classes } from "@blueprintjs/core";
 import { setConfiguration } from "react-grid-system";
 import HeaderNav from "@portal/components/ui/header/navbar";
-import { APIGetGPU } from "@portal/api/general";
+import {
+  APIGetGPU,
+  APIAutosaveQuery,
+  APIAutosaveToggle,
+} from "@portal/api/general";
 
 /* Global Setting / Styling */
 const THEME_LOCAL_STORAGE_KEY = "nexus-theme";
@@ -29,12 +33,14 @@ class Annotation extends React.Component {
       useDarkTheme: true,
       loadedModel: undefined,
       isConnected: false,
+      isAutosave: false,
     };
 
     /* Grid Layout Configuration */
     setConfiguration({ gutterWidth: 12 });
     this.setTheme = this.setTheme.bind(this);
     this.setGPU = this.setGPU.bind(this);
+    this.setAutosave = this.setAutosave.bind(this);
   }
 
   componentDidMount() {
@@ -49,6 +55,13 @@ class Annotation extends React.Component {
         this.setState({ isGPU: true });
       }
     });
+
+    // Call for the autosave settings from the backend
+    APIAutosaveQuery().then(res => {
+      if (res.data === 1) {
+        this.setState({ isAutosave: true });
+      }
+    });
   }
 
   setTheme(flag) {
@@ -60,6 +73,14 @@ class Annotation extends React.Component {
 
   async setGPU(flag) {
     this.setState({ isGPU: flag });
+  }
+
+  async setAutosave(flag) {
+    APIAutosaveToggle(flag).then(res => {
+      if (res.status === 200) {
+        this.setState({ isAutosave: flag });
+      }
+    });
   }
 
   render() {
@@ -105,6 +126,7 @@ class Annotation extends React.Component {
             GlobalSettingCallback={{
               setTheme: this.setTheme,
               setGPU: this.setGPU,
+              setAutosave: this.setAutosave,
               handleIsConnected: isConnected => {
                 this.setState({ isConnected });
               },

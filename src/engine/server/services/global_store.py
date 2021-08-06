@@ -103,11 +103,29 @@ class GlobalStore:
         self._global_server_time_ = max(self._global_server_time_, now)
 
     def set_is_cache_called(self, path):
-        """Fist initialization in run.py
+        """First initialization in run.py
 
         :param path: dir of cache
         """
         self._is_cache_called_ = not os.path.isfile(path)
+
+    def turn_on_autosave(self):
+        """Enable caching during runtime."""
+        self.caching_system = True
+        with open(os.environ["USE_CACHE_DIR"], "w") as cache_flag:
+            cache_flag.write("1")
+        self._save_store_()
+
+    def turn_off_autosave(self):
+        """Disable caching during runtime."""
+        with open(os.environ["USE_CACHE_DIR"], "w") as cache_flag:
+            cache_flag.write("0")
+        _delete_store_()
+        self.caching_system = False
+
+    def query_autosave(self):
+        """Query the autosave flag during runtime."""
+        return "1" if self.caching_system else "0"
 
     def load_cache(self):
         """Load the cache.
