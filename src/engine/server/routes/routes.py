@@ -289,9 +289,7 @@ def register_model() -> tuple:
                 Errors.INVALIDAPI,
                 "model_type needs to be one of 'darknet', 'tensorflow' or 'pytorch'.",
             )
-        if (
-            input_type == "hub" or input_type == "endpoint"
-        ) and model_type != "tensorflow":
+        if input_type in ["hub", "endpoint"] and model_type != "tensorflow":
             raise PortalError(
                 Errors.INVALIDAPI,
                 "only tensorflow models are supported for Hub.",

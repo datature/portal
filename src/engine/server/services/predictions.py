@@ -42,7 +42,6 @@ def _predict_single_image(
     )
     suppressed_output = get_suppressed_output(
         detections=detections,
-        image_array=image_array,
         filter_id=None,
         iou=iou,
         confidence=confidence,

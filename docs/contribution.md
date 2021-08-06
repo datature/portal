@@ -79,14 +79,14 @@ The steps to creating a custom model can be done in a several steps:
         ```
       - return (`self._key_`, self) as a tuple.
     - `load(self)`
-      - Load the model into a variable and return that variable
+      - Load the model into a variable and save that variable into `self._model_`.
         ```python
         loaded_model = load_the_model(<model_path>)
-        return loaded_model
+        self._model_ = loaded_model
         ```
-    - `predict(self, model, image_array)`
+    - `predict(self, image_array)`
 
-      - Take in the model and perform inference on the image array.
+      - Perform inference on the image array.
       - Return the inference as a dictionary of
 
         ```python
@@ -106,6 +106,8 @@ The steps to creating a custom model can be done in a several steps:
                                 representing label ids>,
         }
         ```
+
+        NOTE: The segmentation masks are in the form of image masks, not bounding box masks.
 
     You may also define other functions, but these functions are the basic necessity.
 

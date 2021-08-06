@@ -100,9 +100,7 @@ class BaseModel:
 
         All implementations of this function must do the following:
         1. Load the model into a variable.
-        2. Return the variable.
-            loaded_model = load_the_model(<model_path>)
-            return loaded_model
+        2. Save the variable into self._model_
         """
         raise NotImplementedError(
             "Using the BaseModel implementation of load."
@@ -110,12 +108,11 @@ class BaseModel:
         )
 
     @classmethod
-    def predict(self, model, image_array):
+    def predict(self, image_array):
         """Function that should be overwritten by the child classes.
 
         All implementations of this function must do the following:
-        1. Using the given model and the image array, perform inference
-            on the image array.
+        1. Using the image array, perform inference on the image array.
         2. Return the inference as a dictionary of:
             {
                 "detection_masks": <squeezed numpy array of all masks,

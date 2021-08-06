@@ -2,7 +2,6 @@
 from base64 import encodebytes
 from typing import Union
 
-import tensorflow as tf
 import numpy as np
 import cv2
 from shapely.geometry import Polygon, MultiPolygon
@@ -283,14 +282,12 @@ def _apply_mask(image, mask, colors, alpha=0.5):
 
 def get_suppressed_output(
     detections,
-    image_array: np.array,
     filter_id: int,
     iou: float,
     confidence: float,
 ) -> tuple:
     """Filters detections based on the intersection of union theory.
     :param detections: The tensorflow prediction output.
-    :param image_array: The image in the form of a numpy array.
     :param filter_id: The specific class to be filtered.
     :param iou: The intersection of union threshold.
     :param confidence: The confidence threshold.
@@ -327,10 +324,10 @@ def get_suppressed_output(
 
 
 def back_to_array(suppressed_output: tuple) -> dict:
-    """Convert a list of lists back into a tensor.
+    """Convert a tuple of lists back into a tensor.
     :param suppressed_output:
         Tuple of suppressed bbox, suppressed scores and suppressed classes.
-    :returns: Dictionary containing the suppressed outputs in tensor form.
+    :returns: Dictionary containing the suppressed outputs in array form.
     """
     tensor_dict = {
         "num_detections": np.array(
