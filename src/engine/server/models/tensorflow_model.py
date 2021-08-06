@@ -144,11 +144,10 @@ class TensorflowModel(BaseModel):
             if "detection_masks" in detections:
                 box_masks = detections["detection_masks"]
                 boxes = detections["detection_boxes"]
-                with tf.device("/cpu:0"):
-                    image_masks = _reframe_box_masks_to_image_masks(
-                        tf.convert_to_tensor(box_masks), boxes, height, width
-                    )
-                    image_masks = tf.cast(image_masks > 0.5, tf.uint8).numpy()
+                image_masks = _reframe_box_masks_to_image_masks(
+                    tf.convert_to_tensor(box_masks), boxes, height, width
+                )
+                image_masks = tf.cast(image_masks > 0.5, tf.uint8).numpy()
                 detections["detection_masks"] = image_masks
             return detections
         except Exception as e:  # pylint: disable=broad-except
