@@ -15,10 +15,7 @@ os.environ["WERKZEUG_RUN_MAIN"] = "true"
 MODEL_LOAD_LIMIT = 1
 EPSILON_MULTIPLIER = 0.001
 IDLE_MINUTES = 60 * 5
-CACHE_OPTION = (
-    True if os.environ["USE_CACHE"] == "1"
-    else False
-)
+CACHE_OPTION = os.environ["USE_CACHE"] == "1"
 try:
     DEBUG_MODE = (
         int(os.environ["PORTAL_LOGGING"])
