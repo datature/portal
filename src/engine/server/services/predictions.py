@@ -8,7 +8,7 @@ import numpy as np
 # pylint: disable=E0401, E0611
 from server.utilities.prediction_utilities import (
     get_suppressed_output,
-    back_to_tensor,
+    back_to_array,
     get_detection_json,
     visualize,
     save_to_bytes,
@@ -49,13 +49,13 @@ def _predict_single_image(
     )
     if format_arg == "json":
         output = get_detection_json(
-            back_to_tensor(suppressed_output),
+            back_to_array(suppressed_output),
             label_map,
         )
     elif format_arg == "image":
         visualized_image = visualize(
             img_arr=image_array,
-            detections_output=back_to_tensor(suppressed_output),
+            detections_output=back_to_array(suppressed_output),
             category_index=label_map,
         )
         output = save_to_bytes(visualized_image)

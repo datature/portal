@@ -60,6 +60,7 @@ export type FormData = {
   directory: string;
   modelKey: string;
   projectSecret: string;
+  modelURL: string;
   modelType: "tensorflow" | "darknet" | "";
 };
 
@@ -131,6 +132,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         directory: "",
         modelKey: "",
         projectSecret: "",
+        modelURL: "",
       },
       drawerTabId: "details",
       registrationTabId: "local",
@@ -215,12 +217,12 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       );
     } else if (
       this.state.formData.type === "endpoint" &&
-      (this.state.formData.modelKey === "" ||
+      (this.state.formData.modelURL === "" ||
         this.state.formData.projectSecret === "" ||
         this.state.formData.name === "")
     ) {
       CreateGenericToast(
-        "Please fill in the name,  model key and project secret of the model you want to load from endpoint.",
+        "Please fill in the name, URL and project secret of the model you want to load from endpoint.",
         Intent.WARNING,
         3000
       );
@@ -232,7 +234,8 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         this.state.formData.description,
         this.state.formData.directory,
         this.state.formData.modelKey,
-        this.state.formData.projectSecret
+        this.state.formData.projectSecret,
+        this.state.formData.modelURL
       )
         .then(result => {
           if (result.status === 200) {
@@ -565,12 +568,12 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       case "endpoint":
         return (
           <>
-            <FormGroup label="Model Key" labelFor="label-input">
+            <FormGroup label="Endpoint URL" labelFor="label-input">
               <InputGroup
-                id="modelKey"
-                name="modelKey"
-                value={this.state.formData.modelKey}
-                placeholder="Enter model key from endpoint..."
+                id="modelURL"
+                name="modelURL"
+                value={this.state.formData.modelURL}
+                placeholder="Enter the URL from endpoint..."
                 onChange={this.handleChangeForm}
               />
             </FormGroup>
@@ -669,6 +672,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         directory: "",
         modelKey: "",
         projectSecret: "",
+        modelURL: "",
       },
       registrationTabId: tabId,
     });
@@ -1050,6 +1054,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 directory: "",
                 modelKey: "",
                 projectSecret: "",
+                modelURL: "",
               },
               registrationTabId: "local",
               isOpenRegistraionForm: false,

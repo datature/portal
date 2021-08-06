@@ -174,9 +174,11 @@ class GlobalStore:
                         "model_dir",
                         "model_name",
                         "model_kwargs",
+                        "save_in_cache",
                     ]
                 }
                 for registry_key in list(self._store_["registry"].keys())
+                if self._store_["registry"][registry_key]["save_in_cache"]
             }
             cache_store["registry"] = updated_registry
 
@@ -281,6 +283,7 @@ class GlobalStore:
         self,
         key: str,
         model: BaseModel,
+        store_cache: bool,
     ) -> None:
         """Add or update a model into the registry.
 
@@ -313,6 +316,7 @@ class GlobalStore:
             "model_dir": model_dir,
             "model_name": model_name,
             "model_kwargs": model_kwargs,
+            "save_in_cache": store_cache,
         }
         self._save_store_()
 
