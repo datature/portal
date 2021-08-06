@@ -38,11 +38,13 @@ export function APIRejectCache(): Promise<AxiosResponse<any>> {
 /* -------------- AUTOSAVE API -------------- */
 
 export function APIAutosaveQuery(): Promise<AxiosResponse<any>> {
-  return axios.get(SERVER_ADDRESS + AUTOSAVE_QUERY)
+  return axios.get(SERVER_ADDRESS + AUTOSAVE_QUERY);
 }
 
 export function APIAutosaveToggle(flag: boolean): Promise<AxiosResponse<any>> {
-  return axios.post(SERVER_ADDRESS + AUTOSAVE_TOGGLE + "/" + (flag ? "on" : "off"))
+  return axios.post(
+    SERVER_ADDRESS + AUTOSAVE_TOGGLE + "/" + (flag ? "on" : "off")
+  );
 }
 
 /* -------------- GPU API -------------- */
