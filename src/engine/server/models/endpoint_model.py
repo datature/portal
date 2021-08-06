@@ -12,7 +12,25 @@ from server.models.abstract.BaseModel import BaseModel
 
 
 class EndpointModel(BaseModel):
+    def _load_label_map_(self):
+        link = self.kwargs["link"] + "/classes"
+        project_secret = self.kwargs["project_secret"]
+        headers = {"Authorization": "Bearer " + project_secret}
+        response = requests.post(
+            url=link,
+            headers=headers,
+        )
+        if response.status_code != 200:
+            raise PortalError(
+                Errors.ENDPOINTFAILED,
+                "Could not load the endpoint label map. "
+                "This could signify that the endpoint is "
+                "corrupted or simply not present.",
+            )
+        self._label_map_ = response.json()
+
     def register(self):
+        self._load_label_map_()
         link = self.kwargs["link"]
         project_secret = self.kwargs["project_secret"]
         pre_hash = (
@@ -44,9 +62,11 @@ class EndpointModel(BaseModel):
             "data": encodebytes(bts.tostring()).decode("ascii"),
             "image_type": "base_64",
         }
-        headers = {"Authorization": "Bearer " + self.kwargs["project_secret"]}
+        link = self.kwargs["link"] + "/predict"
+        project_secret = self.kwargs["project_secret"]
+        headers = {"Authorization": "Bearer " + project_secret}
         response = requests.post(
-            url=self.kwargs["link"],
+            url=link,
             json=base64_array,
             headers=headers,
         )
