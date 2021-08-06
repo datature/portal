@@ -144,6 +144,29 @@ def prediction_progress() -> Response:
     return jsonify(global_store.get_prediction_progress())
 
 
+@app.route("/autosave/toggle/<toggle_type>", methods=["POST"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def autosave_toggle(toggle_type: str) -> Response:
+    """Turn toggle the caching system during runtime."""
+    if toggle_type == "off":
+        global_store.turn_off_autosave()
+    elif toggle_type == "on":
+        global_store.turn_on_autosave()
+    else:
+        raise PortalError(Errors.INVALIDAPI, "Invalid toggle " + toggle_type)
+    return Response(status=200)
+
+
+@app.route("/autosave", methods=["GET"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def query_autosave() -> Response:
+    """Query the caching system during runtime."""
+    autosave_status = global_store.query_autosave()
+    return Response(status=200, response=autosave_status)
+
+
 @app.route("/cache", methods=["POST"])
 @cross_origin()
 @portal_function_handler(clear_status=False)

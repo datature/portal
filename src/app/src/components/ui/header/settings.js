@@ -39,6 +39,17 @@ export default class QuickSetting extends React.Component {
             />
           </Tooltip>
         </FormGroup>
+        <FormGroup label={<b>Autosave</b>}>
+          <Switch
+            label={"Autosave Progress"}
+            checked={this.props.GlobalSetting.isAutosave}
+            onChange={event => {
+              this.props.GlobalSettingCallback.setAutosave(
+                event.target.checked
+              );
+            }}
+          />
+        </FormGroup>
       </>
     );
   }
