@@ -4,7 +4,7 @@ import os
 import atexit
 import json
 import time
-from typing import Union
+from typing import Union, Optional
 import jsonpickle
 
 from flask import Response
@@ -283,7 +283,7 @@ class GlobalStore:
         self,
         key: str,
         model: BaseModel,
-        store_cache: bool,
+        store_cache: Optional[bool]=True,
     ) -> None:
         """Add or update a model into the registry.
 
