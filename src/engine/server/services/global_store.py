@@ -138,7 +138,12 @@ class GlobalStore:
                 self._targeted_folders_ = jsonpickle.decode(
                     self._store_["targeted_folders"]
                 )
-                for _, value in self._store_["registry"].items():
+                store_registry = self._store_["registry"]
+                # pylint: disable=R1721
+                deepcopy_store_registry = {
+                    key: value for key, value in store_registry.items()
+                }
+                for _, value in deepcopy_store_registry.items():
                     reg_model = Model(
                         value["model_type"],
                         value["model_dir"],
@@ -283,7 +288,7 @@ class GlobalStore:
         self,
         key: str,
         model: BaseModel,
-        store_cache: Optional[bool]=True,
+        store_cache: Optional[bool] = True,
     ) -> None:
         """Add or update a model into the registry.
 
