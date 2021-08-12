@@ -88,6 +88,9 @@ Click on any image or video, press `Analyze`, and Portal will make the inference
   <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-5.png?raw=true" width="45%">
 </p>
 
+#### Keymaps and Shortcuts
+To view the various key maps and shortcuts, press `?` on your keyboard whilst in Portal. There are various shortcuts such as showing labels of detections, going to the next photo, etc. If you have any suggestions or change recommendation, feel free to open a `Feature Request`
+
 **Portal works on both Mask and Bounding Box models.** For detailed documentations about advanced features of Portal can be found here : <a href="https://docs.datature.io/portal/documentation">Portal Documentation</a>
 
 
@@ -130,7 +133,7 @@ Portal works seemlessly with [Nexus, our MLOps platform](https://datature.io), t
 
 ## Sample Weights
 
-We have provided sample weights for you to test portal:
+We have provided sample weights for you to test Portal:
 
 | Dataset                          | Description                                           |     Download Link      |
 | -------------------------------- | ----------------------------------------------------- | :--------------------: |
