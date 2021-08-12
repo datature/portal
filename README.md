@@ -90,6 +90,7 @@ Click on any image or video, press `Analyze`, and Portal will make the inference
 
 **Portal works on both Mask and Bounding Box models.** For detailed documentations about advanced features of Portal can be found here : <a href="https://docs.datature.io/portal/documentation">Portal Documentation</a>
 
+
 ## Working with Datature Nexus
 
 Portal works seemlessly with [Nexus, our MLOps platform](https://datature.io), that helps developers and teams build computer vision models - it comes fully featured with an advanced annotator, augmentation studio, 30+ models and ability to train on multi-GPU settings. Anyhoo, here's how to build a model and run it in Portal - 
@@ -109,14 +110,23 @@ Portal works seemlessly with [Nexus, our MLOps platform](https://datature.io), t
 <p>Once you are done with a training and a candidate checkpoint is selected, you can generate a TensorFlow model under the Artifacts page to obtain the model key required by Portal for the following setup. Use the register model interface to insert this key to the model under Datature Hub.</p>
 
 <p align="center">
-  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/nexus-ss-3.png?raw=true" width="70%">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/nexus-ss-3.png?raw=true" width="80%">
 </p>
 
 <p>With this, you can now run Analyze on your test images and you should be able to train and test new models between Nexus and Portal easily by repeating the steps above. If you'd like to give Datature Nexus a try, simply sign up for an account at https://datature.io - It comes with a free tier!</p>
 
 <p align="center">
-  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/nexus-rb.gif?raw=true" width="70%">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/nexus-rb.gif?raw=true" width="80%">
 </p>
+
+
+
+## Screencasts
+[Using Portal to Inspect Computer Vision Models](https://www.youtube.com/watch?v=dTaqVkr8re0)
+
+[Building an Object Detection Model with Datature](https://www.youtube.com/watch?v=KA4RGtnabDk)
+
+[Building an Instance Segmentation Model with Datature](https://www.youtube.com/watch?v=uLVWanPjGp0)
 
 ## Sample Weights
 
