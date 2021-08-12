@@ -13,9 +13,9 @@ from server.services.global_store import GlobalStore
 
 os.environ["WERKZEUG_RUN_MAIN"] = "true"
 MODEL_LOAD_LIMIT = 1
-CACHE_OPTION = True
 EPSILON_MULTIPLIER = 0.001
 IDLE_MINUTES = 60 * 5
+CACHE_OPTION = os.environ["USE_CACHE"] == "1"
 try:
     DEBUG_MODE = (
         int(os.environ["PORTAL_LOGGING"])
@@ -74,7 +74,9 @@ class ServerThread(threading.Thread):
 # pylint: disable=invalid-name
 app = Flask(__name__)
 server = ServerThread(app)
-global_store = GlobalStore(MODEL_LOAD_LIMIT, IDLE_MINUTES,  caching_system=CACHE_OPTION)
+global_store = GlobalStore(
+    MODEL_LOAD_LIMIT, IDLE_MINUTES, caching_system=CACHE_OPTION
+)
 
 
 def wait_for_process() -> None:

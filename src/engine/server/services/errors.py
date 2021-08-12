@@ -40,6 +40,9 @@ class Errors(Enum):
     # PREDICTION ERRORS 5XXX
     STOPPEDPROCESS = 5000, 400
 
+    # ENDPOINT ERRORS 6XXX
+    ENDPOINTFAILED = 6000, 500
+
 
 # pylint: disable=too-few-public-methods
 class PortalError(Exception):

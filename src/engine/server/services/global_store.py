@@ -4,12 +4,13 @@ import os
 import atexit
 import json
 import time
-from typing import Union
+from typing import Union, Optional
 import jsonpickle
 
 from flask import Response
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+
 # Ignore import-error and no-name-in-module due to Pyshell
 # pylint: disable=E0401, E0611
 from server.services.errors import Errors, PortalError
@@ -18,6 +19,7 @@ from server.services.errors import Errors, PortalError
 from server.services.filesystem.folder_target import FolderTargets
 
 from server.models.abstract.BaseModel import BaseModel
+from server.models.abstract.Model import Model
 
 
 def _delete_store_():
@@ -52,7 +54,6 @@ class GlobalStore:
         }
         self._idle_minutes_ = idle_minutes
 
-
         # Flag to enable or diable the caching system
         self.caching_system = caching_system
         self._store_ = {
@@ -78,21 +79,18 @@ class GlobalStore:
 
         :return: void
         """
-        if (
-                self._is_shutdown_server_(self._idle_minutes_)
-                or self._op_atomic_
-        ):
+        if self._is_shutdown_server_(self._idle_minutes_) or self._op_atomic_:
             time.sleep(5)
         else:
             os._exit(0)  # pylint: disable=W0212
 
     def set_start_scheduler(self):
-        """Start the scheduler
-
-        """
+        """Start the scheduler"""
         if self._scheduler_ is None:
             self._scheduler_ = BackgroundScheduler(daemon=True)
-            self._scheduler_.add_job(self._schedule_shutdown_, IntervalTrigger(minutes=1))
+            self._scheduler_.add_job(
+                self._schedule_shutdown_, IntervalTrigger(minutes=1)
+            )
             self._scheduler_.start()
 
             # Shut down the scheduler when exiting the app
@@ -105,11 +103,29 @@ class GlobalStore:
         self._global_server_time_ = max(self._global_server_time_, now)
 
     def set_is_cache_called(self, path):
-        """Fist initialization in run.py
+        """First initialization in run.py
 
         :param path: dir of cache
         """
         self._is_cache_called_ = not os.path.isfile(path)
+
+    def turn_on_autosave(self):
+        """Enable caching during runtime."""
+        self.caching_system = True
+        with open(os.environ["USE_CACHE_DIR"], "w") as cache_flag:
+            cache_flag.write("1")
+        self._save_store_()
+
+    def turn_off_autosave(self):
+        """Disable caching during runtime."""
+        with open(os.environ["USE_CACHE_DIR"], "w") as cache_flag:
+            cache_flag.write("0")
+        _delete_store_()
+        self.caching_system = False
+
+    def query_autosave(self):
+        """Query the autosave flag during runtime."""
+        return "1" if self.caching_system else "0"
 
     def load_cache(self):
         """Load the cache.
@@ -122,6 +138,15 @@ class GlobalStore:
                 self._targeted_folders_ = jsonpickle.decode(
                     self._store_["targeted_folders"]
                 )
+                for _, value in self._store_["registry"].items():
+                    reg_model = Model(
+                        value["model_type"],
+                        value["model_dir"],
+                        value["model_name"],
+                        "",
+                        **value["model_kwargs"],
+                    )
+                    self.add_registered_model(*reg_model.register())
                 self._is_cache_called_ = True
         else:
             raise PortalError(
@@ -136,8 +161,29 @@ class GlobalStore:
         Transfers data from self._store_ into "./server/cache/store.portalCache"
         """
         if self.caching_system:
+            cache_store = self._store_.copy()
+            updated_registry = {
+                registry_key: {
+                    key: value
+                    for key, value in self._store_["registry"][
+                        registry_key
+                    ].items()
+                    if key
+                    in [
+                        "model_type",
+                        "model_dir",
+                        "model_name",
+                        "model_kwargs",
+                        "save_in_cache",
+                    ]
+                }
+                for registry_key in list(self._store_["registry"].keys())
+                if self._store_["registry"][registry_key]["save_in_cache"]
+            }
+            cache_store["registry"] = updated_registry
+
             with open(os.getenv("CACHE_DIR"), "w+") as cache:
-                json.dump(self._store_, cache)
+                json.dump(cache_store, cache)
 
     # pylint: disable=R0201
     def has_cache(self):
@@ -237,6 +283,7 @@ class GlobalStore:
         self,
         key: str,
         model: BaseModel,
+        store_cache: Optional[bool]=True,
     ) -> None:
         """Add or update a model into the registry.
 
@@ -251,7 +298,8 @@ class GlobalStore:
         """
         model_dir = model.get_info()["directory"]
         model_name = model.get_info()["name"]
-
+        model_type = model.get_info()["type"]
+        model_kwargs = model.get_info()["kwargs"]
         for item in self._store_["registry"]:
             if self._store_["registry"][item]["model_dir"] == model_dir:
                 self._store_["registry"].pop(item)
@@ -261,11 +309,14 @@ class GlobalStore:
                     Errors.INVALIDAPI,
                     "A model with the same name already exists.",
                 )
-        serialized_model_class = jsonpickle.encode(model)
+        model_class = model
         self._store_["registry"][key] = {
-            "class": serialized_model_class,
+            "class": model_class,
+            "model_type": model_type,
             "model_dir": model_dir,
             "model_name": model_name,
+            "model_kwargs": model_kwargs,
+            "save_in_cache": store_cache,
         }
         self._save_store_()
 
@@ -276,13 +327,13 @@ class GlobalStore:
         :return: The model as a Model class.
         """
         if key in self._store_["registry"]:
-            return jsonpickle.decode(self._store_["registry"][key]["class"])
+            return self._store_["registry"][key]["class"]
         raise PortalError(Errors.INVALIDMODELKEY, "Model not registered.")
 
     def get_registered_model_info(self) -> str:
         """Retrieve directory, description, name of all registered models"""
         return {
-            model_id: jsonpickle.decode(model_dict["class"]).get_info()
+            model_id: model_dict["class"].get_info()
             for model_id, model_dict in self._store_["registry"].items()
         }
 
@@ -300,14 +351,13 @@ class GlobalStore:
         """Check if current registered models exceeds the model limit."""
         return len(self._loaded_model_list_) >= self._model_load_limit_
 
-    def load_model(self, key: str, model_dict: dict) -> None:
+    def load_model(self, key: str, model_class: BaseModel) -> None:
         """Add a model into the loaded model list.
 
         :param key: The model key.
-        :param model_dict: A dictionary of the loaded model
-            and its model class.
+        :param model_class: The model class that the model key represents.
         """
-        self._loaded_model_list_[key] = model_dict
+        self._loaded_model_list_[key] = model_class
 
     def get_loaded_model_keys(self) -> list:
         """Retrieve all model keys in the loaded model list."""
@@ -325,11 +375,11 @@ class GlobalStore:
 
         self._save_store_()
 
-    def get_model_dict(self, key: str) -> tuple:
+    def get_model_class(self, key: str) -> tuple:
         """Retrieve the model, label map, height and width given the model key.
 
         :param key: The model key.
-        :return: A dictionary of the loaded model and its model class.
+        :return: The model class that the model key represents.
         """
         return self._loaded_model_list_[key]
 

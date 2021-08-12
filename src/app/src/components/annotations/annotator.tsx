@@ -242,7 +242,7 @@ export default class Annotator extends Component<
         cacheResults: false,
         iou: 0.8,
         video: {
-          frameInterval: 20,
+          frameInterval: 1,
         },
       },
       currAnnotationPlaybackId: 0,

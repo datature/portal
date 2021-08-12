@@ -60,6 +60,7 @@ export type FormData = {
   directory: string;
   modelKey: string;
   projectSecret: string;
+  modelURL: string;
   modelType: "tensorflow" | "darknet" | "";
 };
 
@@ -131,6 +132,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         directory: "",
         modelKey: "",
         projectSecret: "",
+        modelURL: "",
       },
       drawerTabId: "details",
       registrationTabId: "local",
@@ -190,7 +192,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
 
   /** -------- Methods related to API calls -------- */
 
-  /** Calls the Model Registratiion API with info recorded in formData */
+  /** Calls the Model Registration API with info recorded in formData */
   private handleRegisterModel = async () => {
     this.setState({ isAPIcalled: true });
     if (
@@ -213,6 +215,17 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         Intent.WARNING,
         3000
       );
+    } else if (
+      this.state.formData.type === "endpoint" &&
+      (this.state.formData.modelURL === "" ||
+        this.state.formData.projectSecret === "" ||
+        this.state.formData.name === "")
+    ) {
+      CreateGenericToast(
+        "Please fill in the name, URL and project secret of the model you want to load from endpoint.",
+        Intent.WARNING,
+        3000
+      );
     } else {
       await APIRegisterModel(
         this.state.formData.type,
@@ -221,7 +234,8 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         this.state.formData.description,
         this.state.formData.directory,
         this.state.formData.modelKey,
-        this.state.formData.projectSecret
+        this.state.formData.projectSecret,
+        this.state.formData.modelURL
       )
         .then(result => {
           if (result.status === 200) {
@@ -505,6 +519,80 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     return dict;
   };
 
+  /** Render Tab Input Settings based on registrationTabId.
+   * @param registrationTabId : the tab id of the tab to be rendered
+   * @return jsx : the tab input settings
+   */
+  private renderTabSettings = (
+    registrationTabId: TabId,
+    browseButton: JSX.Element,
+    browseHint: JSX.Element
+  ) => {
+    switch (registrationTabId) {
+      case "local":
+        return (
+          <FormGroup label="Folder Path" labelFor="label-input">
+            <InputGroup
+              id="directory"
+              name="directory"
+              value={this.state.formData.directory}
+              placeholder={"Enter model folder path..."}
+              onChange={this.handleChangeForm}
+              rightElement={isElectron() ? browseButton : browseHint}
+            />
+          </FormGroup>
+        );
+      case "hub":
+        return (
+          <>
+            <FormGroup label="Model Key" labelFor="label-input">
+              <InputGroup
+                id="modelKey"
+                name="modelKey"
+                value={this.state.formData.modelKey}
+                placeholder="Enter model key from hub..."
+                onChange={this.handleChangeForm}
+              />
+            </FormGroup>
+            <FormGroup label="Project Secret" labelFor="label-input">
+              <InputGroup
+                id="projectSecret"
+                name="projectSecret"
+                value={this.state.formData.projectSecret}
+                placeholder="Enter project secret from hub..."
+                onChange={this.handleChangeForm}
+              />{" "}
+            </FormGroup>
+          </>
+        );
+      case "endpoint":
+        return (
+          <>
+            <FormGroup label="Endpoint URL" labelFor="label-input">
+              <InputGroup
+                id="modelURL"
+                name="modelURL"
+                value={this.state.formData.modelURL}
+                placeholder="Enter the URL from endpoint..."
+                onChange={this.handleChangeForm}
+              />
+            </FormGroup>
+            <FormGroup label="Project Secret" labelFor="label-input">
+              <InputGroup
+                id="projectSecret"
+                name="projectSecret"
+                value={this.state.formData.projectSecret}
+                placeholder="Enter project secret from endpoint..."
+                onChange={this.handleChangeForm}
+              />{" "}
+            </FormGroup>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
   /** Create MenuItems from the registereModelList
    * @return {Array<MenuItem>} An array of registered models in the format of MenuItems
    */
@@ -584,6 +672,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         directory: "",
         modelKey: "",
         projectSecret: "",
+        modelURL: "",
       },
       registrationTabId: tabId,
     });
@@ -717,38 +806,10 @@ export default class Model extends React.Component<ModelProps, ModelState> {
             onChange={this.handleChangeForm}
           />
         </FormGroup>
-        {this.state.registrationTabId === "local" ? (
-          <FormGroup label="Folder Path" labelFor="label-input">
-            <InputGroup
-              id="directory"
-              name="directory"
-              value={this.state.formData.directory}
-              placeholder={"Enter model folder path..."}
-              onChange={this.handleChangeForm}
-              rightElement={isElectron() ? browseButton : browseHint}
-            />
-          </FormGroup>
-        ) : (
-          <>
-            <FormGroup label="Model Key" labelFor="label-input">
-              <InputGroup
-                id="modelKey"
-                name="modelKey"
-                value={this.state.formData.modelKey}
-                placeholder="Enter model key from hub..."
-                onChange={this.handleChangeForm}
-              />
-            </FormGroup>
-            <FormGroup label="Project Secret" labelFor="label-input">
-              <InputGroup
-                id="projectSecret"
-                name="projectSecret"
-                value={this.state.formData.projectSecret}
-                placeholder="Enter project secret from hub..."
-                onChange={this.handleChangeForm}
-              />{" "}
-            </FormGroup>
-          </>
+        {this.renderTabSettings(
+          this.state.registrationTabId,
+          browseButton,
+          browseHint
         )}
         <Button
           type="submit"
@@ -971,6 +1032,11 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   >
                     <Tab id="local" title="Local" />
                     <Tab id="hub" title="Datature Hub" />
+                    <Tab
+                      id="endpoint"
+                      title="Datature API (Coming Soon)"
+                      disabled={true}
+                    />
                     <Tabs.Expander />
                   </Tabs>
                 </NavbarGroup>{" "}
@@ -992,6 +1058,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 directory: "",
                 modelKey: "",
                 projectSecret: "",
+                modelURL: "",
               },
               registrationTabId: "local",
               isOpenRegistraionForm: false,

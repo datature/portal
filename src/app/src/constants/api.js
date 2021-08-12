@@ -4,6 +4,10 @@ export const IS_ALIVE = `/heartbeat`;
 export const SHUTDOWN = `/shutdown`;
 export const CACHE = `/cache`;
 
+// Autosave Query route
+export const AUTOSAVE_QUERY = `/autosave`;
+export const AUTOSAVE_TOGGLE = `/autosave/toggle`;
+
 // Assets/folders routes
 export const POST_PROJECT_REGISTER_IMAGES = `/api/project/register`;
 export const GET_PROJECT_ASSETS = `/api/project/assets`;
