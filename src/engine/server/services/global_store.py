@@ -138,15 +138,22 @@ class GlobalStore:
                 self._targeted_folders_ = jsonpickle.decode(
                     self._store_["targeted_folders"]
                 )
+                models_list = []
                 for _, value in self._store_["registry"].items():
+                    model_type = value["model_type"]
+                    model_dir = value["model_dir"]
+                    model_name = value["model_name"]
+                    model_kwargs = value["model_kwargs"]
                     reg_model = Model(
-                        value["model_type"],
-                        value["model_dir"],
-                        value["model_name"],
+                        model_type,
+                        model_dir,
+                        model_name,
                         "",
-                        **value["model_kwargs"],
+                        **model_kwargs,
                     )
-                    self.add_registered_model(*reg_model.register())
+                    models_list.append(reg_model)
+                for item in models_list:
+                    self.add_registered_model(*item.register())
                 self._is_cache_called_ = True
         else:
             raise PortalError(
@@ -283,7 +290,7 @@ class GlobalStore:
         self,
         key: str,
         model: BaseModel,
-        store_cache: Optional[bool]=True,
+        store_cache: Optional[bool] = True,
     ) -> None:
         """Add or update a model into the registry.
 
