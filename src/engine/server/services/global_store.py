@@ -139,6 +139,7 @@ class GlobalStore:
                     self._store_["targeted_folders"]
                 )
                 store_registry = self._store_["registry"]
+                # pylint: disable=R1721
                 deepcopy_store_registry = {
                     key: value for key, value in store_registry.items()
                 }
