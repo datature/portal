@@ -138,22 +138,19 @@ class GlobalStore:
                 self._targeted_folders_ = jsonpickle.decode(
                     self._store_["targeted_folders"]
                 )
-                models_list = []
-                for _, value in self._store_["registry"].items():
-                    model_type = value["model_type"]
-                    model_dir = value["model_dir"]
-                    model_name = value["model_name"]
-                    model_kwargs = value["model_kwargs"]
+                store_registry = self._store_["registry"]
+                deepcopy_store_registry = {
+                    key: value for key, value in store_registry.items()
+                }
+                for _, value in deepcopy_store_registry.items():
                     reg_model = Model(
-                        model_type,
-                        model_dir,
-                        model_name,
+                        value["model_type"],
+                        value["model_dir"],
+                        value["model_name"],
                         "",
-                        **model_kwargs,
+                        **value["model_kwargs"],
                     )
-                    models_list.append(reg_model)
-                for item in models_list:
-                    self.add_registered_model(*item.register())
+                    self.add_registered_model(*reg_model.register())
                 self._is_cache_called_ = True
         else:
             raise PortalError(
