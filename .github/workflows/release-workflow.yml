@@ -4,32 +4,7 @@ on:
   push:
     branches: [releases/v*]
 jobs:
-  build-out:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1.4.4
-        with:
-          node-version: 14
-          registry-url: https://npm.pkg.github.com/
-          scope: "@beesaycheese"
-
-      - name: Installing App dependencies
-        working-directory: ./src/app
-        run: npm install
-
-      - name: Build and export out
-        working-directory: ./src/app
-        run: npm run build:static
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: app-out
-          path: ./portal_build/out
-          retention-days: 1
-
   build-electron:
-    needs: [build-out]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -41,11 +16,6 @@ jobs:
       - name: Set the env variables
         run: |
           echo "USE_HARD_LINKS=false" >> $GITHUB_ENV
-
-      - uses: actions/download-artifact@v2
-        with:
-          name: app-out
-          path: ./portal_build/out
 
       - name: Extract Platform
         shell: bash

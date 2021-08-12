@@ -144,6 +144,29 @@ def prediction_progress() -> Response:
     return jsonify(global_store.get_prediction_progress())
 
 
+@app.route("/autosave/toggle/<toggle_type>", methods=["POST"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def autosave_toggle(toggle_type: str) -> Response:
+    """Turn toggle the caching system during runtime."""
+    if toggle_type == "off":
+        global_store.turn_off_autosave()
+    elif toggle_type == "on":
+        global_store.turn_on_autosave()
+    else:
+        raise PortalError(Errors.INVALIDAPI, "Invalid toggle " + toggle_type)
+    return Response(status=200)
+
+
+@app.route("/autosave", methods=["GET"])
+@cross_origin()
+@portal_function_handler(clear_status=False)
+def query_autosave() -> Response:
+    """Query the caching system during runtime."""
+    autosave_status = global_store.query_autosave()
+    return Response(status=200, response=autosave_status)
+
+
 @app.route("/cache", methods=["POST"])
 @cross_origin()
 @portal_function_handler(clear_status=False)
@@ -217,9 +240,9 @@ def register_model() -> tuple:
         model_description: str = data["description"]
         model_key: str = input_credentials["modelKey"]
         project_secret: str = input_credentials["projectSecret"]
+        model_url: str = input_credentials["modelURL"]
         model_type: str = data["modelType"]
         input_directory: str = data["directory"]
-
         if global_store.set_status("register_model_" + model_key):
             wait_for_process()
             return global_store.get_caught_response("register_model_")
@@ -253,12 +276,20 @@ def register_model() -> tuple:
                 Errors.INVALIDAPI,
                 "model_key needs to be given if input_type is 'hub'.",
             )
+        if input_type == "endpoint" and (
+            model_url == "" or project_secret == ""
+        ):
+            raise PortalError(
+                Errors.INVALIDAPI,
+                "Endpoint URL / project_secret "
+                "needs to be given if input_type is 'endpoint'.",
+            )
         if model_type not in ["darknet", "tensorflow", "pytorch"]:
             raise PortalError(
                 Errors.INVALIDAPI,
                 "model_type needs to be one of 'darknet', 'tensorflow' or 'pytorch'.",
             )
-        if input_type == "hub" and model_type != "tensorflow":
+        if input_type in ["hub", "endpoint"] and model_type != "tensorflow":
             raise PortalError(
                 Errors.INVALIDAPI,
                 "only tensorflow models are supported for Hub.",
@@ -280,7 +311,10 @@ def register_model() -> tuple:
 
         if input_type == "endpoint":
             register_endpoint(
-                model_key=model_key, project_secret=project_secret
+                link=model_url,
+                project_secret=project_secret,
+                name=model_name,
+                description=model_description,
             )
 
         return (jsonify(global_store.get_registered_model_info()), 200)
@@ -488,10 +522,10 @@ def predict_single_image(model_id: str) -> tuple:
             if model_id not in global_store.get_loaded_model_keys():
                 raise PortalError(Errors.NOTFOUND, "model_id not loaded.")
 
-            model_dict = global_store.get_model_dict(model_id)
+            model_class = global_store.get_model_class(model_id)
 
             output = predict_image(
-                model_dict, format_arg, iou, image_directory
+                model_class, format_arg, iou, image_directory
             )
             global_store.add_predictions(prediction_key, output)
 
@@ -585,10 +619,10 @@ def predict_video_fn(model_id: str) -> tuple:
                 raise PortalError(Errors.UNINITIALIZED, "No Models loaded.")
             if model_id not in global_store.get_loaded_model_keys():
                 raise PortalError(Errors.NOTFOUND, "model_id not loaded.")
-            model_dict = global_store.get_model_dict(model_id)
+            model_class = global_store.get_model_class(model_id)
 
             output = predict_video(
-                model_dict,
+                model_class,
                 iou=iou,
                 video_directory=video_directory,
                 frame_interval=frame_interval,

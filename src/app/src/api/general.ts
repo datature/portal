@@ -7,6 +7,8 @@ import {
   GET_GPU,
   SET_GPU,
   CLEAR_GPU,
+  AUTOSAVE_QUERY,
+  AUTOSAVE_TOGGLE,
 } from "@portal/constants/api";
 
 export function APIIsAlive(isElectron: boolean): Promise<AxiosResponse<any>> {
@@ -23,12 +25,26 @@ export function APIShutdown(
   });
 }
 
+/* -------------- CACHE API -------------- */
+
 export function APILoadCache(): Promise<AxiosResponse<any>> {
   return axios.post(SERVER_ADDRESS + CACHE);
 }
 
 export function APIRejectCache(): Promise<AxiosResponse<any>> {
   return axios.put(SERVER_ADDRESS + CACHE);
+}
+
+/* -------------- AUTOSAVE API -------------- */
+
+export function APIAutosaveQuery(): Promise<AxiosResponse<any>> {
+  return axios.get(SERVER_ADDRESS + AUTOSAVE_QUERY);
+}
+
+export function APIAutosaveToggle(flag: boolean): Promise<AxiosResponse<any>> {
+  return axios.post(
+    SERVER_ADDRESS + AUTOSAVE_TOGGLE + "/" + (flag ? "on" : "off")
+  );
 }
 
 /* -------------- GPU API -------------- */

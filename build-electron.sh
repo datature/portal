@@ -1,5 +1,7 @@
 #! /bin/bash
 
+# Note that this is to berun in release branches only where the portal_build/out folder is present
+
 # exit when any command fails
 set -e
 # keep track of the last executed command
@@ -12,19 +14,10 @@ chmod +x setup-virtualenv.sh build-python.sh
 echo "Calling setup-virtualenv.sh to setup environment in portal_build"
 . setup-virtualenv.sh 
 echo "Calling build-python.sh to build backend executable"
-. build-python.sh 
-cd ./src/app
-echo "Building Frontend for Portal..."
-npm run build:static 
-cd ../..
-cd ./src/app
-if [ -f ./node_modules ]; then
-echo "Removing extra dependencies"
-rm -rf node_modules/
-fi
-echo "Installing the production dependencies"
-npm install --only=prod
-cd ../..
+. build-python.sh
+
+echo "Installing dependencies to build the executable"
+npm install
 
 echo "Building Executable for Portal..."
 npm run dist

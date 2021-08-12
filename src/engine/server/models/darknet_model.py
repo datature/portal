@@ -87,10 +87,11 @@ class DarknetModel(BaseModel):
         loaded_model = cv2.dnn.readNetFromDarknet(
             self._configname_, self._weightsname_
         )
-        return loaded_model
+        self._model_ = loaded_model
 
-    def predict(self, model, image_array):
+    def predict(self, image_array):
         try:
+            model = self._model_
             (H, W) = image_array.shape[:2]
             ln = model.getLayerNames()
             ln = [ln[i[0] - 1] for i in model.getUnconnectedOutLayers()]

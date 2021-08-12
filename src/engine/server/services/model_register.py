@@ -27,7 +27,7 @@ def register_local(
             saved_model/{saved_model.pb|saved_model.pbtxt} is not found in given directory.
     """
     reg_model = Model(model_type, directory, name, description)
-    global_store.add_registered_model(*reg_model.register())
+    global_store.add_registered_model(*reg_model.register(), store_cache=True)
 
 
 def register_hub(
@@ -61,7 +61,9 @@ def register_hub(
             height=height,
             width=width,
         )
-        global_store.add_registered_model(*reg_model.register())
+        global_store.add_registered_model(
+            *reg_model.register(), store_cache=True
+        )
 
     # Except Block
     # Catches all possible native exceptions here and translates them into PortalError.
@@ -71,10 +73,20 @@ def register_hub(
         raise PortalError(Errors.HUBERROR, str(e)) from e
 
 
-def register_endpoint(model_key: str, project_secret: str) -> None:
+def register_endpoint(
+    link: str, project_secret: str, name: str, description: str
+) -> None:
     """Register a model from an endpoint.
 
-    :param model_key: The model key obtained from the endpoint.
-    :param project_secret: The proejct secret obtained from the endpoint.
+    :param link: The URL of the endpoint.
+    :param project_secret: The proejct secret to access the endpoint.
     """
-    raise NotImplementedError("model_loading_services - load_endpoint")
+    reg_model = Model(
+        "endpoint",
+        "",
+        name,
+        description,
+        link=link,
+        project_secret=project_secret,
+    )
+    global_store.add_registered_model(*reg_model.register(), store_cache=False)

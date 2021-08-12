@@ -27,7 +27,9 @@ Portal can be used as a Web Application or through downloading and installing ou
 
 ### Running Portal as a Web Application
 
-Portal is built using `python 3.7`. Ensure that you have this version (and up) before beginning. Clone the repository and then navigate to the directory where `requirements.txt` is and install all necessary dependencies and setup using `setup.sh`:
+**This is the recommended way of running Portal**
+
+Portal is built using `Python 3.7`. Ensure that you have this version and up before beginning (`Python 3.7 <= X < 3.9`). Clone the repository and then navigate to the directory where `requirements.txt` is and install all necessary dependencies and setup using `setup.sh`:
 
 ```.bash
 git clone https://github.com/datature/portal
@@ -86,11 +88,52 @@ Click on any image or video, press `Analyze`, and Portal will make the inference
   <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/portal-ss-5.png?raw=true" width="45%">
 </p>
 
+#### Keymaps and Shortcuts
+To view the various key maps and shortcuts, press `?` on your keyboard whilst in Portal. There are various shortcuts such as showing labels of detections, going to the next photo, etc. If you have any suggestions or change recommendation, feel free to open a `Feature Request`
+
 **Portal works on both Mask and Bounding Box models.** For detailed documentations about advanced features of Portal can be found here : <a href="https://docs.datature.io/portal/documentation">Portal Documentation</a>
+
+
+## Working with Datature Nexus
+
+Portal works seemlessly with [Nexus, our MLOps platform](https://datature.io), that helps developers and teams build computer vision models - it comes fully featured with an advanced annotator, augmentation studio, 30+ models and ability to train on multi-GPU settings. Anyhoo, here's how to build a model and run it in Portal - 
+
+<p align="center">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/nexus-ss-4.png?raw=true" width="45%">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/nexus-ss-5.png?raw=true" width="45%">
+</p>
+
+<p>To build a model on Nexus, simply create a project, upload the dataset, annotate the images, and create a training pipeline. You should be able to start a model training and this can take a few hours. As the model training progress, checkpoints are automatically generated and you should see them in the Artifacts page. For more details on how to use Nexus, consider watching our tutorial <a href="https://www.youtube.com/watch?v=KA4RGtnabDk">here</a>.</p>
+
+<p align="center">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/nexus-ss-1.png?raw=true" width="45%">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/nexus-ss-2.png?raw=true" width="45%">
+</p>
+
+<p>Once you are done with a training and a candidate checkpoint is selected, you can generate a TensorFlow model under the Artifacts page to obtain the model key required by Portal for the following setup. Use the register model interface to insert this key to the model under Datature Hub.</p>
+
+<p align="center">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/nexus-ss-3.png?raw=true" width="80%">
+</p>
+
+<p>With this, you can now run Analyze on your test images and you should be able to train and test new models between Nexus and Portal easily by repeating the steps above. If you'd like to give Datature Nexus a try, simply sign up for an account at https://datature.io - It comes with a free tier!</p>
+
+<p align="center">
+  <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/nexus-rb.gif?raw=true" width="80%">
+</p>
+
+
+
+## Screencasts
+[Using Portal to Inspect Computer Vision Models](https://www.youtube.com/watch?v=dTaqVkr8re0)
+
+[Building an Object Detection Model with Datature](https://www.youtube.com/watch?v=KA4RGtnabDk)
+
+[Building an Instance Segmentation Model with Datature](https://www.youtube.com/watch?v=uLVWanPjGp0)
 
 ## Sample Weights
 
-We have provided sample weights for you to test portal:
+We have provided sample weights for you to test Portal:
 
 | Dataset                          | Description                                           |     Download Link      |
 | -------------------------------- | ----------------------------------------------------- | :--------------------: |
