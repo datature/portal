@@ -60,6 +60,7 @@ export type FormData = {
   directory: string;
   modelKey: string;
   projectSecret: string;
+  modelURL: string;
   modelType: "tensorflow" | "darknet" | "";
 };
 
@@ -73,24 +74,35 @@ interface ModelProps {
 }
 
 interface ModelState {
+  /** Dict of registered model to be obtained from server (key: hashkey) */
   registeredModelList: { [key: string]: RegisteredModel } | any;
+  /** This referes to the current loaded model */
   currentModel: RegisteredModel | undefined;
+  /** This referes to the model chosen to be viewed or loaded */
   chosenModel: RegisteredModel | undefined;
+  /** Contains data from the model registration form */
+  formData: FormData;
+  /** Tab id */
+  drawerTabId: TabId;
+  /** Tab id */
+  registrationTabId: TabId;
+  /** General icon format (used in the registration form to show outcome) */
+  generalIcon: { name: IconName; intent: Intent } | undefined;
+  /** Model Tag map */
+  projectTags: { [tag: string]: number } | any;
+  /** Waits for the run time seperately from the heartbeat (so that model list is updated when server loads) */
   waitForRuntime: boolean;
+
+  /** The following are self explanatory boolean states */
   isConfirmLoad: boolean;
-  isUnloadModelAPI: boolean;
-  isLoadModelAPI: boolean;
   isConfirmDelete: boolean;
   isConfirmUnload: boolean;
+  isUnloadModelAPI: boolean;
+  isLoadModelAPI: boolean;
   isAPIcalled: boolean;
   isGetTagAPI: boolean;
   isOpenDrawer: boolean;
   isOpenRegistraionForm: boolean;
-  formData: FormData;
-  drawerTabId: TabId;
-  registrationTabId: TabId;
-  generalIcon: { name: IconName; intent: Intent } | undefined;
-  projectTags: { [tag: string]: number } | any;
 }
 
 export default class Model extends React.Component<ModelProps, ModelState> {
@@ -120,6 +132,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         directory: "",
         modelKey: "",
         projectSecret: "",
+        modelURL: "",
       },
       drawerTabId: "details",
       registrationTabId: "local",
@@ -130,9 +143,56 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     this.handleUnloadAndLoadModel = this.handleUnloadAndLoadModel.bind(this);
     this.handleDeleteModel = this.handleDeleteModel.bind(this);
     this.formatLongStringName = this.formatLongStringName.bind(this);
+    // this.handleElectronChangeDirListener = this.handleElectronChangeDirListener.bind(this);
   }
 
-  /** Methods related to API calls */
+  async componentDidMount(): Promise<void> {
+    if (isElectron()) {
+      const { ipcRenderer } = window.require("electron");
+      ipcRenderer.on(
+        "select-model-reply",
+        this.handleElectronChangeDirListener
+      );
+    }
+    while (this.state.waitForRuntime) {
+      // eslint-disable-next-line no-await-in-loop
+      await APIGetRegisteredModels()
+        .then(async result => {
+          if (result.status === 200) {
+            this.setState({
+              registeredModelList: this.generateRegisteredModelList(
+                result.data
+              ),
+            });
+            if (this.state.registeredModelList !== {}) {
+              // eslint-disable-next-line no-await-in-loop
+              await this.handleGetLoadedModel();
+            }
+            this.setState({ waitForRuntime: false });
+          }
+        })
+        .catch(() => {
+          /** Do Nothing */
+        });
+
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(res => setTimeout(res, 25000));
+    }
+  }
+
+  componentWillUnmount(): void {
+    if (isElectron()) {
+      const { ipcRenderer } = window.require("electron");
+      ipcRenderer.removeListener(
+        "select-model-reply",
+        this.handleElectronChangeDirListener
+      );
+    }
+  }
+
+  /** -------- Methods related to API calls -------- */
+
+  /** Calls the Model Registration API with info recorded in formData */
   private handleRegisterModel = async () => {
     this.setState({ isAPIcalled: true });
     if (
@@ -155,6 +215,17 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         Intent.WARNING,
         3000
       );
+    } else if (
+      this.state.formData.type === "endpoint" &&
+      (this.state.formData.modelURL === "" ||
+        this.state.formData.projectSecret === "" ||
+        this.state.formData.name === "")
+    ) {
+      CreateGenericToast(
+        "Please fill in the name, URL and project secret of the model you want to load from endpoint.",
+        Intent.WARNING,
+        3000
+      );
     } else {
       await APIRegisterModel(
         this.state.formData.type,
@@ -163,7 +234,8 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         this.state.formData.description,
         this.state.formData.directory,
         this.state.formData.modelKey,
-        this.state.formData.projectSecret
+        this.state.formData.projectSecret,
+        this.state.formData.modelURL
       )
         .then(result => {
           if (result.status === 200) {
@@ -197,6 +269,10 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     this.setState({ isAPIcalled: false });
   };
 
+  /** Calls the get all loaded models API
+   * Note: Even though the api returns a list, there should only be one loaded model
+   * This is ensured in handleUnloadAndLoadModel()
+   * */
   private handleGetLoadedModel = async () => {
     this.setState({ isLoadModelAPI: true });
     await APIGetLoadedModel().then(result => {
@@ -211,6 +287,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     this.setState({ isLoadModelAPI: false });
   };
 
+  /** Calls the get all registered models API */
   private handleRefreshModelList = async () => {
     this.setState({ isAPIcalled: true });
     await APIGetRegisteredModels()
@@ -232,6 +309,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     this.setState({ isAPIcalled: false });
   };
 
+  /** Calls the unloaded models API
+   * The model it unloads is the currentModel
+   */
   private handleUnloadModel = async () => {
     this.setState({ isUnloadModelAPI: true });
     if (this.state.currentModel !== undefined) {
@@ -260,6 +340,10 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     });
   };
 
+  /** Unloads the currentModel and loads the chosenModel
+   * Calls handleUnloadModel() to unload
+   * Calls the load model API
+   * */
   private handleUnloadAndLoadModel = async () => {
     this.setState({ isLoadModelAPI: true });
     if (this.state.chosenModel === undefined) {
@@ -303,6 +387,12 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     this.setState({ isLoadModelAPI: false, isConfirmLoad: false });
   };
 
+  /** Deletes a registered model aka chosenModel
+   * If the chosenModel is the currentModel loaded, it will unload it before deletion
+   * Calls handleUnloadModel() to unload
+   * Calls the delete model API
+   * Calls get all registered model api to update the registeredModelList
+   * */
   private handleDeleteModel = async () => {
     this.setState({ isAPIcalled: true, isConfirmDelete: true });
     if (this.state.chosenModel !== undefined) {
@@ -352,6 +442,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     });
   };
 
+  /** Calls the get all model tags for the chosenModel to update the projectTags */
   private handleGetModelTags = async () => {
     this.setState({ isGetTagAPI: true });
     if (this.state.chosenModel !== undefined) {
@@ -374,8 +465,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     this.setState({ isGetTagAPI: false });
   };
 
-  /** Methods related to Registered Model List */
+  /** ------- Methods related to Registered Model List ------- */
 
+  /** Updates the formData. Called when there is a change in the registration form */
   private handleChangeForm = (event: any) => {
     // eslint-disable-next-line react/no-access-state-in-setstate, prefer-const
     let form: any = this.state.formData;
@@ -383,6 +475,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     this.setState({ formData: form });
   };
 
+  /** Sets up a call for electron to browse the file dialog directory */
   private handleElectronFileDialog = () => {
     if (isElectron()) {
       const { ipcRenderer } = window.require("electron");
@@ -396,6 +489,21 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     }
   };
 
+  /** Listener for electron to updates the formData.directory when ipcrender sends a reply */
+  private handleElectronChangeDirListener = (event: any, args: string[]) => {
+    this.setState(prevState => {
+      // eslint-disable-next-line prefer-const
+      let form: any = prevState.formData;
+      // eslint-disable-next-line prefer-destructuring
+      form.directory = args[0];
+      return { formData: form };
+    });
+  };
+
+  /** Generate the registered model list
+   * @params data : data from the api call
+   * @return dict : registered model list in a dictionary format
+   */
   private generateRegisteredModelList = (data: any) => {
     const modelArr: string[] = Object.keys(data);
     // eslint-disable-next-line prefer-const
@@ -411,6 +519,83 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     return dict;
   };
 
+  /** Render Tab Input Settings based on registrationTabId.
+   * @param registrationTabId : the tab id of the tab to be rendered
+   * @return jsx : the tab input settings
+   */
+  private renderTabSettings = (
+    registrationTabId: TabId,
+    browseButton: JSX.Element,
+    browseHint: JSX.Element
+  ) => {
+    switch (registrationTabId) {
+      case "local":
+        return (
+          <FormGroup label="Folder Path" labelFor="label-input">
+            <InputGroup
+              id="directory"
+              name="directory"
+              value={this.state.formData.directory}
+              placeholder={"Enter model folder path..."}
+              onChange={this.handleChangeForm}
+              rightElement={isElectron() ? browseButton : browseHint}
+            />
+          </FormGroup>
+        );
+      case "hub":
+        return (
+          <>
+            <FormGroup label="Model Key" labelFor="label-input">
+              <InputGroup
+                id="modelKey"
+                name="modelKey"
+                value={this.state.formData.modelKey}
+                placeholder="Enter model key from hub..."
+                onChange={this.handleChangeForm}
+              />
+            </FormGroup>
+            <FormGroup label="Project Secret" labelFor="label-input">
+              <InputGroup
+                id="projectSecret"
+                name="projectSecret"
+                value={this.state.formData.projectSecret}
+                placeholder="Enter project secret from hub..."
+                onChange={this.handleChangeForm}
+              />{" "}
+            </FormGroup>
+          </>
+        );
+      case "endpoint":
+        return (
+          <>
+            <FormGroup label="Endpoint URL" labelFor="label-input">
+              <InputGroup
+                id="modelURL"
+                name="modelURL"
+                value={this.state.formData.modelURL}
+                placeholder="Enter the URL from endpoint..."
+                onChange={this.handleChangeForm}
+              />
+            </FormGroup>
+            <FormGroup label="Project Secret" labelFor="label-input">
+              <InputGroup
+                id="projectSecret"
+                name="projectSecret"
+                value={this.state.formData.projectSecret}
+                placeholder="Enter project secret from endpoint..."
+                onChange={this.handleChangeForm}
+              />{" "}
+            </FormGroup>
+          </>
+        );
+      default:
+        return null;
+    }
+  };
+
+  /** Create MenuItems from the registereModelList
+   * @return {Array<MenuItem>} An array of registered models in the format of MenuItems
+   */
   private createMenuItems = () => {
     const modelArr: string[] = Object.keys(this.state.registeredModelList);
     return modelArr.map(key => {
@@ -459,19 +644,24 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     });
   };
 
-  /** Methods related to Drawer */
+  /** ------- Methods related to Drawer ------- */
+
+  /** Opens the Drawer of the registered Model clicked. Updates the isOpenDrawe and chosenModel */
   private handleOpenDrawer = async (model: RegisteredModel) => {
     await this.setState({ isOpenDrawer: true, chosenModel: model });
     this.handleGetModelTags();
   };
 
+  /** Close the Drawer of the chosenModel. Updates the isOpenDrawe and chosenModel */
   private handleCloseDrawer = () => {
     this.setState({ isOpenDrawer: false, chosenModel: undefined });
   };
 
+  /** Handles the change in drawer tab */
   private handleDrawerTabChange = (tabId: TabId) =>
     this.setState({ drawerTabId: tabId });
 
+  /** Handles the change in registration tab. Resets the formData to default */
   private handleRegistrationTabChange = (tabId: TabId) => {
     this.setState({
       formData: {
@@ -482,76 +672,26 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         directory: "",
         modelKey: "",
         projectSecret: "",
+        modelURL: "",
       },
       registrationTabId: tabId,
     });
   };
 
+  /** Obtain the tagcolours */
   private handleGetTagHashColour = (tagid: number): string => {
     return TagColours[tagid % TagColours.length];
   };
 
-  /** Miscellaneous methods */
+  /** ------- Miscellaneous methods ------- */
+
+  /** Reduce the length of a string and apend with "..." */
   private formatLongStringName = (str: string, length: number) => {
     if (str.length > length) {
       return `${str.substring(0, length - 1)}..`;
     }
     return str;
   };
-
-  private handleElectronChangeDirListener = (event: any, args: string[]) => {
-    this.setState(prevState => {
-      // eslint-disable-next-line prefer-const
-      let form: any = prevState.formData;
-      // eslint-disable-next-line prefer-destructuring
-      form.directory = args[0];
-      return { formData: form };
-    });
-  };
-
-  async componentDidMount(): Promise<void> {
-    if (isElectron()) {
-      const { ipcRenderer } = window.require("electron");
-      ipcRenderer.on(
-        "select-model-reply",
-        this.handleElectronChangeDirListener
-      );
-    }
-    while (this.state.waitForRuntime) {
-      // eslint-disable-next-line no-await-in-loop
-      await APIGetRegisteredModels()
-        .then(async result => {
-          if (result.status === 200) {
-            this.setState({
-              registeredModelList: this.generateRegisteredModelList(
-                result.data
-              ),
-            });
-            if (this.state.registeredModelList !== {}) {
-              // eslint-disable-next-line no-await-in-loop
-              await this.handleGetLoadedModel();
-            }
-            this.setState({ waitForRuntime: false });
-          }
-        })
-        .catch(() => {
-          /** Do Nothing */
-        });
-
-      // eslint-disable-next-line no-await-in-loop
-      await new Promise(res => setTimeout(res, 25000));
-    }
-  }
-
-  componentWillUnmount(): void {
-    if (isElectron()) {
-      const { ipcRenderer } = window.require("electron");
-      ipcRenderer.removeListener(
-        "select-model-reply",
-        this.handleElectronChangeDirListener
-      );
-    }
-  }
 
   public render(): JSX.Element {
     const browseButton = (
@@ -610,6 +750,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       tensorflow: "TensorFlow 2.0",
       darknet: "DarkNet (YOLO v3, YOLO v4)",
     };
+
     const registerModelForm = (
       <div className={classes.RegistrationForm}>
         {this.state.registrationTabId === "local" ? (
@@ -665,38 +806,10 @@ export default class Model extends React.Component<ModelProps, ModelState> {
             onChange={this.handleChangeForm}
           />
         </FormGroup>
-        {this.state.registrationTabId === "local" ? (
-          <FormGroup label="Folder Path" labelFor="label-input">
-            <InputGroup
-              id="directory"
-              name="directory"
-              value={this.state.formData.directory}
-              placeholder={"Enter model folder path..."}
-              onChange={this.handleChangeForm}
-              rightElement={isElectron() ? browseButton : browseHint}
-            />
-          </FormGroup>
-        ) : (
-          <>
-            <FormGroup label="Model Key" labelFor="label-input">
-              <InputGroup
-                id="modelKey"
-                name="modelKey"
-                value={this.state.formData.modelKey}
-                placeholder="Enter model key from hub..."
-                onChange={this.handleChangeForm}
-              />
-            </FormGroup>
-            <FormGroup label="Project Secret" labelFor="label-input">
-              <InputGroup
-                id="projectSecret"
-                name="projectSecret"
-                value={this.state.formData.projectSecret}
-                placeholder="Enter project secret from hub..."
-                onChange={this.handleChangeForm}
-              />{" "}
-            </FormGroup>
-          </>
+        {this.renderTabSettings(
+          this.state.registrationTabId,
+          browseButton,
+          browseHint
         )}
         <Button
           type="submit"
@@ -919,6 +1032,11 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   >
                     <Tab id="local" title="Local" />
                     <Tab id="hub" title="Datature Hub" />
+                    <Tab
+                      id="endpoint"
+                      title="Datature API (Coming Soon)"
+                      disabled={true}
+                    />
                     <Tabs.Expander />
                   </Tabs>
                 </NavbarGroup>{" "}
@@ -940,6 +1058,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 directory: "",
                 modelKey: "",
                 projectSecret: "",
+                modelURL: "",
               },
               registrationTabId: "local",
               isOpenRegistraionForm: false,

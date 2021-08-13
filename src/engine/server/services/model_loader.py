@@ -26,9 +26,8 @@ def model_loader(model_id: str) -> Response:
         registered_model: BaseModel = global_store.get_registered_model(
             model_id
         )
-        loaded_model = registered_model.load()
-        model_dict = {"model": loaded_model, "model_class": registered_model}
-        global_store.load_model(model_id, model_dict)
+        registered_model.load()
+        global_store.load_model(model_id, registered_model)
         return Response(status=200)
     except KeyError as e:
         raise PortalError(

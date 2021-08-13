@@ -92,7 +92,7 @@ export default class SettingsModal extends React.Component<SettingsModalProps> {
                     className={classes.Icon}
                     onClick={() => {
                       window.open(
-                        "https://docs.datature.io/portal/performing-predictions#intersection-over-union-iou-threshold"
+                        "https://docs.datature.io/portal/running-inferences#intersection-over-union-iou-threshold"
                       );
                     }}
                   />
@@ -137,7 +137,7 @@ export default class SettingsModal extends React.Component<SettingsModalProps> {
                     className={classes.Icon}
                     onClick={() => {
                       window.open(
-                        "https://docs.datature.io/portal/performing-predictions#frame-interval"
+                        "https://docs.datature.io/portal/running-inferences#frame-interval"
                       );
                     }}
                   />
