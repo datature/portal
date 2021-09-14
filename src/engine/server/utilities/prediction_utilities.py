@@ -371,10 +371,10 @@ def _convert_mask_to_contours(reframed_masks: np.array) -> list:
         if not bool(inner_contour):
             contours_list.append([])
         else:
-            
             result_all = []
             for each_contour in inner_contour:
                 contour_array = np.array(each_contour)
+                # pylint: disable=E1101
                 if contour_array.shape.count(1):
                     contour_array = np.squeeze(contour_array)
                 # For the case where approx contour has less than 3 points and
