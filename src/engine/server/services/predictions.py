@@ -1,7 +1,6 @@
 """Module containing the prediction function"""
 import os
 from typing import Optional
-
 import cv2
 import numpy as np
 
@@ -46,6 +45,7 @@ def _predict_single_image(
         iou=iou,
         confidence=confidence,
     )
+
     if format_arg == "json":
         output = get_detection_json(
             back_to_array(suppressed_output),

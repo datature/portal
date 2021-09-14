@@ -79,6 +79,7 @@ class TensorflowModel(BaseModel):
         with open(
             os.path.join(self._directory_, "label_map.pbtxt"),
             "r",
+            encoding="UTF8",
         ) as label_file:
             for line in label_file:
                 if "id" in line:

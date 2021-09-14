@@ -13,7 +13,6 @@ from server.services.global_store import GlobalStore
 
 os.environ["WERKZEUG_RUN_MAIN"] = "true"
 MODEL_LOAD_LIMIT = 1
-EPSILON_MULTIPLIER = 0.001
 IDLE_MINUTES = 60 * 5
 CACHE_OPTION = os.environ["USE_CACHE"] == "1"
 try:
@@ -68,7 +67,7 @@ class ServerThread(threading.Thread):
         )
 
     def run(self):
-        self.socket.run(app, use_debugger=False, use_reloader=False, port=9449)
+        self.socket.run(app, use_debugger=False, use_reloader=False, port=9449, host="0.0.0.0")
 
 
 # pylint: disable=invalid-name

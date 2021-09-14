@@ -112,13 +112,13 @@ class GlobalStore:
     def turn_on_autosave(self):
         """Enable caching during runtime."""
         self.caching_system = True
-        with open(os.environ["USE_CACHE_DIR"], "w") as cache_flag:
+        with open(os.environ["USE_CACHE_DIR"], "w", encoding="UTF8") as cache_flag:
             cache_flag.write("1")
         self._save_store_()
 
     def turn_off_autosave(self):
         """Disable caching during runtime."""
-        with open(os.environ["USE_CACHE_DIR"], "w") as cache_flag:
+        with open(os.environ["USE_CACHE_DIR"], "w", encoding="UTF8") as cache_flag:
             cache_flag.write("0")
         _delete_store_()
         self.caching_system = False
@@ -133,7 +133,7 @@ class GlobalStore:
         Transfers data from "./server/cache/store.portalCache" into self._store_
         """
         if os.path.isfile(os.getenv("CACHE_DIR")):
-            with open(os.getenv("CACHE_DIR"), "r") as cache:
+            with open(os.getenv("CACHE_DIR"), "r", encoding="UTF8") as cache:
                 self._store_ = json.load(cache)
                 self._targeted_folders_ = jsonpickle.decode(
                     self._store_["targeted_folders"]
@@ -187,7 +187,7 @@ class GlobalStore:
             }
             cache_store["registry"] = updated_registry
 
-            with open(os.getenv("CACHE_DIR"), "w+") as cache:
+            with open(os.getenv("CACHE_DIR"), "w+", encoding="UTF8") as cache:
                 json.dump(cache_store, cache)
 
     # pylint: disable=R0201

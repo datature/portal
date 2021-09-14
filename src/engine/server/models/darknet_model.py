@@ -63,7 +63,7 @@ class DarknetModel(BaseModel):
             raise PortalError(
                 Errors.OVERLOADED, "multiple config files found."
             )
-        with open(self._configname_, "r") as conf:
+        with open(self._configname_, "r", encoding="UTF8") as conf:
             heightcheck = False
             widthcheck = False
             for line in conf:

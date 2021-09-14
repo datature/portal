@@ -4,12 +4,9 @@ from typing import Union
 
 import numpy as np
 import cv2
-from shapely.geometry import Polygon, MultiPolygon
-from shapely.ops import unary_union
 
 # pylint: disable=E0401, E0611
 from server.utilities.color_switch import color_switch
-from server import EPSILON_MULTIPLIER
 from server.services.global_store import PortalError, Errors
 
 
@@ -355,73 +352,41 @@ def _convert_mask_to_contours(reframed_masks: np.array) -> list:
     :returns: The list of contours.
     """
     _, height, width = reframed_masks.shape
-    contours = []
+    contours_list = []
     for single_mask in reframed_masks:
         # 1. Get the contours using cv2.find contours.
         # The contours may be fragmented,
         # thereby the result may be a list of contours.
         found_contours = cv2.findContours(
             single_mask,
-            cv2.RETR_LIST,
+            cv2.RETR_EXTERNAL,
             cv2.CHAIN_APPROX_NONE,
         )
         # Output of cv2.findContours has tuple of single list format ([xxx]).
-        # The outer tuple and list are of the same dimensions
+        # The outer tuple and list are of the same dimensions.
         # We only need the list, so we take
         # the inner (single) 0th element of the tuple.
         inner_contour = found_contours[0]
-
-        # If theres no contours at all we just skip and append an empty list.
+        # If there are no contours at all we just skil and append an empty list.
         if not bool(inner_contour):
-            contours.append([])
+            contours_list.append([])
         else:
-            polygons = []
-            for single_contour in inner_contour:
-                # 2. Simplfy the contour to get an approximation
-                epsilon = EPSILON_MULTIPLIER * cv2.arcLength(
-                    single_contour, True
-                )
-                approx = cv2.approxPolyDP(single_contour, epsilon, True)
-                # 3. Normalize the approximation
-                approx = [
-                    [item[0][0] / width, item[0][1] / height]
-                    for item in approx
-                ]
-
-                # Min 3 points is needed for polygon to be created
-                if len(approx) >= 3:
-                    polygon = Polygon(approx)
-                    polygons.append(polygon)
-
-            # For the case where approx contour has less than 3 points and
-            # is filtered out, we also just skip and append an empty list.
-            if not bool(polygons):
-                contours.append([])
-            else:
-                # 4. With all Polygons, create a Multipolygon Object
-                multipolygon = MultiPolygon(polygons)
-                # 5. Union all Polygons in Multipolygon Object
-                union_polygon = unary_union(multipolygon)
-                # Output of union may be either
-                # Polygon (All Polygons touching each other previously)
-                # or MultiPolygon (Previously some separated Polygons)
-
-                # 5. For MultiPolygon, get Polygon with the largest area
-                if isinstance(union_polygon, MultiPolygon):
-                    # pylint: disable=E1101
-                    polygon_list = list(union_polygon.geoms)
-                    largest_poly_idx = np.argmax(
-                        [item.area for item in polygon_list]
-                    )
-                    final_polygon = polygon_list[largest_poly_idx]
-
-                # 6. No change for single polygon
-                else:
-                    final_polygon = union_polygon
-
-                # 7. Extract the contour points and append
-                contours.append(list(final_polygon.exterior.coords))
-    return contours
+            result_all = []
+            for each_contour in inner_contour:
+                contour_array = np.array(each_contour)
+                # pylint: disable=E1101
+                if contour_array.shape.count(1):
+                    contour_array = np.squeeze(contour_array)
+                # For the case where approx contour has less than 3 points and
+                # is filtered out, we also just skip and append an empty list.
+                # (The code below is 3*2 meaning 3 points of 2 elements x and y)
+                result = []
+                if contour_array.size >= 3*2:
+                    for point in contour_array:
+                        result.append((int(point[0])/width, int(point[1])/height))
+                result_all.append(result)
+            contours_list.append(result_all)
+    return contours_list
 
 
 def get_detection_json(detections_output: dict, category_map: tuple) -> list:
@@ -461,14 +426,17 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
                 [float(bboxes[each_class][3]), float(bboxes[each_class][2])],
                 [float(bboxes[each_class][3]), float(bboxes[each_class][0])],
             ]
+            item["annotationID"] = each_class
             if contours is not None:
                 item["boundType"] = "masks"
                 item["contourType"] = "polygon"
-                item["contour"] = contours[each_class]
+                for single_contour in contours[each_class]:
+                    temp_item = item.copy()
+                    temp_item["contour"] = single_contour
+                    output.append(temp_item)
             else:
                 item["boundType"] = "rectangle"
-
-            output.append(item)
+                output.append(item)
     return output
 
 
@@ -486,7 +454,7 @@ def visualize(
     height, width, _ = img_arr.shape
     num_detections = int(detections_output.pop("num_detections"))
     detections = {
-        key: value[0, :num_detections].numpy()
+        key: value[0, :num_detections]
         for key, value in detections_output.items()
     }
     detections["num_detections"] = num_detections
