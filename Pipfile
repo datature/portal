@@ -17,7 +17,6 @@ scandir = "==1.10.0"
 apscheduler = "==3.7.0"
 datature-hub = "==0.2.0"
 pillow = "==8.2.0"
-shapely = "==1.7.1"
 
 [dev-packages]
 pylint = "*"
