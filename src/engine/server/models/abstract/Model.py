@@ -2,6 +2,7 @@
 from server.models.tensorflow_model import TensorflowModel
 from server.models.darknet_model import DarknetModel
 from server.models.endpoint_model import EndpointModel
+from server.models.yolo_tensorflow_model import YoloTensorflowModel
 
 
 def Model(
@@ -15,6 +16,7 @@ def Model(
         "tensorflow": TensorflowModel,
         "darknet": DarknetModel,
         "endpoint": EndpointModel,
+        "yolotf": YoloTensorflowModel
     }
 
     return model_class[model_type](*args, **kwargs)

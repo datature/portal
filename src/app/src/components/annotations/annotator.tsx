@@ -165,8 +165,8 @@ interface AnnotationLayer extends L.Layer {
  */
 @HotkeysTarget
 export default class Annotator extends Component<
-  AnnotatorProps,
-  AnnotatorState
+AnnotatorProps,
+AnnotatorState
 > {
   /* Class Variables */
   public map!: MapType;
@@ -1100,11 +1100,11 @@ export default class Annotator extends Component<
           (this.state.filterArr.length === 0 ||
             /* Check if tag is present in filter (CASE-INSENSITIVE) */
             this.state.showSelected ===
-              this.state.filterArr.some(filter =>
-                invertedProjectTags[annotation.options.annotationTag]
-                  .toLowerCase()
-                  .includes(filter.toLowerCase())
-              )) &&
+            this.state.filterArr.some(filter =>
+              invertedProjectTags[annotation.options.annotationTag]
+                .toLowerCase()
+                .includes(filter.toLowerCase())
+            )) &&
           annotation.options.confidence >= this.state.confidence
       )
       .forEach((confidentAnnotation: any) => {

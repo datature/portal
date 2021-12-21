@@ -284,7 +284,7 @@ def register_model() -> tuple:
                 "Endpoint URL / project_secret "
                 "needs to be given if input_type is 'endpoint'.",
             )
-        if model_type not in ["darknet", "tensorflow", "pytorch"]:
+        if model_type not in ["darknet", "tensorflow", "pytorch", "yolotf"]:
             raise PortalError(
                 Errors.INVALIDAPI,
                 "model_type needs to be one of 'darknet', 'tensorflow' or 'pytorch'.",
