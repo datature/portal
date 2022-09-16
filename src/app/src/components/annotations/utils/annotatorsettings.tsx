@@ -19,9 +19,11 @@ interface AnnotationOptions {
 
 interface ImageSettingsProps {
   annotationOptions: AnnotationOptions;
+  isAssetVideo: boolean;
   callbacks: {
     setAnnotatedAssetsHidden: (flag: boolean) => void;
     setAnnotationOptions: (newOption: boolean | number) => void;
+    onClickMediaIcon: () => void;
   };
 }
 
@@ -120,92 +122,100 @@ export default class AnnotatorSettings extends Component<
 
   render(): JSX.Element {
     return (
-      <Popover
-        minimal={true}
-        interactionKind={PopoverInteractionKind.CLICK}
-        position={PopoverPosition.TOP_RIGHT}
-        enforceFocus={false}
-        className={Classes.POPOVER_CONTENT_SIZING}
-      >
-        <Button icon="cog" />
-        <div className="annotator-settings-card">
-          <div className="annotator-settings-content">
-            <div className="annotator-settings-col">
-              <H5>Annotator Settings</H5>
-              <br />
-              <Switch
-                checked={this.props.annotationOptions.isOutlined}
-                onChange={() => {
-                  this.props.callbacks.setAnnotationOptions(false);
-                }}
-              >
-                Toggle Annotation Outline
-              </Switch>
-              <br />
-              <Label>
-                Annotation Opacity
-                <Slider
-                  className={"opacity-slider"}
-                  min={0}
-                  max={1}
-                  stepSize={0.01}
-                  labelStepSize={1}
-                  value={this.props.annotationOptions.opacity}
-                  onChange={value => {
-                    this.props.callbacks.setAnnotationOptions(value);
+      <div className="annotator-settings-container">
+        {this.props.isAssetVideo && (
+          <Button
+            icon="media"
+            onClick={() => this.props.callbacks.onClickMediaIcon()}
+          />
+        )}
+        <Popover
+          minimal={true}
+          interactionKind={PopoverInteractionKind.CLICK}
+          position={PopoverPosition.TOP_RIGHT}
+          enforceFocus={false}
+          className={Classes.POPOVER_CONTENT_SIZING}
+        >
+          <Button icon="cog" />
+          <div className="annotator-settings-card">
+            <div className="annotator-settings-content">
+              <div className="annotator-settings-col">
+                <H5>Annotator Settings</H5>
+                <br />
+                <Switch
+                  checked={this.props.annotationOptions.isOutlined}
+                  onChange={() => {
+                    this.props.callbacks.setAnnotationOptions(false);
                   }}
-                />
-              </Label>
-            </div>
-            <Divider className="annotator-settings-divider" />
-            <div className="annotator-settings-col">
-              <H5>Image Settings</H5>
-              <Label>
-                Brightness
-                <Slider
-                  min={0}
-                  max={500}
-                  stepSize={1}
-                  labelStepSize={500}
-                  value={this.state.brightness}
-                  onChange={value => {
-                    this.setFilter({ filterName: "brightness", value });
-                  }}
-                />
-              </Label>
-              <Label>
-                Contrast
-                <Slider
-                  min={0}
-                  max={500}
-                  stepSize={1}
-                  labelStepSize={500}
-                  value={this.state.contrast}
-                  onChange={value => {
-                    this.setFilter({ filterName: "contrast", value });
-                  }}
-                />
-              </Label>
-              <Label>
-                Saturation
-                <Slider
-                  min={0}
-                  max={500}
-                  stepSize={1}
-                  labelStepSize={500}
-                  value={this.state.saturate}
-                  onChange={value => {
-                    this.setFilter({ filterName: "saturate", value });
-                  }}
-                />
-              </Label>
-              <div style={{ display: "flex", justifyContent: "center" }}>
-                <Button onClick={this.resetValues}>Reset Defaults</Button>
+                >
+                  Toggle Annotation Outline
+                </Switch>
+                <br />
+                <Label>
+                  Annotation Opacity
+                  <Slider
+                    className={"opacity-slider"}
+                    min={0}
+                    max={1}
+                    stepSize={0.01}
+                    labelStepSize={1}
+                    value={this.props.annotationOptions.opacity}
+                    onChange={value => {
+                      this.props.callbacks.setAnnotationOptions(value);
+                    }}
+                  />
+                </Label>
+              </div>
+              <Divider className="annotator-settings-divider" />
+              <div className="annotator-settings-col">
+                <H5>Image Settings</H5>
+                <Label>
+                  Brightness
+                  <Slider
+                    min={0}
+                    max={500}
+                    stepSize={1}
+                    labelStepSize={500}
+                    value={this.state.brightness}
+                    onChange={value => {
+                      this.setFilter({ filterName: "brightness", value });
+                    }}
+                  />
+                </Label>
+                <Label>
+                  Contrast
+                  <Slider
+                    min={0}
+                    max={500}
+                    stepSize={1}
+                    labelStepSize={500}
+                    value={this.state.contrast}
+                    onChange={value => {
+                      this.setFilter({ filterName: "contrast", value });
+                    }}
+                  />
+                </Label>
+                <Label>
+                  Saturation
+                  <Slider
+                    min={0}
+                    max={500}
+                    stepSize={1}
+                    labelStepSize={500}
+                    value={this.state.saturate}
+                    onChange={value => {
+                      this.setFilter({ filterName: "saturate", value });
+                    }}
+                  />
+                </Label>
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                  <Button onClick={this.resetValues}>Reset Defaults</Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </Popover>
+        </Popover>
+      </div>
     );
   }
 }

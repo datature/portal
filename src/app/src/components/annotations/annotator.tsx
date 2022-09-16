@@ -49,6 +49,7 @@ import FileModal from "./filemodal";
 import AnnotatorSettings from "./utils/annotatorsettings";
 import FormatTimerSeconds from "./utils/timer";
 import { RegisteredModel } from "./model";
+import { AnalyticsCharts } from "./analytics/AnalyticsChart";
 
 type Point = [number, number];
 type MapType = L.DrawMap;
@@ -148,6 +149,8 @@ interface AnnotatorState {
     opacity: number;
   };
   currAnnotationPlaybackId: number;
+  videoAnalyticsData: any[];
+  showVideoAnalytics: boolean;
 }
 
 /**
@@ -246,6 +249,8 @@ export default class Annotator extends Component<
         },
       },
       currAnnotationPlaybackId: 0,
+      videoAnalyticsData: [],
+      showVideoAnalytics: false,
     };
 
     this.toaster = new Toaster({}, {});
@@ -304,6 +309,7 @@ export default class Annotator extends Component<
     this.setAnnotationOptions = this.setAnnotationOptions.bind(this);
     this.toggleShowSelected = this.toggleShowSelected.bind(this);
     this.setAnnotatedAssetsHidden = this.setAnnotatedAssetsHidden.bind(this);
+    this.onClickMediaIcon = this.onClickMediaIcon.bind(this);
   }
 
   async componentDidMount(): Promise<void> {
@@ -578,6 +584,17 @@ export default class Annotator extends Component<
     this.setState({ annotatedAssetsHidden: flag });
   }
 
+  /**
+   * toggle boolean state of showVideoAnalytics when media icon is clicked
+   */
+  public onClickMediaIcon(): void {
+    this.setState(prevState => {
+      return {
+        showVideoAnalytics: !prevState.showVideoAnalytics,
+      };
+    });
+  }
+
   private async killVideoPrediction() {
     this.setState({ killVideoPrediction: true, uiState: null });
     if (this.currentAsset.type === "video") {
@@ -786,6 +803,7 @@ export default class Annotator extends Component<
         this.state.inferenceOptions.iou
       )
         .then(response => {
+          this.setState({ videoAnalyticsData: response.data.frames });
           if (this.currentAsset.url === asset.url && singleAnalysis) {
             const videoElement = this.videoOverlay.getElement();
             /**
@@ -1574,15 +1592,23 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
-              <ImageBar
-                ref={ref => {
-                  this.imagebarRef = ref;
-                }}
-                /* Only visible assets should be shown */
-                assetList={visibleAssets}
-                callbacks={{ selectAssetCallback: this.selectAsset }}
-                {...this.props}
-              />
+              {this.state.showVideoAnalytics ? (
+                <AnalyticsCharts
+                  data2={this.state.videoAnalyticsData}
+                  confidence={this.state.confidence}
+                  videoElement={this.videoOverlay.getElement()}
+                />
+              ) : (
+                <ImageBar
+                  ref={ref => {
+                    this.imagebarRef = ref;
+                  }}
+                  /* Only visible assets should be shown */
+                  assetList={visibleAssets}
+                  callbacks={{ selectAssetCallback: this.selectAsset }}
+                  {...this.props}
+                />
+              )}
             </Card>
           </div>
 
@@ -1613,12 +1639,20 @@ export default class Annotator extends Component<
             <Card className={"main-annotator"}>
               <div id="annotation-map" className={"style-annotator"} />
               {this.backgroundImg ? (
-                <div className="annotator-settings-button">
+                <div
+                  className={
+                    this.currentAsset.type === "video"
+                      ? "annotator-settings-button__withVideo"
+                      : "annotator-settings-button"
+                  }
+                >
                   <AnnotatorSettings
                     annotationOptions={this.state.annotationOptions}
+                    isAssetVideo={this.currentAsset.type === "video"}
                     callbacks={{
                       setAnnotatedAssetsHidden: this.setAnnotatedAssetsHidden,
                       setAnnotationOptions: this.setAnnotationOptions,
+                      onClickMediaIcon: this.onClickMediaIcon,
                     }}
                   />
                 </div>

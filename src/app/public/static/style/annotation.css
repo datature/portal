@@ -18,7 +18,7 @@
   flex-direction: row;
   z-index: 20;
   width: calc(100% - 190px);
-  height: 200px;
+  height: 220px;
   margin-right: 10px;
   left: 0;
   top: calc(100% - 140px);
@@ -250,6 +250,20 @@
   z-index: 100;
   float: right;
   left: calc(100% - 40px);
+  top: calc(100% - 40px);
+}
+
+.annotator-settings-container {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.annotator-settings-button__withVideo {
+  position: absolute;
+  z-index: 100;
+  float: right;
+  left: calc(100% - 80px);
   top: calc(100% - 40px);
 }
 
