@@ -61,7 +61,7 @@ export type FormData = {
   modelKey: string;
   projectSecret: string;
   modelURL: string;
-  modelType: "tensorflow" | "darknet" | "";
+  modelType: "tensorflow" | "darknet" | "onnx";
 };
 
 interface ModelProps {
@@ -749,6 +749,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     const modelTypes = {
       tensorflow: "TensorFlow 2.0",
       darknet: "DarkNet (YOLO v3, YOLO v4)",
+      onnx: "Datature ONNX"
     };
 
     const registerModelForm = (
@@ -777,6 +778,16 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                       onClick={() => {
                         const event = {
                           target: { name: "modelType", value: "darknet" },
+                        };
+                        this.handleChangeForm(event);
+                      }}
+                    />
+                    <Menu.Item
+                      shouldDismissPopover={false}
+                      text={modelTypes.onnx}
+                      onClick={() => {
+                        const event = {
+                          target: { name: "modelType", value: "onnx" },
                         };
                         this.handleChangeForm(event);
                       }}
@@ -981,9 +992,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 }
                 isOpen={
                   !this.state.isOpenRegistraionForm &&
-                  !this.state.isOpenDrawer &&
-                  !this.state.currentModel &&
-                  Object.keys(this.state.registeredModelList).length > 0
+                    !this.state.isOpenDrawer &&
+                    !this.state.currentModel &&
+                    Object.keys(this.state.registeredModelList).length > 0
                     ? true
                     : undefined
                 }
@@ -1004,9 +1015,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   text={
                     this.state.currentModel !== undefined
                       ? this.formatLongStringName(
-                          this.state.currentModel.name,
-                          15
-                        )
+                        this.state.currentModel.name,
+                        15
+                      )
                       : "Load Model.."
                   }
                 />

@@ -40,6 +40,7 @@ def portal_function_handler(clear_status: bool) -> callable:
     """
 
     def decorator(func):
+
         @wraps(func)
         def wrapper(*args, **kwargs):
 
@@ -56,9 +57,8 @@ def portal_function_handler(clear_status: bool) -> callable:
             except PortalError as e:
                 if logger is not None:
                     logger.exception(e)
-                e.set_fail_location(
-                    " - ".join([func.__module__, func.__name__])
-                )
+                e.set_fail_location(" - ".join(
+                    [func.__module__, func.__name__]))
                 if e.get_error() != "ATOMICERROR" and clear_status:
                     global_store.clear_status()
                 response = e.output()
@@ -229,9 +229,8 @@ def register_model() -> tuple:
         # Check for empty API Body.
         data = request.get_json()
         if not data:
-            raise PortalError(
-                Errors.NOAPIBODY, "API body is required but not given."
-            )
+            raise PortalError(Errors.NOAPIBODY,
+                              "API body is required but not given.")
 
         # Initialize data.
         input_type: str = data["type"]
@@ -276,18 +275,17 @@ def register_model() -> tuple:
                 Errors.INVALIDAPI,
                 "model_key needs to be given if input_type is 'hub'.",
             )
-        if input_type == "endpoint" and (
-            model_url == "" or project_secret == ""
-        ):
+        if input_type == "endpoint" and (model_url == ""
+                                         or project_secret == ""):
             raise PortalError(
                 Errors.INVALIDAPI,
                 "Endpoint URL / project_secret "
                 "needs to be given if input_type is 'endpoint'.",
             )
-        if model_type not in ["darknet", "tensorflow", "pytorch"]:
+        if model_type not in ["darknet", "tensorflow", "pytorch", "onnx"]:
             raise PortalError(
                 Errors.INVALIDAPI,
-                "model_type needs to be one of 'darknet', 'tensorflow' or 'pytorch'.",
+                "model_type needs to be one of 'darknet', 'tensorflow', 'onnx' or 'pytorch'.",
             )
         if input_type in ["hub", "endpoint"] and model_type != "tensorflow":
             raise PortalError(
@@ -296,9 +294,8 @@ def register_model() -> tuple:
             )
         # Register the model using the respective registration code.
         if input_type == "local":
-            register_local(
-                input_directory, model_type, model_name, model_description
-            )
+            register_local(input_directory, model_type, model_name,
+                           model_description)
 
         if input_type == "hub":
             register_hub(
@@ -474,21 +471,19 @@ def predict_single_image(model_id: str) -> tuple:
     """
     try:
         if request.args.get("filepath") is None:
-            raise PortalError(
-                Errors.INVALIDQUERY, "Filepath is a compulsory query"
-            )
+            raise PortalError(Errors.INVALIDQUERY,
+                              "Filepath is a compulsory query")
 
         image_directory = decode(request.args.get("filepath"))
         if not os.path.isfile(image_directory):
-            raise PortalError(
-                Errors.NOTFOUND, "Image is not found from filepath param"
-            )
+            raise PortalError(Errors.NOTFOUND,
+                              "Image is not found from filepath param")
         if not allowed_image(image_directory):
             raise PortalError(Errors.INVALIDFILETYPE, image_directory)
 
-        corrected_dict = corrected_predict_query(
-            "format", "iou", request=request
-        )
+        corrected_dict = corrected_predict_query("format",
+                                                 "iou",
+                                                 request=request)
         format_arg = corrected_dict["format"]
         iou = corrected_dict["iou"]
         reanalyse = corrected_dict["reanalyse"]
@@ -497,13 +492,8 @@ def predict_single_image(model_id: str) -> tuple:
             image_directory,
             format_arg + str(iou),
         )
-        prediction_status = (
-            "predict_single_image_"
-            + model_id
-            + image_directory
-            + format_arg
-            + str(iou)
-        )
+        prediction_status = ("predict_single_image_" + model_id +
+                             image_directory + format_arg + str(iou))
         # check if another atomic process / duplicate process exists
         if global_store.set_status(prediction_status):
             wait_for_process()
@@ -511,10 +501,8 @@ def predict_single_image(model_id: str) -> tuple:
         # reanalyse needs to be false, and the prediction cache must
         # contain the corresponding output, in order for the cache to be
         # served. else, we continue prediction as per norma
-        if (
-            global_store.check_prediction_cache(prediction_key)
-            and reanalyse is False
-        ):
+        if (global_store.check_prediction_cache(prediction_key)
+                and reanalyse is False):
             output = global_store.get_predictions(prediction_key)
         else:
             if not global_store.get_loaded_model_keys():
@@ -524,9 +512,8 @@ def predict_single_image(model_id: str) -> tuple:
 
             model_class = global_store.get_model_class(model_id)
 
-            output = predict_image(
-                model_class, format_arg, iou, image_directory
-            )
+            output = predict_image(model_class, format_arg, iou,
+                                   image_directory)
             global_store.add_predictions(prediction_key, output)
 
         return (jsonify(output), 200)
@@ -567,25 +554,22 @@ def predict_video_fn(model_id: str) -> tuple:
     """
     try:
         if request.args.get("filepath") is None:
-            raise PortalError(
-                Errors.INVALIDQUERY, "Filepath is a compulsory query"
-            )
+            raise PortalError(Errors.INVALIDQUERY,
+                              "Filepath is a compulsory query")
         if request.args.get("frameInterval") is None:
-            raise PortalError(
-                Errors.INVALIDQUERY, "frameInterval is a compulsory query"
-            )
+            raise PortalError(Errors.INVALIDQUERY,
+                              "frameInterval is a compulsory query")
         frame_interval = int(request.args.get("frameInterval"))
         video_directory = decode(request.args.get("filepath"))
         if not os.path.isfile(video_directory):
-            raise PortalError(
-                Errors.NOTFOUND, "Video is not found from filepath param"
-            )
+            raise PortalError(Errors.NOTFOUND,
+                              "Video is not found from filepath param")
         if not allowed_video(video_directory):
             raise PortalError(Errors.INVALIDFILETYPE, video_directory)
 
-        corrected_dict = corrected_predict_query(
-            "iou", "confidence", request=request
-        )
+        corrected_dict = corrected_predict_query("iou",
+                                                 "confidence",
+                                                 request=request)
         iou = corrected_dict["iou"]
         confidence = corrected_dict["confidence"]
         reanalyse = corrected_dict["reanalyse"]
@@ -594,14 +578,8 @@ def predict_video_fn(model_id: str) -> tuple:
             video_directory,
             str(frame_interval) + str(iou) + str(confidence),
         )
-        prediction_status = (
-            "predict_video_"
-            + model_id
-            + video_directory
-            + str(frame_interval)
-            + str(iou)
-            + str(confidence)
-        )
+        prediction_status = ("predict_video_" + model_id + video_directory +
+                             str(frame_interval) + str(iou) + str(confidence))
         if global_store.set_status(prediction_status):
             wait_for_process()
             return global_store.get_caught_response("predict_video")
@@ -609,10 +587,8 @@ def predict_video_fn(model_id: str) -> tuple:
         # reanalyse needs to be false, and the prediction cache must
         # contain the corresponding output, in order for the cache to be
         # served. else, we continue prediction as per norma
-        if (
-            global_store.check_prediction_cache(prediction_key)
-            and reanalyse is False
-        ):
+        if (global_store.check_prediction_cache(prediction_key)
+                and reanalyse is False):
             output = global_store.get_predictions(prediction_key)
         else:
             if not global_store.get_loaded_model_keys():
@@ -677,9 +653,8 @@ def register_images() -> Response:
         path = request.json["directory"]
         global_store.add_targeted_folder(path)
 
-        return Response(
-            response="Successfully registered the targeted folder", status=200
-        )
+        return Response(response="Successfully registered the targeted folder",
+                        status=200)
     except KeyError as e:
         raise PortalError(Errors.INVALIDAPI, str(e)) from e
     except FileNotFoundError as e:
@@ -720,9 +695,8 @@ def delete_folder() -> Response:
     # Except Block
     # Catches all possible native exceptions here and translates them into PortalError.
     except TypeError as e:
-        raise PortalError(
-            Errors.NOAPIBODY, "API body is required but not given."
-        ) from e
+        raise PortalError(Errors.NOAPIBODY,
+                          "API body is required but not given.") from e
     except FileNotFoundError as e:
         raise PortalError(Errors.INVALIDFILETYPE, str(e)) from e
 
@@ -765,8 +739,7 @@ def get_image():
         decoded_path = decode(path)
         if not os.path.exists(decoded_path):
             raise FileNotFoundError(
-                f"File path {decoded_path} does not exists"
-            )
+                f"File path {decoded_path} does not exists")
         head, tail = os.path.split(decoded_path)
         return send_from_directory(head, tail)
 
@@ -788,8 +761,7 @@ def get_thumbnail():
         decoded_path = decode(path)
         if not os.path.exists(decoded_path):
             raise FileNotFoundError(
-                f"File path {decoded_path} does not exists"
-            )
+                f"File path {decoded_path} does not exists")
         # pylint: disable=unused-variable
         head, tail = os.path.split(decoded_path)
         image_bytes = generate_thumbnail(decoded_path, tail)
