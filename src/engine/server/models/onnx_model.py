@@ -1,5 +1,5 @@
 import copy
-from copy import deepcopy
+import importlib
 import os
 from typing import List, Dict
 
@@ -7,13 +7,13 @@ import cv2
 import numpy as np
 import onnxruntime as ort
 from scipy.special import expit
-import tensorflow as tf
 import torch
 import torchvision
 
 from server.services.errors import Errors, PortalError
 from server.services.hashing import get_hash
 from server.models.abstract.BaseModel import BaseModel
+from server.utilities.onnx_models.abstract import AbstractProcessor
 
 ANCHORS = np.array([[12., 16.], [19., 36.], [40., 28.], [36., 75.], [76., 55.],
                     [72., 146.], [142., 110.], [192., 243.], [459., 401.]])
@@ -433,118 +433,6 @@ def _postprocess(prediction,
     return output
 
 
-def get_polygons(mask: np.ndarray):
-    height = mask.shape[1]
-    width = mask.shape[2]
-    mask_list = []
-    class_list = []
-    scores_list = []
-    bbox_list = []
-    # Step 2: for each class mask, convert to polygons
-
-    for class_id, class_mask in enumerate(mask):
-        if class_id > 0:
-            background_class = np.zeros_like(class_mask, np.uint8)
-
-            background_class[np.where(class_mask > 0.0)] = 1
-            contours, _ = cv2.findContours(
-                background_class,
-                cv2.RETR_LIST,
-                cv2.CHAIN_APPROX_NONE,
-            )
-            if contours:
-                for cnt_id, contour in enumerate(contours):
-                    if len(contour) > 1:
-                        instance = np.zeros_like(class_mask, np.uint8)
-                        cv2.drawContours(instance, contours, cnt_id, 1, -1)
-                        total_area = np.count_nonzero(instance)
-                        total_score = np.sum(
-                            background_class[np.where(instance > 0)])
-                        average_score = total_score / total_area
-                        contour = tuple((cnt[0][1] / width, cnt[0][0] / height)
-                                        for cnt in contour.tolist())
-                        y_coordinates, x_coordinates = zip(*contour)
-                        xmin = min(x_coordinates)
-                        ymin = min(y_coordinates)
-                        xmax = max(x_coordinates)
-                        ymax = max(y_coordinates)
-                        bbox_list.append([xmin, ymin, xmax, ymax])
-                        mask_list.append(instance.tolist())
-                        class_list.append(class_id)
-                        scores_list.append(average_score)
-    return mask_list, bbox_list, class_list, scores_list
-
-
-def reframe_box_masks_to_image_masks(box_masks,
-                                     boxes,
-                                     image_height,
-                                     image_width,
-                                     resize_method="bilinear"):
-    """Transform the box masks back to full image masks.
-
-    Embeds masks in bounding boxes of larger masks whose shapes correspond to
-    image shape.
-    Args:
-        box_masks: A tensor of size [num_masks, mask_height, mask_width].
-        boxes: A tf.float32 tensor of size [num_masks, 4] containing the box
-                corners. Row i contains [ymin, xmin, ymax, xmax] of the box
-                corresponding to mask i. Note that the box corners are in
-                normalized coordinates.
-        image_height: Image height. The output mask will have the same
-                        height as the image height.
-        image_width: Image width. The output mask will have the same
-                        width as the image width.
-        resize_method: The resize method, either 'bilinear' or 'nearest'.
-            Note that 'bilinear' is only respected if box_masks is a float.
-    Returns:
-        A tensor of size [num_masks, image_height, image_width]
-        with the same dtypeas `box_masks`.
-    """
-    box_masks = tf.convert_to_tensor(box_masks)
-    boxes = tf.convert_to_tensor(boxes)
-    resize_method = "nearest" if box_masks.dtype == tf.uint8 else resize_method
-
-    def _reframe_box_masks_to_image_masks_default():
-        """Apply function when there are more than 0 box masks."""
-
-        def transform_boxes_relative_to_boxes(boxes, reference_boxes):
-            boxes = tf.reshape(boxes, [-1, 2, 2])
-            min_corner = tf.expand_dims(reference_boxes[:, 0:2], 1)
-            max_corner = tf.expand_dims(reference_boxes[:, 2:4], 1)
-            denom = max_corner - min_corner
-            # Prevent a divide by zero.
-            denom = tf.math.maximum(denom, 1e-4)
-            transformed_boxes = (boxes - min_corner) / denom
-            return tf.reshape(transformed_boxes, [-1, 4])
-
-        box_masks_expanded = tf.expand_dims(box_masks, axis=3)
-        num_boxes = tf.shape(box_masks_expanded)[0]
-        unit_boxes = tf.concat(
-            [tf.zeros([num_boxes, 2]),
-             tf.ones([num_boxes, 2])], 1)
-        reverse_boxes = transform_boxes_relative_to_boxes(unit_boxes, boxes)
-
-        resized_crops = tf.image.crop_and_resize(
-            box_masks_expanded,
-            reverse_boxes,
-            tf.range(num_boxes),
-            [image_height, image_width],
-            method=resize_method,
-            extrapolation_value=0,
-        )
-        return tf.cast(resized_crops, box_masks.dtype)
-
-    image_masks = tf.cond(
-        tf.shape(box_masks)[0] > 0,
-        _reframe_box_masks_to_image_masks_default,
-        lambda: tf.zeros([0, image_height, image_width, 1], box_masks.dtype),
-    )
-    output = tf.squeeze(image_masks, axis=3)
-    output = tf.cast(output > 0.5, tf.uint8)
-    output = output.numpy()
-    return output
-
-
 class OnnxModel(BaseModel):
 
     def postprocess_yolov4(self, model_output: List[np.ndarray]) -> Dict:
@@ -609,51 +497,6 @@ class OnnxModel(BaseModel):
         }
         return return_dict
 
-    def postprocess_deeplabv3(self, model_output: List[np.ndarray]) -> Dict:
-        class_masks = model_output[0][0]
-        instance_masks, bbox_list, class_ids, scores = get_polygons(
-            class_masks)
-        bbox_list[:, [0, 1, 2, 3]] = bbox_list[:, [1, 0, 3, 2]]
-        return_dict = {
-            "detection_classes": class_ids,
-            "detection_scores": scores,
-            "detection_masks": instance_masks,
-            "detection_boxes": bbox_list,
-        }
-
-        return return_dict
-
-    def postprocess_object_detection(self,
-                                     model_output: List[np.ndarray]) -> Dict:
-        # Using them, get the indices of the important outputs.
-        id_name_dict = {
-            name: num
-            for num, name in enumerate(self.model_output_names)
-        }
-        original_bboxes = model_output[
-            id_name_dict["detection_boxes"]].squeeze()
-        # Convert squeezed_bboxes
-        converted_bboxes = deepcopy(original_bboxes)
-        # from ymin xmin ymax xmax to xmin ymin xmax ymax
-        # converted_bboxes[:, [0, 1, 2, 3]] = converted_bboxes[:, [1, 0, 3, 2]]
-
-        classes = model_output[id_name_dict["detection_classes"]].astype(
-            np.uint8).squeeze().tolist()
-        scores = model_output[id_name_dict["detection_scores"]].astype(
-            np.float32).squeeze().tolist()
-        # Get the respective return dict
-        return_dict = {
-            "detection_boxes": converted_bboxes.tolist(),
-            "detection_classes": classes,
-            "detection_scores": scores
-        }
-        if "detection_masks" in id_name_dict:
-            box_masks = model_output[id_name_dict["detection_masks"]].squeeze()
-            instance_masks = reframe_box_masks_to_image_masks(
-                box_masks, original_bboxes, 640, 640)
-            return_dict["detection_masks"] = instance_masks
-        return return_dict
-
     def _load_label_map_(self):
 
         self._label_map_ = {}
@@ -696,7 +539,16 @@ class OnnxModel(BaseModel):
 
         self._load_label_map_()
         self._key_ = get_hash(self._directory_)
+
         return self._key_, self
+
+    def feed_forward(self, image_array: np.ndarray):
+        detections = self._model_.run(
+            self.model_output_names, {
+                input_name: np.expand_dims(image_array, 0)
+                for input_name in self.model_input_names
+            })
+        return detections
 
     def load(self):
         loaded_model = ort.InferenceSession(
@@ -707,40 +559,35 @@ class OnnxModel(BaseModel):
         self.model_output_names = list(
             map(lambda x: x.name, self.model_outputs))
         model_h_w = self.model_inputs[0].shape
-        self._height_ = model_h_w[2] if isinstance(model_h_w[2], int) else 640
-        self._width_ = model_h_w[3] if isinstance(model_h_w[3], int) else 640
-        self.model_type = loaded_model.get_modelmeta().description
+        self._model_ = loaded_model
+        self.model_type: str = loaded_model.get_modelmeta().description
+        self.model_type = self.model_type.replace(" ", "_")
+        self._width_ = (model_h_w[3]
+                        if self.model_type != "object_detection" else 640)
+        self._height_ = (model_h_w[2]
+                         if self.model_type != "object_detection" else 640)
+        self.processor: AbstractProcessor = importlib.import_module(
+            f"server.utilities.onnx_models.{self.model_type}").Processor()
         # run cold start
         random_image = np.random.random_integers(
-            0, 255, (1, self._height_, self._width_, 3)).astype(np.uint8)
-        self._model_ = loaded_model
-        self._model_.run(self.model_output_names, {
-            input_name: random_image
-            for input_name in self.model_input_names
-        })
+            0, 255, (self._height_, self._width_, 3))
+        random_image = self.processor.preprocess(random_image)
+        self.feed_forward(random_image)
 
     def predict(self, image_array):
-        height, width, _ = image_array.shape
+
+        print("starting", image_array.shape)
+        image_array = cv2.resize(image_array, (self._width_, self._height_))
         if self._model_ is None:
             raise PortalError(Errors.NOTFOUND, "Model is not Loaded")
         try:
-            detections = self._model_.run(
-                self.model_output_names, {
-                    input_name: np.expand_dims(image_array, 0)
-                    for input_name in self.model_input_names
-                })
-            if self.model_type == "object detection":
-                prediction_dict = self.postprocess_object_detection(detections)
-                return prediction_dict
-            if self.model_type == "deeplabv3":
-                prediction_dict = self.postprocess_deeplabv3(detections)
-                return prediction_dict
-            if self.model_type == "yolox":
-                prediction_dict = self.postprocess_yolox(detections)
-                return prediction_dict
-            if self.model_type == "yolov4":
-                prediction_dict = self.postprocess_yolov4(detections)
-                return prediction_dict
+            print("starting", image_array.shape)
+            image_array = self.processor.preprocess(image_array)
+            detections = self.feed_forward(image_array)
+            prediction_dict = self.processor.postprocess(
+                detections, self.model_output_names)
+            return prediction_dict
 
         except Exception as e:
+            print(e)
             raise PortalError(Errors.FAILEDPREDICTION, str(e)) from e
