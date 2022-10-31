@@ -11,5 +11,5 @@ class AbstractProcessor:
         pass
 
     @abstractmethod
-    def postprocess(self, model_output: List[np.ndarray]) -> Dict:
+    def postprocess(self, model_output: List[np.ndarray], **kwargs) -> Dict:
         pass

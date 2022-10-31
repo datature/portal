@@ -84,12 +84,11 @@ class Processor(AbstractProcessor):
         return "object_detection"
 
     def preprocess(self, model_input: np.ndarray) -> np.ndarray:
-        print(model_input.shape)
         model_input = model_input.astype(np.uint8)
         return model_input
 
-    def postprocess(self, model_output: List[np.ndarray],
-                    model_output_names: List[str]) -> Dict:
+    def postprocess(self, model_output: List[np.ndarray], **kwargs) -> Dict:
+        model_output_names = kwargs["model_output_names"]
         # Using them, get the indices of the important outputs.
         id_name_dict = {
             name: num

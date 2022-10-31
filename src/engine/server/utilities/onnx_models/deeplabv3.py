@@ -63,8 +63,7 @@ class Processor(AbstractProcessor):
         model_input = transform(model_input).numpy()
         return model_input
 
-    def postprocess(self, model_output: List[np.ndarray],
-                    model_output_names: List[str]) -> Dict:
+    def postprocess(self, model_output: List[np.ndarray], **kwargs) -> Dict:
         class_masks = model_output[0][0]
         instance_masks, bbox_list, class_ids, scores = self.get_polygons(
             class_masks)
