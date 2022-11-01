@@ -88,9 +88,8 @@ class GlobalStore:
         """Start the scheduler"""
         if self._scheduler_ is None:
             self._scheduler_ = BackgroundScheduler(daemon=True)
-            self._scheduler_.add_job(
-                self._schedule_shutdown_, IntervalTrigger(minutes=1)
-            )
+            self._scheduler_.add_job(self._schedule_shutdown_,
+                                     IntervalTrigger(minutes=1))
             self._scheduler_.start()
 
             # Shut down the scheduler when exiting the app
@@ -112,13 +111,15 @@ class GlobalStore:
     def turn_on_autosave(self):
         """Enable caching during runtime."""
         self.caching_system = True
-        with open(os.environ["USE_CACHE_DIR"], "w") as cache_flag:
+        with open(os.environ["USE_CACHE_DIR"], "w",
+                  encoding="utf-8") as cache_flag:
             cache_flag.write("1")
         self._save_store_()
 
     def turn_off_autosave(self):
         """Disable caching during runtime."""
-        with open(os.environ["USE_CACHE_DIR"], "w") as cache_flag:
+        with open(os.environ["USE_CACHE_DIR"], "w",
+                  encoding="utf-8") as cache_flag:
             cache_flag.write("0")
         _delete_store_()
         self.caching_system = False
@@ -133,15 +134,15 @@ class GlobalStore:
         Transfers data from "./server/cache/store.portalCache" into self._store_
         """
         if os.path.isfile(os.getenv("CACHE_DIR")):
-            with open(os.getenv("CACHE_DIR"), "r") as cache:
+            with open(os.getenv("CACHE_DIR"), "r", encoding="utf-8") as cache:
                 self._store_ = json.load(cache)
                 self._targeted_folders_ = jsonpickle.decode(
-                    self._store_["targeted_folders"]
-                )
+                    self._store_["targeted_folders"])
                 store_registry = self._store_["registry"]
                 # pylint: disable=R1721
                 deepcopy_store_registry = {
-                    key: value for key, value in store_registry.items()
+                    key: value
+                    for key, value in store_registry.items()
                 }
                 for _, value in deepcopy_store_registry.items():
                     reg_model = Model(
@@ -170,11 +171,8 @@ class GlobalStore:
             updated_registry = {
                 registry_key: {
                     key: value
-                    for key, value in self._store_["registry"][
-                        registry_key
-                    ].items()
-                    if key
-                    in [
+                    for key, value in self._store_["registry"]
+                    [registry_key].items() if key in [
                         "model_type",
                         "model_dir",
                         "model_name",
@@ -187,10 +185,9 @@ class GlobalStore:
             }
             cache_store["registry"] = updated_registry
 
-            with open(os.getenv("CACHE_DIR"), "w+") as cache:
+            with open(os.getenv("CACHE_DIR"), "w+", encoding="utf-8") as cache:
                 json.dump(cache_store, cache)
 
-    # pylint: disable=R0201
     def has_cache(self):
         """Check if there's cache
 
@@ -245,9 +242,8 @@ class GlobalStore:
             return False
         if self._op_status_["status"] == status:
             return True
-        raise PortalError(
-            Errors.ATOMICERROR, "Another atomic process is already running."
-        )
+        raise PortalError(Errors.ATOMICERROR,
+                          "Another atomic process is already running.")
 
     def get_status(self) -> None:
         """Acquire the status of the atomic function."""
@@ -258,9 +254,8 @@ class GlobalStore:
         self._op_status_["status"] = None
         self._op_atomic_ = False
 
-    def set_caught_response(
-        self, response_name: str, response: Union[Response, tuple]
-    ) -> None:
+    def set_caught_response(self, response_name: str,
+                            response: Union[Response, tuple]) -> None:
         """Store the return of a function.
 
         :param response_name: The string signifying the origin of the response.
@@ -408,9 +403,8 @@ class GlobalStore:
 
     def check_prediction_cache(self, key: tuple) -> bool:
         """Check if a prediction key is in the prediction cache."""
-        return key[2] in list(
-            self._store_["predictions"].get(key[0], {}).get(key[1], {}).keys()
-        )
+        return key[2] in list(self._store_["predictions"].get(key[0], {}).get(
+            key[1], {}).keys())
 
     def get_predicted_images(self, model_id: str) -> list:
         """Return a list of all successfully predicted images."""
@@ -428,12 +422,9 @@ class GlobalStore:
         :param key: The prediction key.
         :return: The predictions.
         """
-        return (
-            self._store_["predictions"]
-            .get(key[0], {})
-            .get(key[1], {})
-            .get(key[2], {})
-        )
+        return (self._store_["predictions"].get(key[0],
+                                                {}).get(key[1],
+                                                        {}).get(key[2], {}))
 
     def get_prediction_progress(self) -> dict:
         """Retrieve the _prediction_progress_ attribute."""

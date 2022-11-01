@@ -1,3 +1,4 @@
+# pylint: disable=C0103, W0703, E0401, E0611
 import copy
 from typing import List, Dict
 
@@ -95,8 +96,7 @@ def yolov3v4_decode(
     elif len(predictions) == 2:
         anchor_mask = [[3, 4, 5], [0, 1, 2]]
     else:
-        raise ValueError("Unsupported prediction length: {}".format(
-            len(predictions)))
+        raise ValueError(f"Unsupported prediction length: {len(predictions)}")
 
     results = []
 

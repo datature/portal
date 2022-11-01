@@ -56,9 +56,8 @@ def corrected_predict_query(*args, request) -> dict:
         try:
             confidence = float(request.args.get("confidence", 0.001))
         except TypeError as e:
-            raise PortalError(
-                Errors.INVALIDQUERY, "Confidence Query is not a float."
-            ) from e
+            raise PortalError(Errors.INVALIDQUERY,
+                              "Confidence Query is not a float.") from e
 
     reanalyse_string = request.args.get("reanalyse", "false")
     if reanalyse_string not in ["true", "false"]:
@@ -91,8 +90,7 @@ def _filter_class_and_zero_scores(
     """
     if filter_class is not None:
         filter_idx = [
-            idx
-            for idx, (score, class_id) in enumerate(zip(scores, classes))
+            idx for idx, (score, class_id) in enumerate(zip(scores, classes))
             if (score >= confidence and class_id == filter_class)
         ]
     else:
@@ -153,24 +151,18 @@ def _non_max_suppress_bbox(
         # intersect = width * height
         intersect = np.maximum(0.0, xx2 - xx1) * np.maximum(0.0, yy2 - yy1)
 
-        overlap = intersect / (
-            areas[score] + areas[sorted_scores[1:]] - intersect
-        )
-        sorted_scores = sorted_scores[
-            np.union1d(
-                np.where(overlap <= 1 - iou)[0],
-                np.where(class_others != class_largest),
-            )
-            + 1
-        ]
+        overlap = intersect / (areas[score] + areas[sorted_scores[1:]] -
+                               intersect)
+        sorted_scores = sorted_scores[np.union1d(
+            np.where(overlap <= 1 - iou)[0],
+            np.where(class_others != class_largest),
+        ) + 1]
     detection_boxes = list(map(tuple, bbox_filter[keep]))
     detection_scores = list(scores_filter[keep])
     detection_classes = list(classes_filter[keep])
 
-    detection_boxes = [
-        (float(item[0]), float(item[1]), float(item[2]), float(item[3]))
-        for item in detection_boxes
-    ]
+    detection_boxes = [(float(item[0]), float(item[1]), float(item[2]),
+                        float(item[3])) for item in detection_boxes]
     detection_scores = [float(item) for item in detection_scores]
     detection_classes = [int(item) for item in detection_classes]
     return (
@@ -228,29 +220,21 @@ def _non_max_suppress_mask(
         intersect = np.empty_like(sorted_scores[1:])
         for index, others in enumerate(masks_filter[sorted_scores[1:]]):
             intersect[index] = np.count_nonzero(
-                np.logical_and(masks_filter[score], others)
-            )
+                np.logical_and(masks_filter[score], others))
 
-        overlap = intersect / (
-            areas[score] + areas[sorted_scores[1:]] - intersect
-        )
-        sorted_scores = sorted_scores[
-            np.union1d(
-                np.where(overlap <= 1 - iou)[0],
-                np.where(
-                    classes_filter[sorted_scores[1:]] != classes_filter[score]
-                ),
-            )
-            + 1
-        ]
+        overlap = intersect / (areas[score] + areas[sorted_scores[1:]] -
+                               intersect)
+        sorted_scores = sorted_scores[np.union1d(
+            np.where(overlap <= 1 - iou)[0],
+            np.where(
+                classes_filter[sorted_scores[1:]] != classes_filter[score]),
+        ) + 1]
     detection_boxes = list(map(tuple, bbox_filter[keep]))
     detection_scores = list(scores_filter[keep])
     detection_classes = list(classes_filter[keep])
     detection_masks = list(masks_filter[keep])
-    detection_boxes = [
-        (float(item[0]), float(item[1]), float(item[2]), float(item[3]))
-        for item in detection_boxes
-    ]
+    detection_boxes = [(float(item[0]), float(item[1]), float(item[2]),
+                        float(item[3])) for item in detection_boxes]
     detection_scores = [float(item) for item in detection_scores]
     detection_classes = [int(item) for item in detection_classes]
     return (
@@ -293,34 +277,27 @@ def get_suppressed_output(
     :param confidence: The confidence threshold.
     :returns: tuple of suppressed bbox, suppressed scores and suppressed classes.
     """
-    detection_masks = (
-        detections["detection_masks"]
-        if "detection_masks" in detections
-        else None
-    )
+    detection_masks = (detections["detection_masks"]
+                       if "detection_masks" in detections else None)
     detection_boxes = detections["detection_boxes"]
     detection_scores = detections["detection_scores"]
     detection_classes = detections["detection_classes"]
-    return (
-        _non_max_suppress_bbox(
-            bbox=detection_boxes,
-            scores=detection_scores,
-            classes=detection_classes,
-            filter_class=filter_id,
-            iou=iou,
-            confidence=confidence,
-        )
-        if detection_masks is None
-        else _non_max_suppress_mask(
-            bbox=detection_boxes,
-            scores=detection_scores,
-            classes=detection_classes,
-            masks=detection_masks,
-            filter_class=filter_id,
-            iou=iou,
-            confidence=confidence,
-        )
-    )
+    return (_non_max_suppress_bbox(
+        bbox=detection_boxes,
+        scores=detection_scores,
+        classes=detection_classes,
+        filter_class=filter_id,
+        iou=iou,
+        confidence=confidence,
+    ) if detection_masks is None else _non_max_suppress_mask(
+        bbox=detection_boxes,
+        scores=detection_scores,
+        classes=detection_classes,
+        masks=detection_masks,
+        filter_class=filter_id,
+        iou=iou,
+        confidence=confidence,
+    ))
 
 
 def back_to_array(suppressed_output: tuple) -> dict:
@@ -330,22 +307,23 @@ def back_to_array(suppressed_output: tuple) -> dict:
     :returns: Dictionary containing the suppressed outputs in array form.
     """
     tensor_dict = {
-        "num_detections": np.array(
+        "num_detections":
+        np.array(
             [
                 float(len(suppressed_output[2])),
             ],
             dtype=np.float32,
         ),
-        "detection_boxes": np.array([suppressed_output[0]], dtype=np.float32),
-        "detection_scores": np.array([suppressed_output[1]], dtype=np.float32),
-        "detection_classes": np.array(
-            [suppressed_output[2]], dtype=np.float32
-        ),
+        "detection_boxes":
+        np.array([suppressed_output[0]], dtype=np.float32),
+        "detection_scores":
+        np.array([suppressed_output[1]], dtype=np.float32),
+        "detection_classes":
+        np.array([suppressed_output[2]], dtype=np.float32),
     }
     if suppressed_output[3] is not None:
-        tensor_dict["detection_masks"] = np.array(
-            [suppressed_output[3]], dtype=np.uint8
-        )
+        tensor_dict["detection_masks"] = np.array([suppressed_output[3]],
+                                                  dtype=np.uint8)
     return tensor_dict
 
 
@@ -379,14 +357,11 @@ def _convert_mask_to_contours(reframed_masks: np.array) -> list:
             for single_contour in inner_contour:
                 # 2. Simplfy the contour to get an approximation
                 epsilon = EPSILON_MULTIPLIER * cv2.arcLength(
-                    single_contour, True
-                )
+                    single_contour, True)
                 approx = cv2.approxPolyDP(single_contour, epsilon, True)
                 # 3. Normalize the approximation
-                approx = [
-                    [item[0][0] / width, item[0][1] / height]
-                    for item in approx
-                ]
+                approx = [[item[0][0] / width, item[0][1] / height]
+                          for item in approx]
 
                 # Min 3 points is needed for polygon to be created
                 if len(approx) >= 3:
@@ -411,8 +386,7 @@ def _convert_mask_to_contours(reframed_masks: np.array) -> list:
                     # pylint: disable=E1101
                     polygon_list = list(union_polygon.geoms)
                     largest_poly_idx = np.argmax(
-                        [item.area for item in polygon_list]
-                    )
+                        [item.area for item in polygon_list])
                     final_polygon = polygon_list[largest_poly_idx]
 
                 # 6. No change for single polygon
@@ -439,7 +413,7 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
     bboxes = detections["detection_boxes"]
     classes = detections["detection_classes"].astype(np.int64)
     scores = detections["detection_scores"]
-    if not "detection_masks" in detections:
+    if "detection_masks" not in detections:
         contours = None
     else:
         reframed_masks = detections["detection_masks"]
@@ -448,18 +422,21 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
     output = []
 
     for each_class, _ in enumerate(classes):
-        if contours is None or (
-            contours is not None and bool(contours[each_class])
-        ):
+        if contours is None or (contours is not None
+                                and bool(contours[each_class])):
             class_name = category_map[str(classes[each_class])]
             item = {}
             item["confidence"] = float(scores[each_class])
             item["tag"] = class_name
             item["bound"] = [
-                [float(bboxes[each_class][1]), float(bboxes[each_class][0])],
-                [float(bboxes[each_class][1]), float(bboxes[each_class][2])],
-                [float(bboxes[each_class][3]), float(bboxes[each_class][2])],
-                [float(bboxes[each_class][3]), float(bboxes[each_class][0])],
+                [float(bboxes[each_class][1]),
+                 float(bboxes[each_class][0])],
+                [float(bboxes[each_class][1]),
+                 float(bboxes[each_class][2])],
+                [float(bboxes[each_class][3]),
+                 float(bboxes[each_class][2])],
+                [float(bboxes[each_class][3]),
+                 float(bboxes[each_class][0])],
             ]
             if contours is not None:
                 item["boundType"] = "masks"
@@ -533,10 +510,8 @@ def visualize(
         ## Insert label class & score
         cv2.putText(
             img_arr,
-            "Class: {}, Score: {}".format(
-                str(category_index[str(classes[idx])]["name"]),
-                str(round(scores[idx], 2)),
-            ),
+            f"Class: {category_index[str(classes[idx])]['name']}, "
+            f"Score: {round(scores[idx], 2)}",
             (
                 int(each_bbox[1] * width),
                 int(each_bbox[2] * height + 10),

@@ -1,3 +1,4 @@
+# pylint: disable=E0401, E0611
 from typing import List, Dict
 
 import cv2
@@ -64,6 +65,7 @@ class Processor(AbstractProcessor):
         return model_input
 
     def postprocess(self, model_output: List[np.ndarray], **kwargs) -> Dict:
+        del kwargs
         class_masks = model_output[0][0]
         instance_masks, bbox_list, class_ids, scores = self.get_polygons(
             class_masks)

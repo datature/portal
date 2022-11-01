@@ -46,20 +46,18 @@ use_cache = "0"
 
 # update the variables
 if os.path.isfile(use_gpu_dir):
-    with open(use_gpu_dir, "r") as gpu_flag:
+    with open(use_gpu_dir, "r", encoding="utf-8") as gpu_flag:
         use_gpu = gpu_flag.read()
 else:
-    with open(use_gpu_dir, "w") as gpu_flag:
+    with open(use_gpu_dir, "w", encoding="utf-8") as gpu_flag:
         gpu_flag.write(use_gpu)
 
-
 if os.path.isfile(use_cache_dir):
-    with open(use_cache_dir, "r") as cache_flag:
+    with open(use_cache_dir, "r", encoding="utf-8") as cache_flag:
         use_cache = cache_flag.read()
 else:
-    with open(use_cache_dir, "w") as cache_flag:
+    with open(use_cache_dir, "w", encoding="utf-8") as cache_flag:
         cache_flag.write("use_cache")
-
 
 os.environ["ROOT_DIR"] = root
 os.environ["CACHE_DIR"] = cache_dir
@@ -67,7 +65,6 @@ os.environ["GPU_DIR"] = use_gpu_dir
 os.environ["MODEL_DIR"] = model_folder
 os.environ["USE_CACHE"] = use_cache
 os.environ["USE_CACHE_DIR"] = use_cache_dir
-
 
 # pylint: disable=wrong-import-position
 from server import server, app, global_store
