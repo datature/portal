@@ -994,9 +994,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 }
                 isOpen={
                   !this.state.isOpenRegistraionForm &&
-                    !this.state.isOpenDrawer &&
-                    !this.state.currentModel &&
-                    Object.keys(this.state.registeredModelList).length > 0
+                  !this.state.isOpenDrawer &&
+                  !this.state.currentModel &&
+                  Object.keys(this.state.registeredModelList).length > 0
                     ? true
                     : undefined
                 }
@@ -1017,9 +1017,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   text={
                     this.state.currentModel !== undefined
                       ? this.formatLongStringName(
-                        this.state.currentModel.name,
-                        15
-                      )
+                          this.state.currentModel.name,
+                          15
+                        )
                       : "Load Model.."
                   }
                 />
