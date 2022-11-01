@@ -573,7 +573,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 id="modelURL"
                 name="modelURL"
                 value={this.state.formData.modelURL}
-                placeholder="Enter the URL from endpoint..."
+                placeholder="http://12.34.56.78/neural/<your_depolymeny_url>/predict"
                 onChange={this.handleChangeForm}
               />
             </FormGroup>
@@ -663,10 +663,12 @@ export default class Model extends React.Component<ModelProps, ModelState> {
 
   /** Handles the change in registration tab. Resets the formData to default */
   private handleRegistrationTabChange = (tabId: TabId) => {
+    const modelType = tabId === "endpoint" ? "onnx" : "tensorflow";
+
     this.setState({
       formData: {
         type: tabId.toString(),
-        modelType: "tensorflow",
+        modelType,
         name: "",
         description: "",
         directory: "",
@@ -749,7 +751,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     const modelTypes = {
       tensorflow: "TensorFlow 2.0",
       darknet: "DarkNet (YOLO v3, YOLO v4)",
-      onnx: "Datature ONNX"
+      onnx: "Datature ONNX",
     };
 
     const registerModelForm = (
@@ -992,9 +994,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 }
                 isOpen={
                   !this.state.isOpenRegistraionForm &&
-                    !this.state.isOpenDrawer &&
-                    !this.state.currentModel &&
-                    Object.keys(this.state.registeredModelList).length > 0
+                  !this.state.isOpenDrawer &&
+                  !this.state.currentModel &&
+                  Object.keys(this.state.registeredModelList).length > 0
                     ? true
                     : undefined
                 }
@@ -1015,9 +1017,9 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   text={
                     this.state.currentModel !== undefined
                       ? this.formatLongStringName(
-                        this.state.currentModel.name,
-                        15
-                      )
+                          this.state.currentModel.name,
+                          15
+                        )
                       : "Load Model.."
                   }
                 />
@@ -1043,11 +1045,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   >
                     <Tab id="local" title="Local" />
                     <Tab id="hub" title="Datature Hub" />
-                    <Tab
-                      id="endpoint"
-                      title="Datature API (Coming Soon)"
-                      disabled={true}
-                    />
+                    <Tab id="endpoint" title="Datature API" />
                     <Tabs.Expander />
                   </Tabs>
                 </NavbarGroup>{" "}

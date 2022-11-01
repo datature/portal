@@ -287,10 +287,15 @@ def register_model() -> tuple:
                 Errors.INVALIDAPI,
                 "model_type needs to be one of 'darknet', 'tensorflow', 'onnx' or 'pytorch'.",
             )
-        if input_type in ["hub", "endpoint"] and model_type != "tensorflow":
+        if input_type in ["hub"] and model_type != "tensorflow":
             raise PortalError(
                 Errors.INVALIDAPI,
                 "only tensorflow models are supported for Hub.",
+            )
+        if input_type in ["endpoint"] and model_type != "onnx":
+            raise PortalError(
+                Errors.INVALIDAPI,
+                "only ONNX models are supported for Datature API.",
             )
         # Register the model using the respective registration code.
         if input_type == "local":

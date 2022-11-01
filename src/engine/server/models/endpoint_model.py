@@ -12,11 +12,13 @@ from server.models.abstract.BaseModel import BaseModel
 
 
 class EndpointModel(BaseModel):
+
     def _load_label_map_(self):
-        link = self.kwargs["link"] + "/classes"
+        link: str = self.kwargs["link"]
+        link = link.replace("/predict", "/classes")
         project_secret = self.kwargs["project_secret"]
         headers = {"Authorization": "Bearer " + project_secret}
-        response = requests.post(
+        response = requests.get(
             url=link,
             headers=headers,
         )
@@ -30,16 +32,11 @@ class EndpointModel(BaseModel):
         self._label_map_ = response.json()
 
     def register(self):
-        self._load_label_map_()
         link = self.kwargs["link"]
+        self._load_label_map_()
         project_secret = self.kwargs["project_secret"]
-        pre_hash = (
-            self._type_
-            + self._name_
-            + self._description_
-            + link
-            + project_secret
-        ).encode("utf-8")
+        pre_hash = (self._type_ + self._name_ + self._description_ + link +
+                    project_secret).encode("utf-8")
         self._key_ = hashlib.md5(pre_hash).hexdigest()
         return self._key_, self
 
@@ -52,32 +49,35 @@ class EndpointModel(BaseModel):
         height, width, channels = image_array.shape
         # convert the array back to bgr for exporting
 
-        image_array = (
-            cv2.cvtColor(image_array, cv2.COLOR_RGBA2BGR)
-            if channels == 4
-            else cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
-        )
+        image_array = (cv2.cvtColor(image_array, cv2.COLOR_RGBA2BGR)
+                       if channels == 4 else cv2.cvtColor(
+                           image_array, cv2.COLOR_RGB2BGR))
         _, bts = cv2.imencode(".jpg", image_array)
         base64_array = {
             "data": encodebytes(bts.tostring()).decode("ascii"),
             "image_type": "base_64",
         }
-        link = self.kwargs["link"] + "/predict"
+        link = self.kwargs["link"]
         project_secret = self.kwargs["project_secret"]
-        headers = {"Authorization": "Bearer " + project_secret}
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "Authorization": f"Bearer {project_secret}"
+        }
         response = requests.post(
             url=link,
             json=base64_array,
             headers=headers,
         )
         output = response.json()
+
         # convert output into the tensor required by the BaseModel predict
         boxes = []
         classes = []
         scores = []
         masks = []
 
-        for single_detection in output:
+        for single_detection in output["predictions"]:
             # 1. bounds to bbox:
             bounds = single_detection["bound"]
             top_left = bounds[0]
@@ -115,6 +115,7 @@ class EndpointModel(BaseModel):
                 ImageDraw.Draw(mask_img).polygon(polygon, outline=1, fill=1)
                 mask = np.expand_dims(np.array(mask_img), axis=0)
                 masks.append(mask)
+
         masks = np.concatenate(masks) if masks != [] else None
 
         # 4. package them into the required detections output
