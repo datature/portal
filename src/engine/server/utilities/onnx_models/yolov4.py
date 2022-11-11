@@ -1,7 +1,6 @@
 # pylint: disable=C0103, W0703, E0401, E0611
 import copy
 from typing import List, Dict
-
 import numpy as np
 from scipy.special import expit
 
@@ -96,7 +95,8 @@ def yolov3v4_decode(
     elif len(predictions) == 2:
         anchor_mask = [[3, 4, 5], [0, 1, 2]]
     else:
-        raise ValueError(f"Unsupported prediction length: {len(predictions)}")
+        raise ValueError("Unsupported prediction length: {}".format(
+            len(predictions)))
 
     results = []
 
@@ -153,7 +153,7 @@ def box_diou(boxes):
                 x,y are top left coordinates
 
     Returns:
-        numpy array, shape=(N-1,)
+        numpy array, shape=(N-1,) 
         IoU value of boxes[1:] with boxes[0]
     """
     # get box coordinate and area
@@ -367,7 +367,6 @@ def yolov3v4_postprocess(
     )
 
     boxes = yolo_adjust_boxes(boxes, image_shape)
-
     return boxes, classes, scores
 
 
@@ -378,33 +377,26 @@ class Processor(AbstractProcessor):
         return "yolov4"
 
     def preprocess(self, model_input: np.ndarray) -> np.ndarray:
-        model_input = model_input.astype(np.uint8)
-        return model_input
+        model_input = model_input.astype(np.float32)
+        return model_input / 255
 
     def postprocess(self, model_output: List[np.ndarray], **kwargs) -> Dict:
         height = kwargs["height"]
         width = kwargs["width"]
         category_map = kwargs["category_map"]
-        try:
-            bboxes, classes, scores = yolov3v4_postprocess(
-                model_output, (width, height), ANCHORS, len(category_map),
-                (width, height))
-            offset = 0
-        except Exception:
-            bboxes, classes, scores = yolov3v4_postprocess(
-                model_output, (width, height), ANCHORS,
-                len(category_map) - 1, (width, height))
-            offset = 1
-
+        bboxes, classes, scores = yolov3v4_postprocess(
+            model_output, (width, height), ANCHORS, len(category_map),
+            (width, height))
         bboxes = [[
             float(bbox[0]),
             float(bbox[1]),
             float(bbox[2]),
             float(bbox[3]),
         ] for bbox in bboxes]
-
+        bboxes = np.array(bboxes)
         bboxes[:, [0, 1, 2, 3]] = bboxes[:, [1, 0, 3, 2]]
-        classes = [int(clss + offset)
+        bboxes = bboxes.tolist()
+        classes = [int(clss)
                    for clss in classes]  # Account for background class
         scores = [float(score) for score in scores]
         return_dict = {

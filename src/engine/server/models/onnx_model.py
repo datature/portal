@@ -71,6 +71,7 @@ class OnnxModel(BaseModel):
             os.path.join(self._directory_, "model.onnx"))
         self.model_inputs = loaded_model.get_inputs()
         self.model_input_names = list(map(lambda x: x.name, self.model_inputs))
+        
         self.model_outputs = loaded_model.get_outputs()
         self.model_output_names = list(
             map(lambda x: x.name, self.model_outputs))
@@ -78,7 +79,7 @@ class OnnxModel(BaseModel):
         self._model_ = loaded_model
         self.model_type: str = loaded_model.get_modelmeta().description
         self.model_type = self.model_type.replace(" ", "_")
-        self._width_ = (model_h_w[3]
+        self._width_ = (model_h_w[2]
                         if self.model_type != "object_detection" else 640)
         self._height_ = (model_h_w[2]
                          if self.model_type != "object_detection" else 640)

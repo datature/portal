@@ -98,9 +98,6 @@ class Processor(AbstractProcessor):
             id_name_dict["detection_boxes"]].squeeze()
         # Convert squeezed_bboxes
         converted_bboxes = deepcopy(original_bboxes)
-        # print(converted_bboxes)
-        # from ymin xmin ymax xmax to xmin ymin xmax ymax
-        # converted_bboxes[:, [0, 1, 2, 3]] = converted_bboxes[:, [1, 0, 3, 2]]
 
         classes = model_output[id_name_dict["detection_classes"]].astype(
             np.uint8).squeeze().tolist()
