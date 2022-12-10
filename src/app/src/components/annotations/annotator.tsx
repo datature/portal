@@ -1574,6 +1574,14 @@ export default class Annotator extends Component<
       this.isAssetVisible()
     );
 
+    const fastForward = (frame: number) => {
+      const videoElement = this.videoOverlay?.getElement();
+      if (videoElement) {
+        videoElement.currentTime = frame / 1000;
+        videoElement.pause();
+      }
+    };
+
     return (
       <div>
         <Toaster {...this.state} ref={this.refHandlers.toaster} />
@@ -1612,7 +1620,11 @@ export default class Annotator extends Component<
                     confidenceThreshold={this.state.confidence}
                   />
                 ) : (
-                  <VideoAnalyticsBar data={this.state.analyticsData.data} />
+                  <VideoAnalyticsBar
+                    data={this.state.analyticsData.data}
+                    confidenceThreshold={this.state.confidence}
+                    fastForward={fastForward}
+                  />
                 )
               ) : this.state.isAnalyticsBarOpen && !this.state.analyticsData ? (
                 <p>No Data</p>
