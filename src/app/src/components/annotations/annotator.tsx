@@ -1613,15 +1613,20 @@ export default class Annotator extends Component<
             <Card className={"main-annotator"}>
               <div id="annotation-map" className={"style-annotator"} />
               {this.backgroundImg ? (
-                <div className="annotator-settings-button">
-                  <AnnotatorSettings
-                    annotationOptions={this.state.annotationOptions}
-                    callbacks={{
-                      setAnnotatedAssetsHidden: this.setAnnotatedAssetsHidden,
-                      setAnnotationOptions: this.setAnnotationOptions,
-                    }}
-                  />
-                </div>
+                <>
+                  <div className="annotator-settings-button">
+                    <AnnotatorSettings
+                      annotationOptions={this.state.annotationOptions}
+                      callbacks={{
+                        setAnnotatedAssetsHidden: this.setAnnotatedAssetsHidden,
+                        setAnnotationOptions: this.setAnnotationOptions,
+                      }}
+                    />
+                  </div>
+                  <div className="annotator-analytics-button">
+                    <Button icon="chart" />
+                  </div>
+                </>
               ) : null}
             </Card>
           </div>
