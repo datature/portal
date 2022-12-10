@@ -10,8 +10,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import { TagColours } from "../../../constants/annotation";
-import { getFrameImageTags, addCharAscii } from "../utils/analyticsbar";
+import { getFrameImageTags, getTagColor } from "../utils/analyticsbar";
 import CustomTooltip from "./customtooltip";
 
 interface ImageAnalyticsBarProps {
@@ -51,7 +50,7 @@ const ImageAnalyticsBar = ({
         <Tooltip cursor={{ fill: "transparent" }} content={<CustomTooltip />} />
         <Bar dataKey="count">
           {uniqueImageTagName.map(tag => {
-            const tagColor = TagColours[addCharAscii(tag) % TagColours.length];
+            const tagColor = getTagColor(tag);
             return <Cell key={tag} fill={tagColor} />;
           })}
         </Bar>

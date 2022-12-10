@@ -11,8 +11,10 @@ import {
   YAxis,
 } from "recharts";
 import { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
-import { TagColours } from "../../../constants/annotation";
-import { getFrameImageTags, addCharAscii } from "../utils/analyticsbar";
+import {
+  getFrameImageTags,
+  getTagColor,
+} from "../utils/analyticsbar";
 import CustomTooltip from "./customtooltip";
 
 interface VideoAnalyticsBarProps {
@@ -96,7 +98,7 @@ const VideoAnalyticsBar = ({
         <YAxis />
         <Tooltip content={<CustomTooltip />} />
         {allUniqueVideoImageTagNames.map((tag: string) => {
-          const tagColor = TagColours[addCharAscii(tag) % TagColours.length];
+          const tagColor = getTagColor(tag);
           return <Line key={tag} dataKey={tag} stroke={tagColor} dot={false} />;
         })}
       </LineChart>

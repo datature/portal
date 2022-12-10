@@ -22,7 +22,7 @@ export const getFrameImageTags = (
   return output;
 };
 
-export const addCharAscii = (str: string): number => {
+const addCharAscii = (str: string): number => {
   let sum = 0;
   // eslint-disable-next-line no-plusplus
   for (let i = 0; i < str.length; i++) {
