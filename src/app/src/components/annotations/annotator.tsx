@@ -761,7 +761,7 @@ export default class Annotator extends Component<
     const loadedModelHash = this.props.loadedModel.hash;
     /* Hidden annotations reset every time this is initialized */
     this.setState({ hiddenAnnotations: new Set<string>() });
-    
+
     if (
       asset.type === "image" &&
       (this.state.inferenceOptions.bulkAnalysisStatus !== "video" ||
@@ -1607,9 +1607,12 @@ export default class Annotator extends Component<
               {// eslint-disable-next-line no-nested-ternary
               this.state.isAnalyticsBarOpen && this.state.analyticsData ? (
                 this.state.analyticsData.type === "image" ? (
-                  <ImageAnalyticsBar />
+                  <ImageAnalyticsBar
+                    data={this.state.analyticsData.data}
+                    confidenceThreshold={this.state.confidence}
+                  />
                 ) : (
-                  <VideoAnalyticsBar />
+                  <VideoAnalyticsBar data={this.state.analyticsData.data} />
                 )
               ) : this.state.isAnalyticsBarOpen && !this.state.analyticsData ? (
                 <p>No Data</p>
