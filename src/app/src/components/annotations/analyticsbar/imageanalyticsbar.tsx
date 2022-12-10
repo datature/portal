@@ -11,44 +11,19 @@ import {
   Tooltip,
 } from "recharts";
 import { TagColours } from "../../../constants/annotation";
+import { getFrameImageTags, addCharAscii } from "../utils/analyticsbar";
 import CustomTooltip from "./customtooltip";
 
-type ImageTag = {
-  id: number;
-  name: string;
-};
 interface ImageAnalyticsBarProps {
   data: any;
   confidenceThreshold: number;
 }
 
-const getImageTags = (data: any, confidenceThreshold: number): ImageTag[] => {
-  const output: ImageTag[] = [];
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < data.length; i++) {
-    // eslint-disable-next-line no-continue
-    if (confidenceThreshold > data[i].confidence) continue;
-
-    const { tag } = data[i];
-    output.push(tag);
-  }
-  return output;
-};
-
-const addCharAscii = (str: string): number => {
-  let sum = 0;
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < str.length; i++) {
-    sum += str.charCodeAt(i);
-  }
-  return sum;
-};
-
 const ImageAnalyticsBar = ({
   data,
   confidenceThreshold,
 }: ImageAnalyticsBarProps): JSX.Element => {
-  const allImageTags = getImageTags(data, confidenceThreshold);
+  const allImageTags = getFrameImageTags(data, confidenceThreshold);
   const uniqueImageTagName = [...new Set(allImageTags.map(item => item.name))];
 
   const imageDataDistribution: any = [];

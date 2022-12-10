@@ -12,43 +12,14 @@ import {
 } from "recharts";
 import { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
 import { TagColours } from "../../../constants/annotation";
+import { getFrameImageTags, addCharAscii } from "../utils/analyticsbar";
 import CustomTooltip from "./customtooltip";
-
-type ImageTag = {
-  id: number;
-  name: string;
-};
 
 interface VideoAnalyticsBarProps {
   data: any;
   confidenceThreshold: number;
   fastForward: (frame: number) => void;
 }
-
-const addCharAscii = (str: string): number => {
-  let sum = 0;
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < str.length; i++) {
-    sum += str.charCodeAt(i);
-  }
-  return sum;
-};
-
-const getFrameImageTags = (
-  data: any,
-  confidenceThreshold: number
-): ImageTag[] => {
-  const output: ImageTag[] = [];
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < data.length; i++) {
-    // eslint-disable-next-line no-continue
-    if (confidenceThreshold > data[i].confidence) continue;
-
-    const { tag } = data[i];
-    output.push(tag);
-  }
-  return output;
-};
 
 const getVideoDataDistribution = (
   data: any,
