@@ -1,23 +1,18 @@
 /* eslint-disable no-restricted-syntax */
-import { Card } from "@blueprintjs/core";
 import React from "react";
+
 import {
   CartesianGrid,
   Line,
   LineChart,
   ResponsiveContainer,
   Tooltip,
-  TooltipProps,
   XAxis,
   YAxis,
 } from "recharts";
 import { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
-import {
-  NameType,
-  ValueType,
-} from "recharts/types/component/DefaultTooltipContent";
-
 import { TagColours } from "../../../constants/annotation";
+import CustomTooltip from "./customtooltip";
 
 type ImageTag = {
   id: number;
@@ -84,26 +79,6 @@ const getVideoDataDistribution = (
   }
 
   return output;
-};
-
-const CustomTooltip = ({
-  active,
-  payload,
-}: TooltipProps<ValueType, NameType>): JSX.Element => {
-  if (active && payload && payload.length >= 1) {
-    return (
-      <Card style={{ padding: 0, margin: 0 }}>
-        <ul style={{ padding: "10px 20px" }}>
-          {payload?.map(item => (
-            <li key={item.dataKey} style={{ color: item.color }}>
-              {item.name} : {item.value}
-            </li>
-          ))}
-        </ul>
-      </Card>
-    );
-  }
-  return <></>;
 };
 
 const getVideoUniqueImageTagNames = (

@@ -1,4 +1,5 @@
 import React from "react";
+
 import {
   BarChart,
   CartesianGrid,
@@ -7,9 +8,10 @@ import {
   Bar,
   Cell,
   ResponsiveContainer,
+  Tooltip,
 } from "recharts";
-
 import { TagColours } from "../../../constants/annotation";
+import CustomTooltip from "./customtooltip";
 
 type ImageTag = {
   id: number;
@@ -52,17 +54,17 @@ const ImageAnalyticsBar = ({
   const imageDataDistribution: any = [];
   // eslint-disable-next-line no-restricted-syntax
   for (const key of uniqueImageTagName) {
-    imageDataDistribution.push({ score: 0, id: key, name: `${key} (${0})` });
+    imageDataDistribution.push({ count: 0, id: key, name: `${key} (${0})` });
   }
 
   // eslint-disable-next-line no-restricted-syntax
   for (const key of allImageTags) {
     const item = imageDataDistribution.find(
-      (tag: { score: number; name: string; id: string }) => tag.id === key.name
+      (tag: { count: number; name: string; id: string }) => tag.id === key.name
     );
     // eslint-disable-next-line no-plusplus
-    item.score++;
-    item.name = `${key.name} (${item.score})`;
+    item.count++;
+    item.name = `${key.name} (${item.count})`;
   }
 
   return (
@@ -71,7 +73,8 @@ const ImageAnalyticsBar = ({
         <CartesianGrid strokeDasharray="1 2" />
         <YAxis />
         <XAxis dataKey="name" />
-        <Bar dataKey="score">
+        <Tooltip cursor={{ fill: "transparent" }} content={<CustomTooltip />} />
+        <Bar dataKey="count">
           {uniqueImageTagName.map(tag => {
             const tagColor = TagColours[addCharAscii(tag) % TagColours.length];
             return <Cell key={tag} fill={tagColor} />;
