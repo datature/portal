@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/sort-comp */
 /* eslint-disable no-return-assign */
 /* eslint-disable no-underscore-dangle */
@@ -50,8 +51,7 @@ import AnnotatorSettings from "./utils/annotatorsettings";
 import FormatTimerSeconds from "./utils/timer";
 import { RegisteredModel } from "./model";
 
-import ImageAnalyticsBar from "./analyticsbar/imageanalyticsbar";
-import VideoAnalyticsBar from "./analyticsbar/videoanalyticsbar";
+import AnalyticsBar from "./analyticsbar/analyticsbar";
 
 type Point = [number, number];
 type MapType = L.DrawMap;
@@ -82,10 +82,9 @@ function Coordinate(x: number, y: number): Point {
 
 type UIState = null | "Predicting";
 
-type AnalyticsData = {
+export type AnalyticsData = {
   type: string;
   data: any;
-  videoFrame?: string;
 };
 
 interface AnnotatorProps {
@@ -831,7 +830,6 @@ export default class Annotator extends Component<
                 analyticsData: {
                   type: asset.type,
                   data: response.data,
-                  videoFrame: key,
                 },
               });
 
@@ -1611,23 +1609,14 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
-              {/* Todo: Clean up tenary expression */}
-              {// eslint-disable-next-line no-nested-ternary
-              this.state.isAnalyticsBarOpen && this.state.analyticsData ? (
-                this.state.analyticsData.type === "image" ? (
-                  <ImageAnalyticsBar
-                    data={this.state.analyticsData.data}
-                    confidenceThreshold={this.state.confidence}
-                  />
-                ) : (
-                  <VideoAnalyticsBar
-                    data={this.state.analyticsData.data}
-                    confidenceThreshold={this.state.confidence}
-                    fastForward={fastForward}
-                  />
-                )
+              {this.state.isAnalyticsBarOpen && this.state.analyticsData ? (
+                <AnalyticsBar
+                  analyticsData={this.state.analyticsData}
+                  confidenceThreshold={this.state.confidence}
+                  fastForward={fastForward}
+                />
               ) : this.state.isAnalyticsBarOpen && !this.state.analyticsData ? (
-                <p>No Data</p>
+                <p>No data, please analyse the image first</p>
               ) : (
                 <ImageBar
                   ref={ref => {
