@@ -50,6 +50,9 @@ import AnnotatorSettings from "./utils/annotatorsettings";
 import FormatTimerSeconds from "./utils/timer";
 import { RegisteredModel } from "./model";
 
+import ImageAnalyticsBar from "./analyticsbar/imageanalyticsbar";
+import VideoAnalyticsBar from "./analyticsbar/videoanalyticsbar";
+
 type Point = [number, number];
 type MapType = L.DrawMap;
 type VideoFrameMetadata = {
@@ -78,6 +81,12 @@ function Coordinate(x: number, y: number): Point {
 }
 
 type UIState = null | "Predicting";
+
+type AnalyticsData = {
+  type: string;
+  data: any;
+  videoFrame?: string;
+};
 
 interface AnnotatorProps {
   project: string;
@@ -148,6 +157,8 @@ interface AnnotatorState {
     opacity: number;
   };
   currAnnotationPlaybackId: number;
+  isAnalyticsBarOpen: boolean;
+  analyticsData: AnalyticsData | null;
 }
 
 /**
@@ -246,6 +257,8 @@ export default class Annotator extends Component<
         },
       },
       currAnnotationPlaybackId: 0,
+      isAnalyticsBarOpen: false,
+      analyticsData: null,
     };
 
     this.toaster = new Toaster({}, {});
@@ -748,7 +761,7 @@ export default class Annotator extends Component<
     const loadedModelHash = this.props.loadedModel.hash;
     /* Hidden annotations reset every time this is initialized */
     this.setState({ hiddenAnnotations: new Set<string>() });
-
+    
     if (
       asset.type === "image" &&
       (this.state.inferenceOptions.bulkAnalysisStatus !== "video" ||
@@ -763,7 +776,13 @@ export default class Annotator extends Component<
       )
         .then(response => {
           if (this.currentAsset.url === asset.url && singleAnalysis)
-            this.updateAnnotations(response.data);
+            this.setState({
+              analyticsData: {
+                type: asset.type,
+                data: response.data,
+              },
+            });
+          this.updateAnnotations(response.data);
         })
         .catch(error => {
           let message = "Failed to predict image.";
@@ -807,6 +826,14 @@ export default class Annotator extends Component<
               const key = Math.floor(
                 quotient * secondsInterval * 1000
               ).toString();
+
+              this.setState({
+                analyticsData: {
+                  type: asset.type,
+                  data: response.data,
+                  videoFrame: key,
+                },
+              });
 
               if (response.data.frames[key]) {
                 this.updateAnnotations(response.data.frames[key]);
@@ -1167,6 +1194,8 @@ export default class Annotator extends Component<
 
     /* Checks if there is AssetReselection */
     const isAssetReselection = !(asset.assetUrl !== this.currentAsset.assetUrl);
+    /* Sets analytic data to null upon asset reselection */
+    this.setState({ analyticsData: null });
     console.log("asset", asset.url);
     console.log("currentasset", this.currentAsset.url);
     console.log("single analysis", singleAnalysis);
@@ -1574,15 +1603,27 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
-              <ImageBar
-                ref={ref => {
-                  this.imagebarRef = ref;
-                }}
-                /* Only visible assets should be shown */
-                assetList={visibleAssets}
-                callbacks={{ selectAssetCallback: this.selectAsset }}
-                {...this.props}
-              />
+              {/* Todo: Clean up tenary expression */}
+              {// eslint-disable-next-line no-nested-ternary
+              this.state.isAnalyticsBarOpen && this.state.analyticsData ? (
+                this.state.analyticsData.type === "image" ? (
+                  <ImageAnalyticsBar />
+                ) : (
+                  <VideoAnalyticsBar />
+                )
+              ) : this.state.isAnalyticsBarOpen && !this.state.analyticsData ? (
+                <p>No Data</p>
+              ) : (
+                <ImageBar
+                  ref={ref => {
+                    this.imagebarRef = ref;
+                  }}
+                  /* Only visible assets should be shown */
+                  assetList={visibleAssets}
+                  callbacks={{ selectAssetCallback: this.selectAsset }}
+                  {...this.props}
+                />
+              )}
             </Card>
           </div>
 
@@ -1624,7 +1665,15 @@ export default class Annotator extends Component<
                     />
                   </div>
                   <div className="annotator-analytics-button">
-                    <Button icon="chart" />
+                    <Button
+                      icon="chart"
+                      onClick={() =>
+                        this.setState({
+                          // eslint-disable-next-line react/no-access-state-in-setstate
+                          isAnalyticsBarOpen: !this.state.isAnalyticsBarOpen,
+                        })
+                      }
+                    />
                   </div>
                 </>
               ) : null}
