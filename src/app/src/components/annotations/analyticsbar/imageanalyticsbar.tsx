@@ -22,6 +22,7 @@ interface ImageAnalyticsBarProps {
 
 const getImageTags = (data: any, confidenceThreshold: number): ImageTag[] => {
   const output: ImageTag[] = [];
+  // eslint-disable-next-line no-plusplus
   for (let i = 0; i < data.length; i++) {
     // eslint-disable-next-line no-continue
     if (confidenceThreshold > data[i].confidence) continue;
@@ -34,6 +35,7 @@ const getImageTags = (data: any, confidenceThreshold: number): ImageTag[] => {
 
 const addCharAscii = (str: string): number => {
   let sum = 0;
+  // eslint-disable-next-line no-plusplus
   for (let i = 0; i < str.length; i++) {
     sum += str.charCodeAt(i);
   }
