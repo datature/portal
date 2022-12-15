@@ -1,6 +1,5 @@
 /* eslint-disable no-restricted-syntax */
 import React from "react";
-
 import {
   CartesianGrid,
   Line,
@@ -11,10 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
-import {
-  getFrameImageTags,
-  getTagColor,
-} from "../utils/analyticsbar";
+import { getFrameImageTags, getTagColor } from "../utils/analyticsbar";
 import CustomTooltip from "./customtooltip";
 
 interface VideoAnalyticsBarProps {
@@ -28,26 +24,31 @@ const getVideoDataDistribution = (
   confidenceThreshold: number
 ): any[] => {
   const output: any[] = [];
+
+  // Frame will always exist therefore there is no need for a guard
   // eslint-disable-next-line guard-for-in
   for (const frame in data.frames) {
     const frameDataDistribution: any = {
       name: frame,
     };
-    const allFrameImageTags = getFrameImageTags(
+    const frameImageTags = getFrameImageTags(
       data.frames[frame],
       confidenceThreshold
     );
     const uniqueFrameImageTagName = [
-      ...new Set(allFrameImageTags.map(item => item.name)),
+      ...new Set(frameImageTags.map(tag => tag.name)),
     ];
 
-    for (const key of uniqueFrameImageTagName) {
-      frameDataDistribution[key] = 0;
+    // create initial unique tags for frameDataDistribution with 0
+    for (const uniqueTag of uniqueFrameImageTagName) {
+      frameDataDistribution[uniqueTag] = 0;
     }
 
-    for (const key of allFrameImageTags) {
+    // populate frameDataDistribution
+    for (const key of frameImageTags) {
       frameDataDistribution[key.name] += 1;
     }
+
     output.push(frameDataDistribution);
   }
 
@@ -59,13 +60,15 @@ const getVideoUniqueImageTagNames = (
   confidenceThreshold: number
 ): string[] => {
   let output: string[] = [];
+
+  // Frame will always exist therefore there is no need for a guard
   // eslint-disable-next-line guard-for-in
   for (const frame in data.frames) {
-    const allFrameImageTags = getFrameImageTags(
+    const frameImageTags = getFrameImageTags(
       data.frames[frame],
       confidenceThreshold
     );
-    output.push(...new Set(allFrameImageTags.map(item => item.name)));
+    output.push(...new Set(frameImageTags.map(tag => tag.name)));
   }
   output = [...new Set(output)];
   return output;
