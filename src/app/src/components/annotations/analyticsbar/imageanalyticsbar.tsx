@@ -1,5 +1,4 @@
 import React from "react";
-
 import {
   BarChart,
   CartesianGrid,
@@ -13,6 +12,12 @@ import {
 import { getFrameImageTags, getTagColor } from "../utils/analyticsbar";
 import CustomTooltip from "./customtooltip";
 
+interface ImageDataDistribution {
+  count: number;
+  id: string;
+  name: string;
+}
+
 interface ImageAnalyticsBarProps {
   data: any;
   confidenceThreshold: number;
@@ -23,23 +28,27 @@ const ImageAnalyticsBar = ({
   confidenceThreshold,
 }: ImageAnalyticsBarProps): JSX.Element => {
   const allImageTags = getFrameImageTags(data, confidenceThreshold);
-  const uniqueImageTagName = [...new Set(allImageTags.map(item => item.name))];
+  const uniqueImageTagName = [...new Set(allImageTags.map(tag => tag.name))];
 
-  const imageDataDistribution: any = [];
-  // eslint-disable-next-line no-restricted-syntax
-  for (const key of uniqueImageTagName) {
-    imageDataDistribution.push({ count: 0, id: key, name: `${key} (${0})` });
-  }
+  // Create initial data distribution
+  const imageDataDistribution: ImageDataDistribution[] = uniqueImageTagName.map(
+    tag => {
+      return { count: 0, id: tag, name: `${tag} (0)` };
+    }
+  );
 
-  // eslint-disable-next-line no-restricted-syntax
-  for (const key of allImageTags) {
-    const item = imageDataDistribution.find(
-      (tag: { count: number; name: string; id: string }) => tag.id === key.name
+  // Populate data distribution
+  allImageTags.map(tag => {
+    const dataPoint = imageDataDistribution.find(
+      (point: ImageDataDistribution) => point.id === tag.name
     );
-    // eslint-disable-next-line no-plusplus
-    item.count++;
-    item.name = `${key.name} (${item.count})`;
-  }
+
+    if (!dataPoint) return "";
+
+    dataPoint.count += 1;
+    dataPoint.name = `${tag.name} (${dataPoint.count})`;
+    return "";
+  });
 
   return (
     <ResponsiveContainer width="100%" height={120}>
