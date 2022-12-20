@@ -10,15 +10,10 @@ export const getFrameImageTags = (
   data: any,
   confidenceThreshold: number
 ): ImageTag[] => {
-  const output: ImageTag[] = [];
-  for (let i = 0; i < data.length; i += 1) {
-    // Continue is needed as a guard clause to prevent data that's greater than the confidence threshold from being added to the output array
-    // eslint-disable-next-line no-continue
-    if (confidenceThreshold > data[i].confidence) continue;
-    const { tag } = data[i];
-    output.push(tag);
-  }
-  return output;
+  const filteredFrameTags = data.filter(
+    (item: { confidence: number }) => item.confidence <= confidenceThreshold
+  );
+  return filteredFrameTags.map((item: { tag: ImageTag }) => item.tag);
 };
 
 const addCharAscii = (str: string): number => {

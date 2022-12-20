@@ -30,25 +30,19 @@ const ImageAnalyticsBar = ({
   const allImageTags = getFrameImageTags(data, confidenceThreshold);
   const uniqueImageTagName = [...new Set(allImageTags.map(tag => tag.name))];
 
-  // Create initial data distribution
-  const imageDataDistribution: ImageDataDistribution[] = uniqueImageTagName.map(
-    tag => {
-      return { count: 0, id: tag, name: `${tag} (0)` };
-    }
+  // count the number of times each tag appears
+  const tagCount: Map<string, number> = allImageTags.reduce(
+    (acc, e) => acc.set(e.id, (acc.get(e.id) || 0) + 1),
+    new Map()
   );
 
-  // Populate data distribution
-  allImageTags.map(tag => {
-    const dataPoint = imageDataDistribution.find(
-      (point: ImageDataDistribution) => point.id === tag.name
-    );
+  // convert map to array
+  const tagCountMapEntries: [string, number][] = [...tagCount.entries()];
 
-    if (!dataPoint) return "";
-
-    dataPoint.count += 1;
-    dataPoint.name = `${tag.name} (${dataPoint.count})`;
-    return "";
-  });
+  // create array of objects for recharts
+  const imageDataDistribution: ImageDataDistribution[] = tagCountMapEntries.map(
+    ([id, count]) => ({ id, count, name: `${id} (${count})` })
+  );
 
   return (
     <ResponsiveContainer width="100%" height={120}>
