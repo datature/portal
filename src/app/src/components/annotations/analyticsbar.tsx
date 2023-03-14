@@ -19,16 +19,16 @@ const getUniqueTagNames = (
   confidenceThreshold: number
 ) => {
   return Object.values(videoAnalyticsData).reduce(
-    (uniqueNames, currentValues) => {
+    (uniqueTagID, currentValues) => {
       currentValues.map((value: any) => {
         if (value.confidence >= confidenceThreshold) {
-          const tagName = value.tag.name;
-          if (!uniqueNames.includes(tagName)) {
-            uniqueNames.push(tagName);
+          const tagID = value.tag.id;
+          if (!uniqueTagID.includes(tagID)) {
+            uniqueTagID.push(tagID);
           }
         }
       });
-      return uniqueNames;
+      return uniqueTagID;
     },
     []
   );
@@ -37,18 +37,44 @@ const getUniqueTagNames = (
 const getVideoData = (
   videoAnalyticsData: Array<any>,
   confidenceThreshold: number
-) => {};
+) => {
+  const videoData = [];
+  videoData.push(
+    Object.entries(videoAnalyticsData).map(([key, value]) => {
+      const newFrameData: any = {
+        timestamp: key,
+      };
+      value.map((annotate: any) => {
+        if (annotate.confidence >= confidenceThreshold) {
+          if (!newFrameData[annotate.tag.id]) {
+            // console.log("annotate to create: ", annotate);
+            newFrameData[annotate.tag.id] = 1;
+          } else {
+            // console.log("annotate to add on: ", annotate);
+            newFrameData[annotate.tag.id] += 1;
+          }
+        }
+      });
+      // console.log("newFrameData", newFrameData);
+      return newFrameData;
+    })
+  );
+  console.log("videoData", videoData);
+  return videoData;
+};
 
 const AnalyticsBar = ({
   confidenceThreshold,
   videoAnalyticsData,
 }: AnalyticsBarProps) => {
-  console.log("videoAnalyticsData", videoAnalyticsData);
+  // console.log("videoAnalyticsData", videoAnalyticsData);
   const timeframe = [Object.keys(videoAnalyticsData)];
 
-  //const videoData = getVideoData(videoAnalyticsData, confidenceThreshold);
+  const videoData = getVideoData(videoAnalyticsData, confidenceThreshold);
+  // console.log("videoData", videoData);
   const uniqueTags = getUniqueTagNames(videoAnalyticsData, confidenceThreshold);
   console.log("uniqueTags", uniqueTags);
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart

@@ -1581,6 +1581,7 @@ export default class Annotator extends Component<
                 confidenceThreshold={this.state.confidence}
                 videoAnalyticsData={this.state.videoAnalytics}
               />
+              {console.log("ANNOTATION NOW:", this.annotationGroup)}
               <ImageBar
                 ref={ref => {
                   this.imagebarRef = ref;
