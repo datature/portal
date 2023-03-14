@@ -5,6 +5,7 @@
 import * as L from "leaflet";
 import "leaflet-draw";
 import React, { Component } from "react";
+import AnalyticsBar from "./analytics";
 import {
   Card,
   HotkeysTarget,
@@ -87,6 +88,17 @@ interface AnnotatorProps {
   isConnected: boolean;
 }
 
+interface VideoData {
+  annotationID: string;
+  bound: number[][];
+  boundType: string;
+  confidence: number;
+  tag: {
+    id: number;
+    name: string;
+  }
+}
+
 interface AnnotatorState {
   /* Image List for Storing Project Files */
   assetList: Array<AssetAPIObject>;
@@ -148,6 +160,12 @@ interface AnnotatorState {
     opacity: number;
   };
   currAnnotationPlaybackId: number;
+
+  videoAnalyticsData: {
+    fps: number;
+    frames: VideoData[][];
+  };
+  isAnalytics: boolean;
 }
 
 /**
@@ -246,6 +264,11 @@ export default class Annotator extends Component<
         },
       },
       currAnnotationPlaybackId: 0,
+      videoAnalyticsData: {
+        fps: 0,
+        frames: [],
+      },
+      isAnalytics: false,
     };
 
     this.toaster = new Toaster({}, {});
@@ -786,6 +809,10 @@ export default class Annotator extends Component<
         this.state.inferenceOptions.iou
       )
         .then(response => {
+          this.setState({
+            videoAnalyticsData: response.data
+          })
+          // console.log(this.state.videoAnalyticsData)
           if (this.currentAsset.url === asset.url && singleAnalysis) {
             const videoElement = this.videoOverlay.getElement();
             /**
@@ -1535,6 +1562,12 @@ export default class Annotator extends Component<
     );
   }
 
+  private toggleIsAnalytics = () => {
+    this.setState(prev => ({
+      isAnalytics: !prev.isAnalytics,
+    }));
+  }
+
   render(): JSX.Element {
     /* Prefix for Dynamic Styling of Collapsing Image List */
     const collapsedButtonTheme = this.props.useDarkTheme ? "" : "light-";
@@ -1574,15 +1607,31 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
-              <ImageBar
-                ref={ref => {
-                  this.imagebarRef = ref;
-                }}
-                /* Only visible assets should be shown */
-                assetList={visibleAssets}
-                callbacks={{ selectAssetCallback: this.selectAsset }}
-                {...this.props}
-              />
+              <div onClick={this.toggleIsAnalytics}>
+                {this.state.isAnalytics ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6" width="32" height="32">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6" width="32" height="32">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                )}
+              </div>
+              {this.state.isAnalytics ? (
+                <AnalyticsBar data={this.state.videoAnalyticsData} confidence={this.state.confidence} />
+              ) : (
+                <ImageBar
+                  ref={ref => {
+                    this.imagebarRef = ref;
+                  }}
+                  /* Only visible assets should be shown */
+                  assetList={visibleAssets}
+                  callbacks={{ selectAssetCallback: this.selectAsset }}
+                  {...this.props}
+                />
+              )}
             </Card>
           </div>
 
