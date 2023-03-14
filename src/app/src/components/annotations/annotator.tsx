@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/sort-comp */
 /* eslint-disable no-return-assign */
 /* eslint-disable no-underscore-dangle */
@@ -50,6 +51,8 @@ import AnnotatorSettings from "./utils/annotatorsettings";
 import FormatTimerSeconds from "./utils/timer";
 import { RegisteredModel } from "./model";
 
+import AnalyticsBar from "./analyticsbar/analyticsbar";
+
 type Point = [number, number];
 type MapType = L.DrawMap;
 type VideoFrameMetadata = {
@@ -78,6 +81,11 @@ function Coordinate(x: number, y: number): Point {
 }
 
 type UIState = null | "Predicting";
+
+export type AnalyticsData = {
+  type: string;
+  data: any;
+};
 
 interface AnnotatorProps {
   project: string;
@@ -148,6 +156,8 @@ interface AnnotatorState {
     opacity: number;
   };
   currAnnotationPlaybackId: number;
+  isAnalyticsBarOpen: boolean;
+  analyticsData: AnalyticsData | null;
 }
 
 /**
@@ -246,6 +256,8 @@ export default class Annotator extends Component<
         },
       },
       currAnnotationPlaybackId: 0,
+      isAnalyticsBarOpen: false,
+      analyticsData: null,
     };
 
     this.toaster = new Toaster({}, {});
@@ -763,7 +775,13 @@ export default class Annotator extends Component<
       )
         .then(response => {
           if (this.currentAsset.url === asset.url && singleAnalysis)
-            this.updateAnnotations(response.data);
+            this.setState({
+              analyticsData: {
+                type: asset.type,
+                data: response.data,
+              },
+            });
+          this.updateAnnotations(response.data);
         })
         .catch(error => {
           let message = "Failed to predict image.";
@@ -807,6 +825,13 @@ export default class Annotator extends Component<
               const key = Math.floor(
                 quotient * secondsInterval * 1000
               ).toString();
+
+              this.setState({
+                analyticsData: {
+                  type: asset.type,
+                  data: response.data,
+                },
+              });
 
               if (response.data.frames[key]) {
                 this.updateAnnotations(response.data.frames[key]);
@@ -1167,6 +1192,8 @@ export default class Annotator extends Component<
 
     /* Checks if there is AssetReselection */
     const isAssetReselection = !(asset.assetUrl !== this.currentAsset.assetUrl);
+    /* Sets analytic data to null upon asset reselection */
+    this.setState({ analyticsData: null });
     console.log("asset", asset.url);
     console.log("currentasset", this.currentAsset.url);
     console.log("single analysis", singleAnalysis);
@@ -1545,6 +1572,14 @@ export default class Annotator extends Component<
       this.isAssetVisible()
     );
 
+    const fastForward = (frame: number) => {
+      const videoElement = this.videoOverlay?.getElement();
+      if (videoElement) {
+        videoElement.currentTime = frame / 1000;
+        videoElement.pause();
+      }
+    };
+
     return (
       <div>
         <Toaster {...this.state} ref={this.refHandlers.toaster} />
@@ -1574,15 +1609,25 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
-              <ImageBar
-                ref={ref => {
-                  this.imagebarRef = ref;
-                }}
-                /* Only visible assets should be shown */
-                assetList={visibleAssets}
-                callbacks={{ selectAssetCallback: this.selectAsset }}
-                {...this.props}
-              />
+              {this.state.isAnalyticsBarOpen && this.state.analyticsData ? (
+                <AnalyticsBar
+                  analyticsData={this.state.analyticsData}
+                  confidenceThreshold={this.state.confidence}
+                  fastForward={fastForward}
+                />
+              ) : this.state.isAnalyticsBarOpen && !this.state.analyticsData ? (
+                <p>No data, please analyse the image first</p>
+              ) : (
+                <ImageBar
+                  ref={ref => {
+                    this.imagebarRef = ref;
+                  }}
+                  /* Only visible assets should be shown */
+                  assetList={visibleAssets}
+                  callbacks={{ selectAssetCallback: this.selectAsset }}
+                  {...this.props}
+                />
+              )}
             </Card>
           </div>
 
@@ -1613,15 +1658,28 @@ export default class Annotator extends Component<
             <Card className={"main-annotator"}>
               <div id="annotation-map" className={"style-annotator"} />
               {this.backgroundImg ? (
-                <div className="annotator-settings-button">
-                  <AnnotatorSettings
-                    annotationOptions={this.state.annotationOptions}
-                    callbacks={{
-                      setAnnotatedAssetsHidden: this.setAnnotatedAssetsHidden,
-                      setAnnotationOptions: this.setAnnotationOptions,
-                    }}
-                  />
-                </div>
+                <>
+                  <div className="annotator-settings-button">
+                    <AnnotatorSettings
+                      annotationOptions={this.state.annotationOptions}
+                      callbacks={{
+                        setAnnotatedAssetsHidden: this.setAnnotatedAssetsHidden,
+                        setAnnotationOptions: this.setAnnotationOptions,
+                      }}
+                    />
+                  </div>
+                  <div className="annotator-analytics-button">
+                    <Button
+                      icon="chart"
+                      onClick={() =>
+                        this.setState({
+                          // eslint-disable-next-line react/no-access-state-in-setstate
+                          isAnalyticsBarOpen: !this.state.isAnalyticsBarOpen,
+                        })
+                      }
+                    />
+                  </div>
+                </>
               ) : null}
             </Card>
           </div>
