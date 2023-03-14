@@ -49,6 +49,8 @@ import FileModal from "./filemodal";
 import AnnotatorSettings from "./utils/annotatorsettings";
 import FormatTimerSeconds from "./utils/timer";
 import { RegisteredModel } from "./model";
+import TimeGraph from "./analyticsbar";
+import AnalyticsBar from "./analyticsbar";
 
 type Point = [number, number];
 type MapType = L.DrawMap;
@@ -88,6 +90,8 @@ interface AnnotatorProps {
 }
 
 interface AnnotatorState {
+  /* Storing of Video Analytics Data */
+  videoAnalytics: Array<any>;
   /* Image List for Storing Project Files */
   assetList: Array<AssetAPIObject>;
   /* List of files whose predictions are cached  */
@@ -209,6 +213,7 @@ export default class Annotator extends Component<
     super(props);
 
     this.state = {
+      videoAnalytics: [],
       currentAssetAnnotations: [],
       userEditState: "None",
       changesMade: false,
@@ -532,7 +537,6 @@ export default class Annotator extends Component<
     this.setState(
       prevState => {
         const hiddenAnnotations = new Set<string>(prevState.hiddenAnnotations);
-
         annotationList.forEach(annotation => {
           if (visible) {
             hiddenAnnotations.delete(annotation.options.annotationID);
@@ -802,12 +806,12 @@ export default class Annotator extends Component<
                 this.state.inferenceOptions.video.frameInterval /
                 response.data.fps;
               const quotient = Math.floor(metadata.mediaTime / secondsInterval);
-
               /* Interval to determine the refresh-rate of annotation */
               const key = Math.floor(
                 quotient * secondsInterval * 1000
               ).toString();
-
+              /* Update and store the video analytics data for display */
+              this.setState({ videoAnalytics: response.data.frames });
               if (response.data.frames[key]) {
                 this.updateAnnotations(response.data.frames[key]);
               }
@@ -1574,6 +1578,14 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
+              {/* {console.log(
+                "Current Tag: ",
+                (this.annotationGroup as any)._layers
+              )} */}
+              <AnalyticsBar
+                assetList={visibleAssets}
+                videoAnalyticsData={this.state.videoAnalytics}
+              />
               <ImageBar
                 ref={ref => {
                   this.imagebarRef = ref;

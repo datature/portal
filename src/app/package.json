@@ -22,6 +22,7 @@
     "@types/lodash": "^4.14.159",
     "@uppy/core": "^1.13.2",
     "@uppy/dashboard": "^1.12.8",
+    "apexcharts": "^3.37.1",
     "axios": "^0.21.1",
     "cross-env": "^7.0.3",
     "electron-log": "^4.3.5",
