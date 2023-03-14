@@ -49,7 +49,6 @@ import FileModal from "./filemodal";
 import AnnotatorSettings from "./utils/annotatorsettings";
 import FormatTimerSeconds from "./utils/timer";
 import { RegisteredModel } from "./model";
-import TimeGraph from "./analyticsbar";
 import AnalyticsBar from "./analyticsbar";
 
 type Point = [number, number];
@@ -1578,12 +1577,8 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
-              {/* {console.log(
-                "Current Tag: ",
-                (this.annotationGroup as any)._layers
-              )} */}
               <AnalyticsBar
-                assetList={visibleAssets}
+                confidenceThreshold={this.state.confidence}
                 videoAnalyticsData={this.state.videoAnalytics}
               />
               <ImageBar

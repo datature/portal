@@ -1,63 +1,81 @@
-import { AssetAPIObject } from "@portal/api/annotation";
-import ApexCharts from "apexcharts";
 import React from "react";
-// function renderChart() {
-//     if (!chartData.length) {
-//       return;
-//     }
-//     const options = {
-//       chart: {
-//         height: 350,
-//         type: 'rangeBar',
-//       },
-//       plotOptions: {
-//         bar: {
-//           horizontal: true,
-//           barHeight: '80%',
-//         },
-//       },
-//       xaxis: {
-//         type: 'datetime',
-//         labels: {
-//           datetimeFormatter: {
-//             year: 'yyyy',
-//             month: 'MMM \'yy',
-//             day: 'dd MMM',
-//             hour: 'HH:mm',
-//           },
-//         },
-//       },
-//       yaxis: {
-//         labels: {
-//           show: false,
-//         },
-//       },
-//       tooltip: {
-//         custom: ({ series, seriesIndex, dataPointIndex, w }) => {
-//           const { duration } = series[seriesIndex][dataPointIndex];
-//           return `
-//             <div class="apexcharts-tooltip-duration">
-//               Duration: ${moment.duration(duration).asSeconds()} seconds
-//             </div>
-//           `;
-//         },
-//       },
-//     };
-//     const chart = new ApexCharts(chartRef.current, { options, series: [{ data: chartData }] });
-//     chart.render();
-//   }
-
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 interface AnalyticsBarProps {
-  assetList: Array<AssetAPIObject>;
   videoAnalyticsData: Array<any>;
+  confidenceThreshold: number;
 }
 
-const AnalyticsBar = ({ assetList, videoAnalyticsData }: AnalyticsBarProps) => {
+const getUniqueTagNames = (
+  videoAnalyticsData: Array<any>,
+  confidenceThreshold: number
+) => {
+  return Object.values(videoAnalyticsData).reduce(
+    (uniqueNames, currentValues) => {
+      currentValues.map((value: any) => {
+        if (value.confidence >= confidenceThreshold) {
+          const tagName = value.tag.name;
+          if (!uniqueNames.includes(tagName)) {
+            uniqueNames.push(tagName);
+          }
+        }
+      });
+      return uniqueNames;
+    },
+    []
+  );
+};
+
+const getVideoData = (
+  videoAnalyticsData: Array<any>,
+  confidenceThreshold: number
+) => {};
+
+const AnalyticsBar = ({
+  confidenceThreshold,
+  videoAnalyticsData,
+}: AnalyticsBarProps) => {
   console.log("videoAnalyticsData", videoAnalyticsData);
+  const timeframe = [Object.keys(videoAnalyticsData)];
+
+  //const videoData = getVideoData(videoAnalyticsData, confidenceThreshold);
+  const uniqueTags = getUniqueTagNames(videoAnalyticsData, confidenceThreshold);
+  console.log("uniqueTags", uniqueTags);
   return (
-    <div>
-      <p>HELLO</p>
-    </div>
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart
+        width={500}
+        height={500}
+        data={timeframe}
+        margin={{
+          top: 5,
+          right: 30,
+          left: 20,
+          bottom: 5,
+        }}
+      >
+        <XAxis dataKey="name" />
+        <YAxis yAxisId="left" />
+        <YAxis yAxisId="right" orientation="right" />
+        <Tooltip />
+        <Line
+          yAxisId="left"
+          type="monotone"
+          dataKey="pv"
+          stroke="#8884d8"
+          activeDot={{ r: 8 }}
+        />
+        <Line yAxisId="right" type="monotone" dataKey="uv" stroke="#82ca9d" />
+      </LineChart>
+    </ResponsiveContainer>
   );
 };
 
