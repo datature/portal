@@ -1,5 +1,5 @@
 APScheduler==3.7.0
-datature-hub==0.2.2
+datature-hub==0.2.3
 dirhash==0.2.1
 Flask==2.0.0
 Flask-Cors==3.0.10
