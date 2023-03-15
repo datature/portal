@@ -78,26 +78,23 @@ const getVideoData = (
   videoAnalyticsData: Array<any>,
   confidenceThreshold: number
 ) => {
-  const videoData = [];
-  videoData.push(
-    Object.entries(videoAnalyticsData).map(([key, value]) => {
-      const formattedTimestamp = formatTime(key);
-      const newFrameData: any = {
-        timestamp: formattedTimestamp,
-      };
-      value.map((annotate: any) => {
-        if (annotate.confidence >= confidenceThreshold) {
-          if (!newFrameData[annotate.tag.name]) {
-            newFrameData[annotate.tag.name] = 1;
-          } else {
-            newFrameData[annotate.tag.name] += 1;
-          }
-        }
-      });
-      return newFrameData;
-    })
-  );
-  return videoData;
+  return Object.entries(videoAnalyticsData).map(([key, value]) => {
+    const formattedTimestamp = formatTime(key);
+    const annotations = value.filter(
+      (annotate: any) => annotate.confidence >= confidenceThreshold
+    );
+    const tagCounts = annotations.reduce(
+      (acc: any, { tag }: any) => ({
+        ...acc,
+        [tag.name]: (acc[tag.name] || 0) + 1,
+      }),
+      {}
+    );
+    return {
+      timestamp: formattedTimestamp,
+      ...tagCounts,
+    };
+  });
 };
 
 const AnalyticsBar = ({
@@ -108,7 +105,8 @@ const AnalyticsBar = ({
 }: AnalyticsBarProps) => {
   const videoData = getVideoData(videoAnalyticsData, confidenceThreshold);
   const uniqueTags = getUniqueTags(videoAnalyticsData, confidenceThreshold);
-
+  console.log(videoData);
+  console.log(uniqueTags);
   return (
     <div className={classes.body}>
       <Icon
@@ -122,7 +120,7 @@ const AnalyticsBar = ({
         <LineChart
           width={500}
           height={500}
-          data={videoData[0]}
+          data={videoData}
           margin={{
             top: 5,
             right: 10,
