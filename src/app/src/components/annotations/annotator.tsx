@@ -1577,11 +1577,13 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
+              {console.log(this.annotationGroup)}
               <AnalyticsBar
                 confidenceThreshold={this.state.confidence}
                 videoAnalyticsData={this.state.videoAnalytics}
+                videoElementData={this.videoOverlay?.getElement()}
               />
-              {console.log("ANNOTATION NOW:", this.annotationGroup)}
+
               <ImageBar
                 ref={ref => {
                   this.imagebarRef = ref;
