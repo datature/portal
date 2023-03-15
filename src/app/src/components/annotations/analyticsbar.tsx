@@ -1,12 +1,11 @@
 import { Icon } from "@blueprintjs/core";
 import { TagColours } from "@portal/constants/annotation";
-import React from "react";
+import React, { useCallback } from "react";
 import {
   LineChart,
   Line,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
@@ -105,8 +104,16 @@ const AnalyticsBar = ({
 }: AnalyticsBarProps) => {
   const videoData = getVideoData(videoAnalyticsData, confidenceThreshold);
   const uniqueTags = getUniqueTags(videoAnalyticsData, confidenceThreshold);
-  console.log(videoData);
-  console.log(uniqueTags);
+
+  const handleLineChartClick = useCallback(
+    e => {
+      if (videoElementData != null && e != null) {
+        const v = e.activeLabel!.replace(":", ".");
+        videoElementData.currentTime = parseFloat(v);
+      }
+    },
+    [confidenceThreshold]
+  );
   return (
     <div className={classes.body}>
       <Icon
@@ -127,14 +134,8 @@ const AnalyticsBar = ({
             left: 5,
             bottom: 5,
           }}
-          onClick={e => {
-            if (videoElementData != null && e != null) {
-              const v = e.activeLabel!.replace(":", ".");
-              videoElementData.currentTime = parseFloat(v);
-            }
-          }}
+          onClick={handleLineChartClick}
         >
-          <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="timestamp" />
           <YAxis yAxisId="left" />
           <YAxis yAxisId="right" orientation="right" />
