@@ -18,27 +18,41 @@ interface AnalyticsBarProps {
   videoElementData: HTMLVideoElement | undefined;
   clickAnalyticsCallback: () => void;
 }
-
+/**
+ * Get unique tags from analytics data
+ *
+ * @param videoAnalyticsData Complete Analytics data for asset
+ * @param confidenceThreshold Confidence threshold for tag to be included in unique tags
+ * @returns Array of unique tags with name and id
+ */
 const getUniqueTags = (
   videoAnalyticsData: Array<any>,
   confidenceThreshold: number
 ) => {
   return Object.values(videoAnalyticsData).reduce(
-    (uniqueTagID, currentValues) => {
+    (uniqueTags, currentValues) => {
       //console.log("currentValues", currentValues);
       currentValues.forEach((value: any) => {
         if (value.confidence >= confidenceThreshold) {
           const tagData = JSON.stringify(value.tag);
-          if (!JSON.stringify(uniqueTagID).includes(tagData)) {
-            uniqueTagID.push(value.tag);
+          if (!JSON.stringify(uniqueTags).includes(tagData)) {
+            uniqueTags.push(value.tag);
           }
         }
       });
-      return uniqueTagID;
+      return uniqueTags;
     },
     []
   );
 };
+
+/**
+ * Format timestamp to mm:ss format
+ *
+ * @param timestamp Timestamp in milliseconds
+ * @returns formatted timestamp in mm:ss format
+ */
+
 const formatTime = (timestamp: string) => {
   const seconds = Math.floor(Number(timestamp) / 1000);
   const milliseconds = Number(timestamp) % 1000;
@@ -52,6 +66,16 @@ const formatTime = (timestamp: string) => {
     })
     .slice(0, 2)}`;
 };
+
+/**
+ * Retrieves and preprocess video data based on frames annotations that meets minimum
+ * confidence threshold for timeseries chart display
+ *
+ * @param videoAnalyticsData Complete Analytics data for asset
+ * @param confidenceThreshold Confidence threshold for tag to be included in video data
+ * @returns An array of objects with timestamp and its corresponding annotation classes.
+ */
+
 const getVideoData = (
   videoAnalyticsData: Array<any>,
   confidenceThreshold: number
@@ -88,7 +112,7 @@ const AnalyticsBar = ({
 }: AnalyticsBarProps) => {
   //console.log("videoAnalyticsData", videoAnalyticsData);
   const videoData = getVideoData(videoAnalyticsData, confidenceThreshold);
-  //console.log("videoData", videoData);
+  console.log("videoData", videoData);
   const uniqueTags = getUniqueTags(videoAnalyticsData, confidenceThreshold);
   //console.log("uniqueTags", uniqueTags);
   return (
