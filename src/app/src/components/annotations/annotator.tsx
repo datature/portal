@@ -1176,10 +1176,6 @@ export default class Annotator extends Component<
 
     /* Checks if there is AssetReselection */
     const isAssetReselection = !(asset.assetUrl !== this.currentAsset.assetUrl);
-    console.log("asset", asset.url);
-    console.log("currentasset", this.currentAsset.url);
-    console.log("single analysis", singleAnalysis);
-
     const currentVideoElement = this.videoOverlay.getElement();
     if (!isAssetReselection) {
       this.setState({ currentAssetAnnotations: [] });

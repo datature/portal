@@ -31,7 +31,6 @@ const getUniqueTags = (
 ) => {
   return Object.values(videoAnalyticsData).reduce(
     (uniqueTags, currentValues) => {
-      //console.log("currentValues", currentValues);
       currentValues.forEach((value: any) => {
         if (value.confidence >= confidenceThreshold) {
           const tagData = JSON.stringify(value.tag);
@@ -56,7 +55,6 @@ const getUniqueTags = (
 const formatTime = (timestamp: string) => {
   const seconds = Math.floor(Number(timestamp) / 1000);
   const milliseconds = Number(timestamp) % 1000;
-  //console.log("milliseconds", milliseconds);
   return `${seconds.toLocaleString("en-US", {
     minimumIntegerDigits: 2,
     maximumSignificantDigits: 2,
@@ -96,11 +94,9 @@ const getVideoData = (
           }
         }
       });
-      // console.log("newFrameData", newFrameData);
       return newFrameData;
     })
   );
-  //console.log("videoData", videoData);
   return videoData;
 };
 
@@ -110,11 +106,9 @@ const AnalyticsBar = ({
   videoElementData,
   clickAnalyticsCallback,
 }: AnalyticsBarProps) => {
-  //console.log("videoAnalyticsData", videoAnalyticsData);
   const videoData = getVideoData(videoAnalyticsData, confidenceThreshold);
-  console.log("videoData", videoData);
   const uniqueTags = getUniqueTags(videoAnalyticsData, confidenceThreshold);
-  //console.log("uniqueTags", uniqueTags);
+
   return (
     <div className={classes.body}>
       <Icon
@@ -146,13 +140,12 @@ const AnalyticsBar = ({
           <XAxis dataKey="timestamp" />
           <YAxis yAxisId="left" />
           <YAxis yAxisId="right" orientation="right" />
-          <Tooltip />
-          <Tooltip />
+          <Tooltip labelStyle={{ color: "black" }} />
           <Legend />
           {uniqueTags.map((tagData: any) => {
-            //console.log("tagData", tagData);
             return (
               <Line
+                key={tagData.id}
                 yAxisId="right"
                 type="monotone"
                 dataKey={tagData.name}

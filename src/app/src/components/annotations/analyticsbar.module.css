@@ -16,3 +16,9 @@
 .backIcon:hover {
   background-color: #e6e6e6;
 }
+
+.tooltip {
+  background-color: white;
+  color: #2a3b48;
+  font-weight: 600;
+}
