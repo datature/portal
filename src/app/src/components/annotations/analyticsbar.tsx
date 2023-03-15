@@ -1,3 +1,4 @@
+import { Icon } from "@blueprintjs/core";
 import { TagColours } from "@portal/constants/annotation";
 import React from "react";
 import {
@@ -10,10 +11,12 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import classes from "./analyticsbar.module.css";
 interface AnalyticsBarProps {
   videoAnalyticsData: Array<any>;
   confidenceThreshold: number;
   videoElementData: HTMLVideoElement | undefined;
+  clickAnalyticsCallback: () => void;
 }
 
 const getUniqueTags = (
@@ -22,11 +25,12 @@ const getUniqueTags = (
 ) => {
   return Object.values(videoAnalyticsData).reduce(
     (uniqueTagID, currentValues) => {
+      //console.log("currentValues", currentValues);
       currentValues.forEach((value: any) => {
         if (value.confidence >= confidenceThreshold) {
-          const tagName = value.tag.name;
-          if (!uniqueTagID.includes(tagName)) {
-            uniqueTagID.push(tagName);
+          const tagData = JSON.stringify(value.tag);
+          if (!JSON.stringify(uniqueTagID).includes(tagData)) {
+            uniqueTagID.push(value.tag);
           }
         }
       });
@@ -62,10 +66,8 @@ const getVideoData = (
       value.map((annotate: any) => {
         if (annotate.confidence >= confidenceThreshold) {
           if (!newFrameData[annotate.tag.name]) {
-            // console.log("annotate to create: ", annotate);
             newFrameData[annotate.tag.name] = 1;
           } else {
-            // console.log("annotate to add on: ", annotate);
             newFrameData[annotate.tag.name] += 1;
           }
         }
@@ -82,52 +84,61 @@ const AnalyticsBar = ({
   confidenceThreshold,
   videoAnalyticsData,
   videoElementData,
+  clickAnalyticsCallback,
 }: AnalyticsBarProps) => {
-  console.log("videoAnalyticsData", videoAnalyticsData);
+  //console.log("videoAnalyticsData", videoAnalyticsData);
   const videoData = getVideoData(videoAnalyticsData, confidenceThreshold);
   //console.log("videoData", videoData);
   const uniqueTags = getUniqueTags(videoAnalyticsData, confidenceThreshold);
-  console.log("uniqueTags", uniqueTags);
+  //console.log("uniqueTags", uniqueTags);
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart
-        width={500}
-        height={500}
-        data={videoData[0]}
-        margin={{
-          top: 5,
-          right: 30,
-          left: 20,
-          bottom: 5,
-        }}
-        onClick={e => {
-          if (videoElementData != null && e != null) {
-            const v = e.activeLabel!.replace(":", ".");
-
-            console.log(v);
-            videoElementData.currentTime = parseFloat(v);
-          }
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="timestamp" />
-        <YAxis yAxisId="left" />
-        <YAxis yAxisId="right" orientation="right" />
-        <Tooltip />
-        <Tooltip />
-        <Legend />
-        {uniqueTags.map((tagData: any) => {
-          return (
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey={tagData}
-              stroke="#8884d8"
-            />
-          );
-        })}
-      </LineChart>
-    </ResponsiveContainer>
+    <div className={classes.body}>
+      <Icon
+        title="Back to Asset Viewer"
+        onClick={() => clickAnalyticsCallback()}
+        className={classes.backIcon}
+        icon="caret-left"
+        iconSize={40}
+      />
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          width={500}
+          height={500}
+          data={videoData[0]}
+          margin={{
+            top: 5,
+            right: 10,
+            left: 5,
+            bottom: 5,
+          }}
+          onClick={e => {
+            if (videoElementData != null && e != null) {
+              const v = e.activeLabel!.replace(":", ".");
+              videoElementData.currentTime = parseFloat(v);
+            }
+          }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="timestamp" />
+          <YAxis yAxisId="left" />
+          <YAxis yAxisId="right" orientation="right" />
+          <Tooltip />
+          <Tooltip />
+          <Legend />
+          {uniqueTags.map((tagData: any) => {
+            //console.log("tagData", tagData);
+            return (
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey={tagData.name}
+                stroke={TagColours[tagData.id % TagColours.length]}
+              />
+            );
+          })}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 

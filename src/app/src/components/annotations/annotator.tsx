@@ -89,6 +89,8 @@ interface AnnotatorProps {
 }
 
 interface AnnotatorState {
+  /* Analytics Mode */
+  analyticsMode: boolean;
   /* Storing of Video Analytics Data */
   videoAnalytics: Array<any>;
   /* Image List for Storing Project Files */
@@ -212,6 +214,7 @@ export default class Annotator extends Component<
     super(props);
 
     this.state = {
+      analyticsMode: false,
       videoAnalytics: [],
       currentAssetAnnotations: [],
       userEditState: "None",
@@ -271,7 +274,7 @@ export default class Annotator extends Component<
     /* Image Bar Reference to Track Which Image is Selected */
     this.imagebarRef = React.createRef();
     this.backgroundImg = null;
-
+    this.selectAnalyticsMode = this.selectAnalyticsMode.bind(this);
     this.selectAsset = this.selectAsset.bind(this);
     this.showToaster = this.showToaster.bind(this);
     this.renderProgress = this.renderProgress.bind(this);
@@ -1157,6 +1160,9 @@ export default class Annotator extends Component<
     return !this.state.annotatedAssetsHidden;
   }
 
+  public selectAnalyticsMode(): void {
+    this.setState({ analyticsMode: !this.state.analyticsMode });
+  }
   /**
    * Handler for onImageChange - This function swaps image on leaflet canvas
    * as well as renders user-defined (if-any) annotation as LeafletLayerObjects
@@ -1554,8 +1560,13 @@ export default class Annotator extends Component<
         <div className={"workspace"}>
           {/* Appends Styling Prefix if Image List is Collapsed */}
           <div
-            className={[isCollapsed, "image-list"].join("")}
-            id={"image-list"}
+            className={[
+              isCollapsed,
+              this.state.analyticsMode ? "image-list-analytics" : "image-list",
+            ].join("")}
+            id={
+              this.state.analyticsMode ? "image-list-analytics" : "image-list"
+            }
           >
             <Button
               className={[collapsedButtonTheme, "collapse-button"].join("")}
@@ -1577,22 +1588,27 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
-              {console.log(this.annotationGroup)}
-              <AnalyticsBar
-                confidenceThreshold={this.state.confidence}
-                videoAnalyticsData={this.state.videoAnalytics}
-                videoElementData={this.videoOverlay?.getElement()}
-              />
-
-              <ImageBar
-                ref={ref => {
-                  this.imagebarRef = ref;
-                }}
-                /* Only visible assets should be shown */
-                assetList={visibleAssets}
-                callbacks={{ selectAssetCallback: this.selectAsset }}
-                {...this.props}
-              />
+              {this.state.analyticsMode ? (
+                <AnalyticsBar
+                  confidenceThreshold={this.state.confidence}
+                  videoAnalyticsData={this.state.videoAnalytics}
+                  videoElementData={this.videoOverlay?.getElement()}
+                  clickAnalyticsCallback={this.selectAnalyticsMode}
+                />
+              ) : (
+                <ImageBar
+                  ref={ref => {
+                    this.imagebarRef = ref;
+                  }}
+                  /* Only visible assets should be shown */
+                  assetList={visibleAssets}
+                  callbacks={{
+                    selectAssetCallback: this.selectAsset,
+                    selectAnalyticsAssetCallback: this.selectAnalyticsMode,
+                  }}
+                  {...this.props}
+                />
+              )}
             </Card>
           </div>
 

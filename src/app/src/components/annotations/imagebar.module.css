@@ -7,7 +7,26 @@
   float: right;
 }
 
+.StackTopRight {
+  position: absolute;
+  right: 5px;
+  top: 4px;
+}
+
 .Tag {
   position: absolute;
   top: 80px;
+}
+
+.AnalyticsButton {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 25px;
+  height: 25px;
+  background-color: #394b59;
+}
+
+.AnalyticsButton:hover {
+  background-color: #2a3b48;
 }

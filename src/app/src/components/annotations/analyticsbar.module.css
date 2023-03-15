@@ -1,0 +1,18 @@
+.body {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.backIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10%;
+  color: #2a3b48;
+  background-color: white;
+  cursor: pointer;
+}
+
+.backIcon:hover {
+  background-color: #e6e6e6;
+}

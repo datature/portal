@@ -16,6 +16,7 @@ function ThumbnailGenerator(
   index: string,
   useDarkTheme: boolean,
   clickCallback: (assetObject: AssetAPIObject) => void,
+  clickAnalyticsCallback: () => void,
   currentAssetID: string
 ): JSX.Element {
   return (
@@ -39,6 +40,17 @@ function ThumbnailGenerator(
               icon="video"
               iconSize={IconSize.STANDARD}
             />
+            <div
+              onClick={() => clickAnalyticsCallback()}
+              title="Open Video Analytics"
+              className={classes.AnalyticsButton}
+            >
+              <Icon
+                className={classes.StackTopRight}
+                icon="timeline-line-chart"
+                iconSize={IconSize.STANDARD}
+              />
+            </div>
             <div>
               <VideoThumbnail
                 width={150}
@@ -113,6 +125,7 @@ export default class ImageBar extends Component<ImageBarProps> {
             object.assetUrl,
             this.props.useDarkTheme,
             this.props.callbacks.selectAssetCallback,
+            this.props.callbacks.selectAnalyticsAssetCallback,
             this.currentAssetID
           );
         })}

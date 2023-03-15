@@ -13,7 +13,8 @@
   display: flex;
 }
 
-.image-list {
+.image-list,
+.image-list-analytics {
   position: absolute;
   flex-direction: row;
   z-index: 20;
@@ -23,6 +24,11 @@
   left: 0;
   top: calc(100% - 140px);
   padding-bottom: 10px;
+}
+
+.image-list-analytics {
+  height: 300px;
+  top: calc(100% - 250px);
 }
 
 .annotator-space {
