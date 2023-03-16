@@ -5,7 +5,8 @@
 import * as L from "leaflet";
 import "leaflet-draw";
 import React, { Component } from "react";
-import AnalyticsBar from "./analytics";
+import { IconButton } from "./button";
+import { AnalyticsPopUp } from "./analyticsgraph";
 import {
   Card,
   HotkeysTarget,
@@ -39,7 +40,7 @@ import {
   APIGetPredictionProgress,
 } from "@portal/api/annotation";
 
-import { invert, cloneDeep, isEmpty } from "lodash";
+import { invert, cloneDeep, isEmpty, debounce } from "lodash";
 
 import { CreateGenericToast } from "@portal/utils/ui/toasts";
 import AnnotatorInstanceSingleton from "./utils/annotator.singleton";
@@ -88,10 +89,12 @@ interface AnnotatorProps {
   isConnected: boolean;
 }
 
+// extra interface for getAnalyticsData function
+interface VideoRawData {
+  fps: number;
+  frames: VideoData[][];
+};
 interface VideoData {
-  annotationID: string;
-  bound: number[][];
-  boundType: string;
   confidence: number;
   tag: {
     id: number;
@@ -160,12 +163,13 @@ interface AnnotatorState {
     opacity: number;
   };
   currAnnotationPlaybackId: number;
-
-  videoAnalyticsData: {
-    fps: number;
-    frames: VideoData[][];
-  };
+  /* Store video analytics (graph) related*/
   isAnalytics: boolean;
+  videoRawData: VideoRawData;
+  videoGraphData: {
+    x: string;
+    y: number[];
+  }[];
 }
 
 /**
@@ -264,13 +268,13 @@ export default class Annotator extends Component<
         },
       },
       currAnnotationPlaybackId: 0,
-      videoAnalyticsData: {
-        fps: 0,
-        frames: [],
-      },
       isAnalytics: false,
+      videoRawData: {
+        fps: 0,
+        frames: [[]],
+      },
+      videoGraphData: [],
     };
-
     this.toaster = new Toaster({}, {});
     this.progressToastInterval = 600;
 
@@ -381,8 +385,21 @@ export default class Annotator extends Component<
     setTimeout(() => this.updateImage(), 200);
   }
 
+  // use debouncer to prevent lagging (wait 0.5sec since last function call before doing this heavy operation)
+  private debouncedUpdate = debounce(() => {
+    this.getAnalyticsData(this.state.videoRawData);
+  }, 500);
+
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  componentDidUpdate() {
+  componentDidUpdate(prevProp: AnnotatorProps, prevState: AnnotatorState) {
+    // update graph when confidence or filter changes
+    if (this.state.confidence !== prevState.confidence ||
+        this.state.filterArr !== prevState.filterArr ||
+        this.state.showSelected !== prevState.showSelected
+      ) {
+      this.debouncedUpdate();
+    };
+
     /* Obtain Tag Map for loaded Model */
     /* The conditional checks are necessary due to the use of setStates */
     if (
@@ -809,10 +826,9 @@ export default class Annotator extends Component<
         this.state.inferenceOptions.iou
       )
         .then(response => {
-          this.setState({
-            videoAnalyticsData: response.data
-          })
-          // console.log(this.state.videoAnalyticsData)
+          // store video data used for analytics purpose
+          this.setState({ videoRawData: response.data })
+          this.getAnalyticsData(response.data);
           if (this.currentAsset.url === asset.url && singleAnalysis) {
             const videoElement = this.videoOverlay.getElement();
             /**
@@ -1457,6 +1473,77 @@ export default class Annotator extends Component<
     if (message !== "") toastProps.action = { text: message };
 
     return toastProps;
+  };
+
+  /*
+    Store analytics data of the latest video analyzed in 'videoGraphData' state.
+  */
+  private getAnalyticsData(data: VideoRawData) {
+    // get all the tag names, store in an array, take note of filterArr and showSelected
+    const tagNames: string[] = [];
+    Object.values(data['frames']).forEach(frame => {
+      frame.forEach(item => {
+        let name = item['tag']['name'];
+        name = name.substring(1, name.length - 1);
+        if (!tagNames.includes(name)) {
+          if (this.state.filterArr.length > 0) {
+            if ((this.state.showSelected && this.state.filterArr.includes(name)) ||
+              (!this.state.showSelected && !this.state.filterArr.includes(name))) {
+                tagNames.push(name);
+              }
+          } else {
+            tagNames.push(name);
+          }
+        };
+      });
+    });
+
+    // initialize object with tag names as keys, value is an array of '0' with length 'num frames'
+    const analyticsDataDict: {[key: string]: number[]} = {};
+    const numFrames = Object.keys(data['frames']).length;
+    tagNames.forEach(tag => {
+      analyticsDataDict[tag] = Array(numFrames).fill(0);
+    });
+
+    // analyticsDataDict[key][frame] display the number of 'key' tag name in frame 'frame'
+    // example: analyticsDataDict['RBC'][5] = 10 means there are 10 RBC on frame 5 (0 index)
+    let counter = 0;
+    const confidence = this.state.confidence;
+    Object.values(data['frames']).forEach(frame => {
+      frame.forEach(instance => {
+        if (instance['confidence'] >= confidence) {
+          let tagNameKey = instance['tag']['name'];
+          tagNameKey = tagNameKey.substring(1, tagNameKey.length - 1);
+          if (tagNames.includes(tagNameKey)) {
+            analyticsDataDict[tagNameKey][counter] += 1;
+          };
+        };
+      });
+      counter += 1;
+    });
+
+    // generate graphData array to fill in 'series' attribute in chart component
+    const frames = analyticsDataDict;
+    const fps = data['fps'];
+    const graphData: {
+      x: string;
+      y: number[];
+      count: number;
+    }[] = []
+    Object.entries(frames).forEach(([tagNameKey, tagNameVal]) => {
+      Object.entries(tagNameVal).forEach(([frameKey, count]) => {
+        if (count > 0) {
+          graphData.push({
+            x: tagNameKey,
+            y: [Number(frameKey) / fps, (Number(frameKey) + 1) / fps],
+            count: count,
+          })
+        }
+      })
+    })
+    this.setState({
+      videoGraphData: graphData
+    })
   }
 
   /* Hotkey for Quick Annotation Selection */
@@ -1562,10 +1649,13 @@ export default class Annotator extends Component<
     );
   }
 
-  private toggleIsAnalytics = () => {
-    this.setState(prev => ({
-      isAnalytics: !prev.isAnalytics,
-    }));
+  /* Update video to a particular timeStamp (in seconds) */
+  public updateVideoTimeStamp(timeStamp: number) {
+    console.log(this.videoOverlay)
+    if (this.videoOverlay) {
+      const videoElement = this.videoOverlay.getElement();
+      if (videoElement) videoElement.currentTime = timeStamp;
+    }
   }
 
   render(): JSX.Element {
@@ -1580,6 +1670,15 @@ export default class Annotator extends Component<
 
     return (
       <div>
+        {this.state.isAnalytics ? (
+          <AnalyticsPopUp closeCallback={() => this.setState({
+              isAnalytics: false 
+            })}
+            graphData={this.state.videoGraphData}
+            fps={this.state.videoRawData['fps']}
+            videoElement={this.videoOverlay.getElement()}
+          />) : ''
+        }
         <Toaster {...this.state} ref={this.refHandlers.toaster} />
         <div className={"workspace"}>
           {/* Appends Styling Prefix if Image List is Collapsed */}
@@ -1607,31 +1706,22 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
-              <div onClick={this.toggleIsAnalytics}>
-                {this.state.isAnalytics ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6" width="32" height="32">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6" width="32" height="32">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                )}
-              </div>
-              {this.state.isAnalytics ? (
-                <AnalyticsBar data={this.state.videoAnalyticsData} confidence={this.state.confidence} />
-              ) : (
-                <ImageBar
-                  ref={ref => {
-                    this.imagebarRef = ref;
-                  }}
-                  /* Only visible assets should be shown */
-                  assetList={visibleAssets}
-                  callbacks={{ selectAssetCallback: this.selectAsset }}
-                  {...this.props}
-                />
-              )}
+              <IconButton
+                stroke={this.state.isAnalytics ? "eye" : "chart-bar-square"}
+                onClick={() => this.setState(prev => ({
+                  isAnalytics: !prev.isAnalytics,
+                }))}
+                style={{height: 45, width: 45, marginRight: "5px",}}
+              />
+              <ImageBar
+                ref={ref => {
+                  this.imagebarRef = ref;
+                }}
+                /* Only visible assets should be shown */
+                assetList={visibleAssets}
+                callbacks={{ selectAssetCallback: this.selectAsset }}
+                {...this.props}
+              />
             </Card>
           </div>
 
