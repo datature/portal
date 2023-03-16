@@ -19,9 +19,11 @@ interface AnnotationOptions {
 
 interface ImageSettingsProps {
   annotationOptions: AnnotationOptions;
+  analyticsMode: boolean;
   callbacks: {
     setAnnotatedAssetsHidden: (flag: boolean) => void;
     setAnnotationOptions: (newOption: boolean | number) => void;
+    setAnalyticsMode: (flag: boolean) => void;
   };
 }
 
@@ -156,6 +158,15 @@ export default class AnnotatorSettings extends Component<
                   }}
                 />
               </Label>
+              <br />
+              <Switch
+                checked={this.props.analyticsMode}
+                onChange={() => {
+                  this.props.callbacks.setAnalyticsMode(!this.props.analyticsMode);
+                }}
+              >
+                Toggle Timeline Mode
+              </Switch>
             </div>
             <Divider className="annotator-settings-divider" />
             <div className="annotator-settings-col">

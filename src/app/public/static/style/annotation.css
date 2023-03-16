@@ -18,16 +18,16 @@
   flex-direction: row;
   z-index: 20;
   width: calc(100% - 190px);
-  height: 200px;
+  height: 500px;
   margin-right: 10px;
   left: 0;
-  top: calc(100% - 140px);
+  top: calc(100% - 440px);
   padding-bottom: 10px;
 }
 
 .annotator-space {
   width: calc(100% - 190px);
-  height: calc(100% - 150px);
+  height: calc(100% - 450px);
   margin-right: 10px;
 }
 

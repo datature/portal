@@ -49,6 +49,7 @@ import FileModal from "./filemodal";
 import AnnotatorSettings from "./utils/annotatorsettings";
 import FormatTimerSeconds from "./utils/timer";
 import { RegisteredModel } from "./model";
+import AnalyticsBar from "./analyticsbar";
 
 type Point = [number, number];
 type MapType = L.DrawMap;
@@ -88,6 +89,8 @@ interface AnnotatorProps {
 }
 
 interface AnnotatorState {
+  analyticsResult: Array<any>;
+  analyticsMode: boolean;
   /* Image List for Storing Project Files */
   assetList: Array<AssetAPIObject>;
   /* List of files whose predictions are cached  */
@@ -209,6 +212,8 @@ export default class Annotator extends Component<
     super(props);
 
     this.state = {
+      analyticsResult: [],
+      analyticsMode: false,
       currentAssetAnnotations: [],
       userEditState: "None",
       changesMade: false,
@@ -733,6 +738,27 @@ export default class Annotator extends Component<
   }
 
   /**
+   * Generate data based on apexchart's timeline chart structure
+   * https://apexcharts.com/javascript-chart-demos/timeline-charts/basic/
+   * x: tag name
+   * y: timestamp range which the tag shows on video (in milliseconds)
+   */
+  private setAnalyticsResult(framesData: any) {
+    const newSeries: any = [];
+    Object.keys(framesData || {}).forEach((ms, msIndex) => {
+      if (msIndex === Object.keys(framesData).length - 1) return;
+      framesData[ms].forEach((item: any) => {
+        if (this.state.confidence > item.confidence) return;
+        newSeries.push({
+          x: item.tag.name,
+          y: [parseInt(ms), parseInt(Object.keys(framesData)[msIndex + 1])],
+        });
+      });
+    });
+    this.setState({ analyticsResult: newSeries });
+  }
+
+  /**
    * Centralized Handler to Perform predictions on both Video and Images
    */
   private async getInference(
@@ -787,6 +813,7 @@ export default class Annotator extends Component<
       )
         .then(response => {
           if (this.currentAsset.url === asset.url && singleAnalysis) {
+            this.setAnalyticsResult(response.data.frames);
             const videoElement = this.videoOverlay.getElement();
             /**
              * Recursive Callback function that
@@ -1574,15 +1601,23 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
-              <ImageBar
-                ref={ref => {
-                  this.imagebarRef = ref;
-                }}
-                /* Only visible assets should be shown */
-                assetList={visibleAssets}
-                callbacks={{ selectAssetCallback: this.selectAsset }}
-                {...this.props}
-              />
+              {this.state.analyticsMode ? (
+                <AnalyticsBar
+                  analyticsResult={this.state.analyticsResult}
+                  videoOverlay={this.videoOverlay.getElement()}
+                  {...this.props}
+                />
+              ) : (
+                <ImageBar
+                  ref={ref => {
+                    this.imagebarRef = ref;
+                  }}
+                  // Only visible assets should be shown
+                  assetList={visibleAssets}
+                  callbacks={{ selectAssetCallback: this.selectAsset }}
+                  {...this.props}
+                />
+              )}
             </Card>
           </div>
 
@@ -1616,9 +1651,12 @@ export default class Annotator extends Component<
                 <div className="annotator-settings-button">
                   <AnnotatorSettings
                     annotationOptions={this.state.annotationOptions}
+                    analyticsMode={this.state.analyticsMode}
                     callbacks={{
                       setAnnotatedAssetsHidden: this.setAnnotatedAssetsHidden,
                       setAnnotationOptions: this.setAnnotationOptions,
+                      setAnalyticsMode: val =>
+                        this.setState({ analyticsMode: val }),
                     }}
                   />
                 </div>
