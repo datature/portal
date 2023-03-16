@@ -30,7 +30,7 @@ const getUniqueTags = (
 ) => {
   return Object.values(videoAnalyticsData).reduce(
     (uniqueTags, currentValues) => {
-      currentValues.forEach((value: any) => {
+      currentValues.map((value: any) => {
         if (value.confidence >= confidenceThreshold) {
           const tagData = JSON.stringify(value.tag);
           if (!JSON.stringify(uniqueTags).includes(tagData)) {
