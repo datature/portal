@@ -16,7 +16,6 @@ interface AnalyticsPopUpProps {
   }[];
   fps: number;
   videoElement: any;
-  // updateTimeStamp: (timeStamp: number) => void;
 };
 
 export function AnalyticsPopUp({ closeCallback, graphData, fps, videoElement }: AnalyticsPopUpProps) {

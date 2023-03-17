@@ -1649,15 +1649,6 @@ export default class Annotator extends Component<
     );
   }
 
-  /* Update video to a particular timeStamp (in seconds) */
-  public updateVideoTimeStamp(timeStamp: number) {
-    console.log(this.videoOverlay)
-    if (this.videoOverlay) {
-      const videoElement = this.videoOverlay.getElement();
-      if (videoElement) videoElement.currentTime = timeStamp;
-    }
-  }
-
   render(): JSX.Element {
     /* Prefix for Dynamic Styling of Collapsing Image List */
     const collapsedButtonTheme = this.props.useDarkTheme ? "" : "light-";
