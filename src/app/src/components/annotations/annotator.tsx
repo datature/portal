@@ -49,6 +49,7 @@ import FileModal from "./filemodal";
 import AnnotatorSettings from "./utils/annotatorsettings";
 import FormatTimerSeconds from "./utils/timer";
 import { RegisteredModel } from "./model";
+import { AnalyticsBar } from "./analyticsbar";
 
 type Point = [number, number];
 type MapType = L.DrawMap;
@@ -90,6 +91,7 @@ interface AnnotatorProps {
 interface AnnotatorState {
   /* Image List for Storing Project Files */
   assetList: Array<AssetAPIObject>;
+  videoAnalyticsResults: any;
   /* List of files whose predictions are cached  */
   cacheList: Array<string>;
   /* Tags for Project */
@@ -210,6 +212,7 @@ export default class Annotator extends Component<
 
     this.state = {
       currentAssetAnnotations: [],
+      videoAnalyticsResults: [],
       userEditState: "None",
       changesMade: false,
       assetList: [],
@@ -829,6 +832,7 @@ export default class Annotator extends Component<
               );
             }
           }
+          this.setState({videoAnalyticsResults: response.data.frames})
         })
         .catch(error => {
           let message = "Failed to predict video.";
@@ -1574,15 +1578,20 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
-              <ImageBar
-                ref={ref => {
-                  this.imagebarRef = ref;
-                }}
-                /* Only visible assets should be shown */
-                assetList={visibleAssets}
-                callbacks={{ selectAssetCallback: this.selectAsset }}
-                {...this.props}
-              />
+              <style style={{display:"flex", justifyContent:"space-between"}}>
+                <AnalyticsBar
+                analyticsResults={this.state.videoAnalyticsResults}
+                confidence={this.state.confidence}/>
+                <ImageBar
+                  ref={ref => {
+                    this.imagebarRef = ref;
+                  }}
+                  // Only visible assets should be shown
+                  assetList={visibleAssets}
+                  callbacks={{ selectAssetCallback: this.selectAsset }}
+                  {...this.props}
+                />
+              </style>
             </Card>
           </div>
 

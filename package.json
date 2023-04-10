@@ -58,7 +58,8 @@
     "electron-squirrel-startup": "^1.0.0",
     "fs": "0.0.1-security",
     "node-fetch": "^2.6.1",
-    "python-shell": "^1.0.8"
+    "python-shell": "^1.0.8",
+    "recharts": "^2.5.0"
   },
   "devDependencies": {
     "electron": "^13.1.2",
