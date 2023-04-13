@@ -53,6 +53,7 @@
     }
   },
   "dependencies": {
+    "@types/recharts": "^1.8.24",
     "cross-env": "^7.0.3",
     "electron-log": "^4.3.5",
     "electron-squirrel-startup": "^1.0.0",

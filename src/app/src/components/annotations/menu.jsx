@@ -441,6 +441,11 @@ export default class AnnotationMenu extends Component {
             text="Advanced Settings"
             onClick={this.props.callbacks.OpenAdvancedSettings}
           />
+          <MenuItem
+            icon={this.props.isAnalyticsMode ? "media" : "chart"}
+            text={this.props.isAnalyticsMode ? "Image Bar" : "Analytics Mode"}
+            onClick={this.props.callbacks.ToggleAnalyticsMode}
+          />
           <MenuDivider title="Filter Tags" />
           <TagSelector
             showSelected={this.state.showSelected}

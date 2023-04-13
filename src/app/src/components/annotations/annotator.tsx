@@ -91,7 +91,7 @@ interface AnnotatorProps {
 interface AnnotatorState {
   /* Image List for Storing Project Files */
   assetList: Array<AssetAPIObject>;
-  videoAnalyticsResults: any;
+  videoAnalyticsResults: Record<number, any>;
   /* List of files whose predictions are cached  */
   cacheList: Array<string>;
   /* Tags for Project */
@@ -107,6 +107,7 @@ interface AnnotatorState {
   fileManagementOpen: boolean;
   /* Tag Management Mode */
   advancedSettingsOpen: boolean;
+  isAnalyticsMode: boolean;
   /* Image List Collapse Mode */
   imageListCollapsed: boolean;
   /* Hide annotated images in imagebar */
@@ -212,7 +213,7 @@ export default class Annotator extends Component<
 
     this.state = {
       currentAssetAnnotations: [],
-      videoAnalyticsResults: [],
+      videoAnalyticsResults: {},
       userEditState: "None",
       changesMade: false,
       assetList: [],
@@ -224,6 +225,7 @@ export default class Annotator extends Component<
       fileManagementOpen: false,
       advancedSettingsOpen: false,
       imageListCollapsed: false,
+      isAnalyticsMode: false,
       annotatedAssetsHidden: false,
       killVideoPrediction: false,
       isSyncing: false,
@@ -951,6 +953,16 @@ export default class Annotator extends Component<
     );
   };
 
+  private toggleAnalyticsMode = () => {
+      this.setState(
+        prevState => {
+          return {
+            isAnalyticsMode: !prevState.isAnalyticsMode,
+          };
+        }
+      )
+  }
+
   private toggleConfidence = (value: number) => {
     /* Set Confidence Value based on Slider moving */
     this.setState({ confidence: value / 100 }, () => {
@@ -1578,20 +1590,28 @@ export default class Annotator extends Component<
               className={[isCollapsed, "image-bar"].join("")}
               id={"image-bar"}
             >
-              <style style={{display:"flex", justifyContent:"space-between"}}>
-                <AnalyticsBar
-                analyticsResults={this.state.videoAnalyticsResults}
-                confidence={this.state.confidence}/>
-                <ImageBar
-                  ref={ref => {
-                    this.imagebarRef = ref;
-                  }}
-                  // Only visible assets should be shown
-                  assetList={visibleAssets}
-                  callbacks={{ selectAssetCallback: this.selectAsset }}
-                  {...this.props}
-                />
-              </style>
+              {
+                this.state.isAnalyticsMode ? (
+                  Object.keys(this.state.videoAnalyticsResults).length ? (
+                  <AnalyticsBar
+                    analyticsResults={this.state.videoAnalyticsResults}
+                    confidence={this.state.confidence}
+                  />
+                  ) : (
+                    "Please select a component to view Analytics..."
+                  )
+                ) : (
+                  <ImageBar
+                    ref={ref => {
+                      this.imagebarRef = ref;
+                    }}
+                    // Only visible assets should be shown
+                    assetList={visibleAssets}
+                    callbacks={{ selectAssetCallback: this.selectAsset }}
+                    {...this.props}
+                  />
+                )
+              }
             </Card>
           </div>
 
@@ -1653,11 +1673,13 @@ export default class Annotator extends Component<
               loadedModel={this.props.loadedModel}
               currentAsset={this.currentAsset}
               assetList={this.state.assetList}
+              isAnalyticsMode={this.state.isAnalyticsMode}
               callbacks={{
                 ResetControls: this.resetControls,
                 OpenFileManagement: this.handleFileManagementOpen,
                 SetAnnotationTag: this.setAnnotationTag,
                 OpenAdvancedSettings: this.handleAdvancedSettingsOpen,
+                ToggleAnalyticsMode: this.toggleAnalyticsMode,
                 SetAnnotationVisibility: this.setAnnotationVisibility,
                 SingleAnalysis: this.singleAnalysis,
                 BulkAnalysis: this.bulkAnalysis,
