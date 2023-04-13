@@ -1,5 +1,5 @@
 import React from "react";
-import { LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 type AnalyticsBarProps = {
     analyticsResults: Record<number, Array<any>>
@@ -20,11 +20,15 @@ export function AnalyticsBar(props: AnalyticsBarProps) {
             .flatMap(e => e[1].filter(e => e.confidence >= props.confidence).map(e => e.tag.name))))
             .map(str => <Line key={str} type='monotone' dataKey={str} />)
 
-    // Width and height are temporary
-    return (<LineChart width={1400} height={120} data={data}>
+    // Width and height are temporary, ResponsiveContainer doesn't seem to work correctly
+    return (
+        // <ResponsiveContainer width='99%' height={120}>
+            <LineChart width={1575} height={120} data={data}>
                 <XAxis dataKey='frame' />
                 <YAxis />
                 {lines}
                 <Tooltip />
-            </LineChart>)
+            </LineChart>
+        // </ResponsiveContainer>
+    )
 }
