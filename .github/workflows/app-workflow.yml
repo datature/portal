@@ -23,14 +23,14 @@ jobs:
       # Install Node.js
       - uses: actions/setup-node@v1.4.4
         with:
-          node-version: 14
+          node-version: 16
           registry-url: https://npm.pkg.github.com/
           scope: "@datature"
 
       # Install your dependencies
       - name: Installing
         working-directory: ./src/app
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       # Run Eslint
       - name: ESLint Check

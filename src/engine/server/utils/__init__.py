@@ -11,5 +11,5 @@
 @Version :   0.5.6
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
-@Desc    :   Init script for the engine.
+@Desc    :   Init file for server utilitites.
 '''
