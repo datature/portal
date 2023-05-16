@@ -1,4 +1,18 @@
-"""Module containing all API routes."""
+#!/usr/bin/env python
+# -*-coding:utf-8 -*-
+'''
+  ████
+██    ██   Datature
+  ██  ██   Powering Breakthrough AI
+    ██
+
+@File    :   routes.py
+@Author  :   Marcus Neo and Beatrice Leong
+@Version :   0.5.6
+@Contact :   hello@datature.io
+@License :   Apache License 2.0
+@Desc    :   Module containing all API routes.
+'''
 import os
 from functools import wraps
 
@@ -27,19 +41,23 @@ from server.services.model_register import (
 )
 
 from server.services.predictions import predict_image, predict_video
-from server.utilities.prediction_utilities import corrected_predict_query
+from server.utils.prediction_utilities import corrected_predict_query
 
 
 def portal_function_handler(clear_status: bool) -> callable:
     """Decorator to handle all API functions.
 
     Responsibilities:
-        1. clear the global store atomic status only for functions that meet the requirements
-        2. handles the case of simultaneous api calls (2 or more same calls in a split second)
-        3. handles exceptions of all functions, converts them to be read by front-end and logs
+        1. clear the global store atomic status only for functions that
+           meet the requirements
+        2. handles the case of simultaneous api calls
+           (2 or more same calls in a split second)
+        3. handles exceptions of all functions, converts them to be
+           read by front-end and logs
     """
 
     def decorator(func):
+
         @wraps(func)
         def wrapper(*args, **kwargs):
 
@@ -56,9 +74,8 @@ def portal_function_handler(clear_status: bool) -> callable:
             except PortalError as e:
                 if logger is not None:
                     logger.exception(e)
-                e.set_fail_location(
-                    " - ".join([func.__module__, func.__name__])
-                )
+                e.set_fail_location(" - ".join(
+                    [func.__module__, func.__name__]))
                 if e.get_error() != "ATOMICERROR" and clear_status:
                     global_store.clear_status()
                 response = e.output()
@@ -190,7 +207,7 @@ def reject_cache() -> Response:
 @portal_function_handler(clear_status=False)
 def set_gpu() -> Response:
     """Set the GPU flag to true."""
-    with open(os.getenv("GPU_DIR"), "w") as gpu_flag:
+    with open(os.getenv("GPU_DIR"), "w", encoding="utf-8") as gpu_flag:
         gpu_flag.write("0")
     return Response(status=200)
 
@@ -200,7 +217,7 @@ def set_gpu() -> Response:
 @portal_function_handler(clear_status=False)
 def clear_gpu() -> Response:
     """Clear the GPU flag."""
-    with open(os.getenv("GPU_DIR"), "w") as gpu_flag:
+    with open(os.getenv("GPU_DIR"), "w", encoding="utf-8") as gpu_flag:
         gpu_flag.write("-1")
     return Response(status=200)
 
@@ -229,9 +246,8 @@ def register_model() -> tuple:
         # Check for empty API Body.
         data = request.get_json()
         if not data:
-            raise PortalError(
-                Errors.NOAPIBODY, "API body is required but not given."
-            )
+            raise PortalError(Errors.NOAPIBODY,
+                              "API body is required but not given.")
 
         # Initialize data.
         input_type: str = data["type"]
@@ -257,12 +273,8 @@ def register_model() -> tuple:
         if input_type == "local" and (model_key != "" or project_secret != ""):
             raise PortalError(
                 Errors.INVALIDAPI,
-                "both model_key and project_secret should not be given if input_type is 'local'.",
-            )
-        if input_directory != "" and not os.path.isdir(input_directory):
-            raise PortalError(
-                Errors.INVALIDAPI,
-                f"{input_directory} is not a valid directory.",
+                "both model_key and project_secret should not "
+                "be given if input_type is 'local'.",
             )
 
         if input_type == "local" and input_directory == "":
@@ -276,35 +288,28 @@ def register_model() -> tuple:
                 Errors.INVALIDAPI,
                 "model_key needs to be given if input_type is 'hub'.",
             )
-        if input_type == "endpoint" and (
-            model_url == "" or project_secret == ""
-        ):
+        if input_type == "endpoint" and (model_url == ""
+                                         or project_secret == ""):
             raise PortalError(
                 Errors.INVALIDAPI,
                 "Endpoint URL / project_secret "
                 "needs to be given if input_type is 'endpoint'.",
             )
-        if model_type not in ["darknet", "tensorflow", "pytorch"]:
+
+        if input_type in ["hub", "endpoint"] and model_type != "autodetect":
             raise PortalError(
                 Errors.INVALIDAPI,
-                "model_type needs to be one of 'darknet', 'tensorflow' or 'pytorch'.",
-            )
-        if input_type in ["hub", "endpoint"] and model_type != "tensorflow":
-            raise PortalError(
-                Errors.INVALIDAPI,
-                "only tensorflow models are supported for Hub.",
+                "only autodetect models are supported for Hub.",
             )
         # Register the model using the respective registration code.
         if input_type == "local":
-            register_local(
-                input_directory, model_type, model_name, model_description
-            )
+            register_local(input_directory, model_type, model_name,
+                           model_description)
 
         if input_type == "hub":
             register_hub(
                 model_key,
                 project_secret,
-                input_directory,
                 model_name,
                 model_description,
             )
@@ -320,7 +325,8 @@ def register_model() -> tuple:
         return (jsonify(global_store.get_registered_model_info()), 200)
 
     # Except Block
-    # Catches all possible native exceptions here and translates them into PortalError.
+    # Catches all possible native exceptions here and
+    # translates them into PortalError.
     except KeyError as e:
         raise PortalError(Errors.INVALIDAPI, str(e)) from e
 
@@ -345,7 +351,8 @@ def get_tag(model_id: str) -> tuple:
         return (jsonify(output), 200)
 
     # Except Block
-    # Catches all possible native exceptions here and translates them into PortalError.
+    # Catches all possible native exceptions here and
+    # translates them into PortalError.
     except KeyError as e:
         raise PortalError(Errors.INVALIDMODELKEY, str(e)) from e
     except FileNotFoundError as e:
@@ -377,7 +384,8 @@ def deregister_model(model_id: str) -> Response:
         return Response(status=200)
 
     # Except Block
-    # Catches all possible native exceptions here and translates them into PortalError.
+    # Catches all possible native exceptions here and
+    # translates them into PortalError.
     except KeyError as e:
         raise PortalError(Errors.INVALIDMODELKEY, str(e)) from e
 
@@ -386,7 +394,8 @@ def deregister_model(model_id: str) -> Response:
 @cross_origin()
 @portal_function_handler(clear_status=False)
 def get_registry() -> tuple:
-    """Obtain the dictionary with all registered models as key and their directory as value.
+    """Obtain the dictionary with all registered models as
+        key and their directory as value.
 
     :return: Jsonified dictionary of registered models and 200.
     """
@@ -455,40 +464,46 @@ def predict_single_image(model_id: str) -> tuple:
     ~THIS FUNCTION IS ATOMIC~
 
     :param model_id: The model key.
-    :QueryParam filepath: (Compulsory) The path of the image to be sent for prediction.
+    :QueryParam filepath: (Compulsory) The path of the image to be
+                                       sent for prediction.
     :QueryParam format: (Optional) Output format.
-        Either "json" or "image". Default is "json".
-    :QueryParam iou: (Optional) Intersection of Union for Bounding Boxes/Masks.
-        Requires float in the range of [0.0,1.0]. Default is 0.8.
-    :QueryParam filter: (Optional) Obtain the outputs of only the specified class.
-    :QueryParam reanalyse: (Optional) Flag to bypass cache and force reanalysis.
-    :return: Jsonified tuple of (either json detections of image) and 200 if successful.
+                                   Either "json" or "image".
+                                   Default is "json".
+    :QueryParam iou: (Optional) Intersection of Union for
+                                Bounding Boxes/Masks.
+                                Requires float in the range of [0.0,1.0].
+                                Default is 0.8.
+    :QueryParam filter: (Optional) Obtain the outputs of
+                                   only the specified class.
+    :QueryParam reanalyse: (Optional) Flag to bypass cache and
+                                      force reanalysis.
+    :return: Jsonified tuple of (either json detections of image)
+             and 200 if successful.
 
     Possible Errors:
         UNINITIALIZED:      Empty loaded model list.
         INVALIDFILETYPE:    Image file extension is not allowed.
         INVALIDQUERY:       Wrongly given query parameters.
-        FAILEDPREDICTION:   Prediction failed. See error message for more information.
+        FAILEDPREDICTION:   Prediction failed.
+                            See error message for more information.
         NOTFOUND:           Image directory not found.
         INVALIDMODELKEY:    Model key is not in loaded model list.
     """
     try:
         if request.args.get("filepath") is None:
-            raise PortalError(
-                Errors.INVALIDQUERY, "Filepath is a compulsory query"
-            )
+            raise PortalError(Errors.INVALIDQUERY,
+                              "Filepath is a compulsory query")
 
         image_directory = decode(request.args.get("filepath"))
         if not os.path.isfile(image_directory):
-            raise PortalError(
-                Errors.NOTFOUND, "Image is not found from filepath param"
-            )
+            raise PortalError(Errors.NOTFOUND,
+                              "Image is not found from filepath param")
         if not allowed_image(image_directory):
             raise PortalError(Errors.INVALIDFILETYPE, image_directory)
 
-        corrected_dict = corrected_predict_query(
-            "format", "iou", request=request
-        )
+        corrected_dict = corrected_predict_query("format",
+                                                 "iou",
+                                                 request=request)
         format_arg = corrected_dict["format"]
         iou = corrected_dict["iou"]
         reanalyse = corrected_dict["reanalyse"]
@@ -497,13 +512,8 @@ def predict_single_image(model_id: str) -> tuple:
             image_directory,
             format_arg + str(iou),
         )
-        prediction_status = (
-            "predict_single_image_"
-            + model_id
-            + image_directory
-            + format_arg
-            + str(iou)
-        )
+        prediction_status = ("predict_single_image_" + model_id +
+                             image_directory + format_arg + str(iou))
         # check if another atomic process / duplicate process exists
         if global_store.set_status(prediction_status):
             wait_for_process()
@@ -511,10 +521,8 @@ def predict_single_image(model_id: str) -> tuple:
         # reanalyse needs to be false, and the prediction cache must
         # contain the corresponding output, in order for the cache to be
         # served. else, we continue prediction as per norma
-        if (
-            global_store.check_prediction_cache(prediction_key)
-            and reanalyse is False
-        ):
+        if (global_store.check_prediction_cache(prediction_key)
+                and reanalyse is False):
             output = global_store.get_predictions(prediction_key)
         else:
             if not global_store.get_loaded_model_keys():
@@ -524,15 +532,15 @@ def predict_single_image(model_id: str) -> tuple:
 
             model_class = global_store.get_model_class(model_id)
 
-            output = predict_image(
-                model_class, format_arg, iou, image_directory
-            )
+            output = predict_image(model_class, format_arg, iou,
+                                   image_directory)
             global_store.add_predictions(prediction_key, output)
 
         return (jsonify(output), 200)
 
     # Except Block
-    # Catches all possible native exceptions here and translates them into PortalError.
+    # Catches all possible native exceptions here and
+    # translates them into PortalError.
     except FileNotFoundError as e:
         raise PortalError(Errors.NOTFOUND, str(e)) from e
     except KeyError as e:
@@ -548,44 +556,47 @@ def predict_video_fn(model_id: str) -> tuple:
     ~THIS FUNCTION IS ATOMIC~
 
     :param model_id: The model key.
-    :QueryParam filepath: (Compulsory) The path of the image to be sent for prediction.
+    :QueryParam filepath: (Compulsory) The path of the image to be sent
+                                       for prediction.
     :QueryParam frameInterval: (Compulsory) The interval between frames
-    :QueryParam iou: (Optional) Intersection of Union for Bounding Boxes/Masks.
+    :QueryParam iou: (Optional) Intersection of Union for
+                                Bounding Boxes/Masks.
         Requires float in the range of [0.0,1.0]. Default is 0.8.
-    :QueryParam filter: (Optional) Obtain the outputs of only the specified class.
+    :QueryParam filter: (Optional) Obtain the outputs of only the
+                                   specified class.
     :QueryParam confidence: (Optional) The confidence threshold.
-    :QueryParam reanalyse: (Optional) Flag to bypass cache and force reanalysis.
-    :return: Jsonified tuple of (either json detections of image) and 200 if successful.
+    :QueryParam reanalyse: (Optional) Flag to bypass cache and
+                                      force reanalysis.
+    :return: Jsonified tuple of (either json detections of image)
+             and 200 if successful.
 
     Possible Errors:
         UNINITIALIZED:      Empty loaded model list.
         INVALIDFILETYPE:    Image file extension is not allowed.
         INVALIDQUERY:       Wrongly given query parameters.
-        FAILEDPREDICTION:   Prediction failed. See error message for more information.
+        FAILEDPREDICTION:   Prediction failed.
+                            See error message for more information.
         NOTFOUND:           Image directory not found.
         INVALIDMODELKEY:    Model key is not in loaded model list.
     """
     try:
         if request.args.get("filepath") is None:
-            raise PortalError(
-                Errors.INVALIDQUERY, "Filepath is a compulsory query"
-            )
+            raise PortalError(Errors.INVALIDQUERY,
+                              "Filepath is a compulsory query")
         if request.args.get("frameInterval") is None:
-            raise PortalError(
-                Errors.INVALIDQUERY, "frameInterval is a compulsory query"
-            )
+            raise PortalError(Errors.INVALIDQUERY,
+                              "frameInterval is a compulsory query")
         frame_interval = int(request.args.get("frameInterval"))
         video_directory = decode(request.args.get("filepath"))
         if not os.path.isfile(video_directory):
-            raise PortalError(
-                Errors.NOTFOUND, "Video is not found from filepath param"
-            )
+            raise PortalError(Errors.NOTFOUND,
+                              "Video is not found from filepath param")
         if not allowed_video(video_directory):
             raise PortalError(Errors.INVALIDFILETYPE, video_directory)
 
-        corrected_dict = corrected_predict_query(
-            "iou", "confidence", request=request
-        )
+        corrected_dict = corrected_predict_query("iou",
+                                                 "confidence",
+                                                 request=request)
         iou = corrected_dict["iou"]
         confidence = corrected_dict["confidence"]
         reanalyse = corrected_dict["reanalyse"]
@@ -594,14 +605,8 @@ def predict_video_fn(model_id: str) -> tuple:
             video_directory,
             str(frame_interval) + str(iou) + str(confidence),
         )
-        prediction_status = (
-            "predict_video_"
-            + model_id
-            + video_directory
-            + str(frame_interval)
-            + str(iou)
-            + str(confidence)
-        )
+        prediction_status = ("predict_video_" + model_id + video_directory +
+                             str(frame_interval) + str(iou) + str(confidence))
         if global_store.set_status(prediction_status):
             wait_for_process()
             return global_store.get_caught_response("predict_video")
@@ -609,10 +614,8 @@ def predict_video_fn(model_id: str) -> tuple:
         # reanalyse needs to be false, and the prediction cache must
         # contain the corresponding output, in order for the cache to be
         # served. else, we continue prediction as per norma
-        if (
-            global_store.check_prediction_cache(prediction_key)
-            and reanalyse is False
-        ):
+        if (global_store.check_prediction_cache(prediction_key)
+                and reanalyse is False):
             output = global_store.get_predictions(prediction_key)
         else:
             if not global_store.get_loaded_model_keys():
@@ -633,7 +636,8 @@ def predict_video_fn(model_id: str) -> tuple:
         return (jsonify(output), 200)
 
     # Except Block
-    # Catches all possible native exceptions here and translates them into PortalError.
+    # Catches all possible native exceptions here and
+    # translates them into PortalError.
     except FileNotFoundError as e:
         raise PortalError(Errors.NOTFOUND, str(e)) from e
     except KeyError as e:
@@ -677,9 +681,8 @@ def register_images() -> Response:
         path = request.json["directory"]
         global_store.add_targeted_folder(path)
 
-        return Response(
-            response="Successfully registered the targeted folder", status=200
-        )
+        return Response(response="Successfully registered the targeted folder",
+                        status=200)
     except KeyError as e:
         raise PortalError(Errors.INVALIDAPI, str(e)) from e
     except FileNotFoundError as e:
@@ -718,11 +721,11 @@ def delete_folder() -> Response:
         return Response(response="Deletion was successful", status=200)
 
     # Except Block
-    # Catches all possible native exceptions here and translates them into PortalError.
+    # Catches all possible native exceptions here and
+    # translates them into PortalError.
     except TypeError as e:
-        raise PortalError(
-            Errors.NOAPIBODY, "API body is required but not given."
-        ) from e
+        raise PortalError(Errors.NOAPIBODY,
+                          "API body is required but not given.") from e
     except FileNotFoundError as e:
         raise PortalError(Errors.INVALIDFILETYPE, str(e)) from e
 
@@ -765,13 +768,13 @@ def get_image():
         decoded_path = decode(path)
         if not os.path.exists(decoded_path):
             raise FileNotFoundError(
-                f"File path {decoded_path} does not exists"
-            )
+                f"File path {decoded_path} does not exists")
         head, tail = os.path.split(decoded_path)
         return send_from_directory(head, tail)
 
     # Except Block
-    # Catches all possible native exceptions here and translates them into PortalError.
+    # Catches all possible native exceptions here and
+    # translates them into PortalError.
     except KeyError as e:
         raise PortalError(Errors.INVALIDAPI, str(e)) from e
     except FileNotFoundError as e:
@@ -788,12 +791,11 @@ def get_thumbnail():
         decoded_path = decode(path)
         if not os.path.exists(decoded_path):
             raise FileNotFoundError(
-                f"File path {decoded_path} does not exists"
-            )
+                f"File path {decoded_path} does not exists")
         # pylint: disable=unused-variable
         head, tail = os.path.split(decoded_path)
         image_bytes = generate_thumbnail(decoded_path, tail)
-        return send_file(image_bytes, mimetype=("image/jpeg"))
+        return send_file(image_bytes, mimetype="image/jpeg")
 
     except KeyError as e:
         raise PortalError(Errors.INVALIDAPI, str(e)) from e

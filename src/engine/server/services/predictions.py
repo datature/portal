@@ -1,4 +1,18 @@
-"""Module containing the prediction function"""
+#!/usr/bin/env python
+# -*-coding:utf-8 -*-
+'''
+  ████
+██    ██   Datature
+  ██  ██   Powering Breakthrough AI
+    ██
+
+@File    :   predictions.py
+@Author  :   Marcus Neo
+@Version :   0.5.6
+@Contact :   hello@datature.io
+@License :   Apache License 2.0
+@Desc    :   Module containing the prediction function.
+'''
 import os
 from typing import Optional
 
@@ -6,7 +20,7 @@ import cv2
 import numpy as np
 
 # pylint: disable=E0401, E0611
-from server.utilities.prediction_utilities import (
+from server.utils.prediction_utilities import (
     get_suppressed_output,
     back_to_array,
     get_detection_json,
@@ -17,6 +31,7 @@ from server.models.abstract.BaseModel import BaseModel
 
 from server.services.errors import PortalError, Errors
 from server import global_store
+
 
 # pylint: disable=R0913
 def _predict_single_image(
@@ -37,9 +52,7 @@ def _predict_single_image(
     """
     label_map = model_class.get_label_map()
     image_array = cv2.cvtColor(image_array, cv2.COLOR_BGRA2RGB)
-    detections = model_class.predict(
-        image_array=image_array,
-    )
+    detections = model_class.predict(image_array=image_array, )
     suppressed_output = get_suppressed_output(
         detections=detections,
         filter_id=None,
@@ -114,9 +127,8 @@ def predict_video(
             cap.release()
             cv2.destroyAllWindows()
             global_store.clear_stop()
-            raise PortalError(
-                Errors.STOPPEDPROCESS, "video prediction killed."
-            )
+            raise PortalError(Errors.STOPPEDPROCESS,
+                              "video prediction killed.")
         # Capture frame-by-frame
         ret, frame = cap.read()
         if ret:

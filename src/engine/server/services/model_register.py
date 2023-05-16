@@ -1,8 +1,23 @@
-"""Module containing the register functions."""
-import os
+#!/usr/bin/env python
+# -*-coding:utf-8 -*-
+'''
+  ████
+██    ██   Datature
+  ██  ██   Powering Breakthrough AI
+    ██
 
-from datature_hub.hub import HubModel
-from datature_hub.utils.get_height_width import dims_from_config
+@File    :   model_register.py
+@Author  :   Marcus Neo
+@Version :   0.5.6
+@Contact :   hello@datature.io
+@License :   Apache License 2.0
+@Desc    :   Module containing the register functions.
+'''
+import os
+import urllib.request
+import zipfile
+
+import datature
 
 # pylint: disable=E0401, E0611
 from server import global_store
@@ -24,7 +39,8 @@ def register_local(
 
     Possible Errors:
         INVALIDFILEPATH:
-            saved_model/{saved_model.pb|saved_model.pbtxt} is not found in given directory.
+            saved_model/{saved_model.pb|saved_model.pbtxt}
+            is not found in given directory.
     """
     reg_model = Model(model_type, directory, name, description)
     global_store.add_registered_model(*reg_model.register(), store_cache=True)
@@ -33,7 +49,6 @@ def register_local(
 def register_hub(
     model_key: str,
     project_secret: str,
-    hub_dir: str,
     name: str,
     description: str,
 ) -> None:
@@ -43,39 +58,52 @@ def register_hub(
     :param project_secret: The project secret obtained from Nexus.
     """
     try:
-        hub_model = HubModel(
-            project_secret=project_secret,
-            model_key=model_key,
-            hub_dir=hub_dir if hub_dir != "" else os.getenv("MODEL_DIR"),
-        )
-        model_folder = hub_model.model_dir
-        if not os.path.exists(model_folder):
-            model_folder = hub_model.download_model()
-        pipeline_config_directory = hub_model.get_pipeline_config_dir()
-        height, width = dims_from_config(pipeline_config_directory)
+        api_url = os.environ.get("API_BASE_URL")
+        if api_url is not None:
+            datature.API_BASE_URL = api_url
+        datature.secret_key = project_secret
+
+        model_id = f"model_{model_key}"
+        artifact_list = [
+            artifact["id"] for artifact in datature.Artifact.list()
+        ]
+        found = False
+        for artifact_id in artifact_list:
+            model_list = {
+                model["id"]: model["download"]["url"]
+                for model in datature.Artifact.list_exported(artifact_id)
+            }
+            if model_id in model_list:
+                found = True
+                break
+        if not found:
+            raise ValueError(f"Model key {model_key} not found.")
+        main_path = f"server/hub_models/{model_id}"
+        zip_path = f"{main_path}.zip"
+        urllib.request.urlretrieve(model_list[model_id], zip_path)
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(main_path)
+        os.remove(zip_path)
         reg_model = Model(
-            "tensorflow",
-            model_folder,
+            "autodetect",
+            main_path,
             name,
             description,
-            height=height,
-            width=width,
         )
-        global_store.add_registered_model(
-            *reg_model.register(), store_cache=True
-        )
+        global_store.add_registered_model(*reg_model.register(),
+                                          store_cache=True)
 
     # Except Block
-    # Catches all possible native exceptions here and translates them into PortalError.
+    # Catches all possible native exceptions here and
+    # translates them into PortalError.
     except (FileNotFoundError, ModuleNotFoundError) as e:
         raise PortalError(Errors.NOTFOUND, str(e)) from e
     except (RuntimeError, ValueError) as e:
         raise PortalError(Errors.HUBERROR, str(e)) from e
 
 
-def register_endpoint(
-    link: str, project_secret: str, name: str, description: str
-) -> None:
+def register_endpoint(link: str, project_secret: str, name: str,
+                      description: str) -> None:
     """Register a model from an endpoint.
 
     :param link: The URL of the endpoint.

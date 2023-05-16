@@ -1,4 +1,18 @@
-"""Module containing the loading functions"""
+#!/usr/bin/env python
+# -*-coding:utf-8 -*-
+'''
+  ████
+██    ██   Datature
+  ██  ██   Powering Breakthrough AI
+    ██
+
+@File    :   model_loader.py
+@Author  :   Marcus Neo
+@Version :   0.5.6
+@Contact :   hello@datature.io
+@License :   Apache License 2.0
+@Desc    :   Module containing the loading functions.
+'''
 from flask import Response
 
 # pylint: disable=E0401, E0611
@@ -24,8 +38,7 @@ def model_loader(model_id: str) -> Response:
         return Response(status=200)
     try:
         registered_model: BaseModel = global_store.get_registered_model(
-            model_id
-        )
+            model_id)
         registered_model.load()
         global_store.load_model(model_id, registered_model)
         return Response(status=200)
@@ -35,8 +48,7 @@ def model_loader(model_id: str) -> Response:
             model_id + " is not found in registered model list.",
         ) from e
     except TypeError as e:
-        raise PortalError(
-            Errors.UNINITIALIZED, "No models are registered."
-        ) from e
+        raise PortalError(Errors.UNINITIALIZED,
+                          "No models are registered.") from e
     except FileNotFoundError as e:
         raise PortalError(Errors.INVALIDFILEPATH, str(e)) from e

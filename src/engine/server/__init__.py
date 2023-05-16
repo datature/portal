@@ -1,4 +1,18 @@
-"""Set up the Flask app and import the routes."""
+#!/usr/bin/env python
+# -*-coding:utf-8 -*-
+'''
+  ████
+██    ██   Datature
+  ██  ██   Powering Breakthrough AI
+    ██
+
+@File    :   __init__.py
+@Author  :   Marcus Neo
+@Version :   0.5.6
+@Contact :   hello@datature.io
+@License :   Apache License 2.0
+@Desc    :   Module to set up the Flask app and import the routes.
+'''
 import os
 import threading
 import time
@@ -17,16 +31,11 @@ EPSILON_MULTIPLIER = 0.001
 IDLE_MINUTES = 60 * 5
 CACHE_OPTION = os.environ["USE_CACHE"] == "1"
 try:
-    DEBUG_MODE = (
-        int(os.environ["PORTAL_LOGGING"])
-        if "PORTAL_LOGGING" in os.environ
-        else None
-    )
+    DEBUG_MODE = (int(os.environ["PORTAL_LOGGING"])
+                  if "PORTAL_LOGGING" in os.environ else None)
 except ValueError as e:
-    raise ValueError(
-        "invalid literal for PORTAL_LOGGING variable.\n"
-        "Only 1, 2, 3, 4, 5 are accepted."
-    ) from e
+    raise ValueError("invalid literal for PORTAL_LOGGING variable.\n"
+                     "Only 1, 2, 3, 4, 5 are accepted.") from e
 if DEBUG_MODE is not None:
     # pylint: disable=wrong-import-position
     import logging
@@ -41,10 +50,8 @@ if DEBUG_MODE is not None:
         logging.basicConfig(level=DEBUG_MODE * 10)
         logger = logging.getLogger(__name__)
     except ValueError as e:
-        raise ValueError(
-            "invalid literal for PORTAL_LOGGING variable.\n"
-            "Only 1, 2, 3, 4, 5 are accepted."
-        ) from e
+        raise ValueError("invalid literal for PORTAL_LOGGING variable.\n"
+                         "Only 1, 2, 3, 4, 5 are accepted.") from e
 else:
     logger = None
 
@@ -74,9 +81,9 @@ class ServerThread(threading.Thread):
 # pylint: disable=invalid-name
 app = Flask(__name__)
 server = ServerThread(app)
-global_store = GlobalStore(
-    MODEL_LOAD_LIMIT, IDLE_MINUTES, caching_system=CACHE_OPTION
-)
+global_store = GlobalStore(MODEL_LOAD_LIMIT,
+                           IDLE_MINUTES,
+                           caching_system=CACHE_OPTION)
 
 
 def wait_for_process() -> None:
@@ -86,4 +93,4 @@ def wait_for_process() -> None:
 
 
 # pylint: disable=wrong-import-position
-from .routes import routes
+from .routes import routes  # noqa: F401,E402
