@@ -1,4 +1,18 @@
-"""Main file to run the flask app."""
+#!/usr/bin/env python
+# -*-coding:utf-8 -*-
+'''
+  ████
+██    ██   Datature
+  ██  ██   Powering Breakthrough AI
+    ██
+
+@File    :   run.py
+@Author  :   Marcus Neo
+@Version :   0.5.6
+@Contact :   hello@datature.io
+@License :   Apache License 2.0
+@Desc    :   Main file to run the flask app.
+'''
 
 # Ignore due to Pyshell
 # pylint: disable=E0401, E0611
@@ -46,20 +60,18 @@ use_cache = "0"
 
 # update the variables
 if os.path.isfile(use_gpu_dir):
-    with open(use_gpu_dir, "r") as gpu_flag:
+    with open(use_gpu_dir, "r", encoding="utf-8") as gpu_flag:
         use_gpu = gpu_flag.read()
 else:
-    with open(use_gpu_dir, "w") as gpu_flag:
+    with open(use_gpu_dir, "w", encoding="utf-8") as gpu_flag:
         gpu_flag.write(use_gpu)
 
-
 if os.path.isfile(use_cache_dir):
-    with open(use_cache_dir, "r") as cache_flag:
+    with open(use_cache_dir, "r", encoding="utf-8") as cache_flag:
         use_cache = cache_flag.read()
 else:
-    with open(use_cache_dir, "w") as cache_flag:
+    with open(use_cache_dir, "w", encoding="utf-8") as cache_flag:
         cache_flag.write("use_cache")
-
 
 os.environ["ROOT_DIR"] = root
 os.environ["CACHE_DIR"] = cache_dir
@@ -68,9 +80,8 @@ os.environ["MODEL_DIR"] = model_folder
 os.environ["USE_CACHE"] = use_cache
 os.environ["USE_CACHE_DIR"] = use_cache_dir
 
-
 # pylint: disable=wrong-import-position
-from server import server, app, global_store
+from server import server, app, global_store  # noqa: E402
 
 if os.getenv("COMMAND_LINE"):
 
