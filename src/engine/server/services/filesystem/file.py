@@ -1,11 +1,22 @@
-"""
-Service to deal with file related functions
-"""
+#!/usr/bin/env python
+# -*-coding:utf-8 -*-
+'''
+  ████
+██    ██   Datature
+  ██  ██   Powering Breakthrough AI
+    ██
+
+@File    :   file.py
+@Author  :   Beatrice Leong
+@Version :   0.5.6
+@Contact :   hello@datature.io
+@License :   Apache License 2.0
+@Desc    :   Service to deal with file related functions.
+'''
 from io import BytesIO
 import cv2
 # pylint: disable=E0401, E0611
 from server.services.errors import Errors, PortalError
-
 
 ALLOWED_EXTENSIONS_IMAGE = {"png", "jpg", "jpeg"}
 ALLOWED_EXTENSIONS_VIDEO = {"mp4", "mov", "wmv", "mkv"}
@@ -31,9 +42,11 @@ class File:
         self._metadata_ = None
 
     def get_path(self):
+        """Obtain the path of the file."""
         return self._path_
 
     def get_name(self):
+        """Obtain the name of the file."""
         return self._name_
 
 
@@ -43,33 +56,34 @@ def allowed_file(filename):
     :param filename: a string that is the name of the file
     :return: boolean (TRUE: Allowed; FALSE: Not Allowed)
     """
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+    return "." in filename and filename.rsplit(
+        ".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def allowed_image(filename):
     """
-    Checks if the file is allowed (has to be part of the ALLOWED_EXTENSIONS_IMAGE)
+    Checks if the file is allowed
+    (has to be part of the ALLOWED_EXTENSIONS_IMAGE)
     :param filename: a string that is the name of the file
     :return: boolean (TRUE: Allowed; FALSE: Not Allowed)
     """
-    return (
-        "." in filename
-        and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS_IMAGE
-    )
+    return ("." in filename
+            and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS_IMAGE)
+
 
 def allowed_video(filename):
     """
-    Checks if the file is allowed (has to be part of the ALLOWED_EXTENSIONS_VIDEO)
+    Checks if the file is allowed
+    (has to be part of the ALLOWED_EXTENSIONS_VIDEO)
     :param filename: a string that is the name of the file
     :return: boolean (TRUE: Allowed; FALSE: Not Allowed)
     """
-    return (
-        "." in filename
-        and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS_VIDEO
-    )
+    return ("." in filename
+            and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS_VIDEO)
 
 
 def generate_thumbnail(path, filename):
+    """Create small thumbnail to be used by Portal frontend."""
     if not allowed_file(filename):
         raise PortalError(Errors.INVALIDFILETYPE, filename)
 
@@ -90,12 +104,13 @@ def generate_thumbnail(path, filename):
         res, image_ar = vcap.read()
         while image_ar.mean() < threshold and res:
             res, image_ar = vcap.read()
-        image_ar = cv2.resize(image_ar, (width, height), 0, 0, cv2.INTER_LINEAR)
+        image_ar = cv2.resize(image_ar, (width, height), 0, 0,
+                              cv2.INTER_LINEAR)
         res, image_buf = cv2.imencode(".jpeg", image_ar)
         thumb_bytes = image_buf.tobytes()
 
     else:
-        ## Resize image
+        # Resize image
         image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
         width = image.shape[1]
         height = image.shape[0]
@@ -110,7 +125,7 @@ def generate_thumbnail(path, filename):
         is_success, image_buf = cv2.imencode(".jpeg", image_resize)
         thumb_bytes = image_buf.tobytes()
 
-    ## Store in bytes buffer
+    # Store in bytes buffer
     image_buffer = BytesIO()
     if thumb_bytes:
         image_buffer.write(thumb_bytes)

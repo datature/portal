@@ -1,3 +1,18 @@
+#!/usr/bin/env python
+# -*-coding:utf-8 -*-
+'''
+  ████
+██    ██   Datature
+  ██  ██   Powering Breakthrough AI
+    ██
+
+@File    :   endpoint_model.py
+@Author  :   Marcus Neo
+@Version :   0.5.6
+@Contact :   hello@datature.io
+@License :   Apache License 2.0
+@Desc    :   Module containing the Endpoint Model class.
+'''
 import requests
 import hashlib
 from base64 import encodebytes
@@ -12,7 +27,10 @@ from server.models.abstract.BaseModel import BaseModel
 
 
 class EndpointModel(BaseModel):
+    """Implementation of the Endpoint Model."""
+
     def _load_label_map_(self):
+        """Overloaded from Parent Class."""
         link = self.kwargs["link"] + "/classes"
         project_secret = self.kwargs["project_secret"]
         headers = {"Authorization": "Bearer " + project_secret}
@@ -30,33 +48,29 @@ class EndpointModel(BaseModel):
         self._label_map_ = response.json()
 
     def register(self):
+        """Overloaded from Parent Class."""
         self._load_label_map_()
         link = self.kwargs["link"]
         project_secret = self.kwargs["project_secret"]
-        pre_hash = (
-            self._type_
-            + self._name_
-            + self._description_
-            + link
-            + project_secret
-        ).encode("utf-8")
+        pre_hash = (self._type_ + self._name_ + self._description_ + link +
+                    project_secret).encode("utf-8")
         self._key_ = hashlib.md5(pre_hash).hexdigest()
         return self._key_, self
 
     def load(self):
+        """Overloaded from Parent Class."""
         pass
 
     def predict(self, image_array):
+        """Overloaded from Parent Class."""
         # convert potential rgba to rgb:
         # get array height and width:
         height, width, channels = image_array.shape
         # convert the array back to bgr for exporting
 
-        image_array = (
-            cv2.cvtColor(image_array, cv2.COLOR_RGBA2BGR)
-            if channels == 4
-            else cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
-        )
+        image_array = (cv2.cvtColor(image_array, cv2.COLOR_RGBA2BGR)
+                       if channels == 4 else cv2.cvtColor(
+                           image_array, cv2.COLOR_RGB2BGR))
         _, bts = cv2.imencode(".jpg", image_array)
         base64_array = {
             "data": encodebytes(bts.tostring()).decode("ascii"),
