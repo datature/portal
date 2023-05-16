@@ -1,6 +1,21 @@
-"""A service to deal with errors and exceptions"""
+#!/usr/bin/env python
+# -*-coding:utf-8 -*-
+'''
+  ████
+██    ██   Datature
+  ██  ██   Powering Breakthrough AI
+    ██
+
+@File    :   errors.py
+@Author  :   Marcus Neo
+@Version :   0.5.6
+@Contact :   hello@datature.io
+@License :   Apache License 2.0
+@Desc    :   A service to deal with errors and exceptions
+'''
 import logging
 from enum import Enum
+import traceback
 
 from flask import jsonify
 
@@ -8,7 +23,8 @@ from flask import jsonify
 class Errors(Enum):
     """Enum class containing all errors.
 
-    Errors have values represented by a tuple of (error code, HTTP return status).
+    Errors have values represented by a tuple of
+    (error code, HTTP return status).
     """
 
     # UNIMPLEMENTED/UNCAUGHT ERRORS = 9XXX
@@ -49,9 +65,10 @@ class PortalError(Exception):
     """Error class to handle the errors and exceptions thrown."""
 
     # pylint: disable=super-init-not-called
-    def __init__(
-        self, error: Errors, message: str, fail_location: str = None
-    ) -> None:
+    def __init__(self,
+                 error: Errors,
+                 message: str,
+                 fail_location: str = None) -> None:
         """Initialize the PortalError class.
 
         :param error: An enum member of the Errors class.
@@ -78,15 +95,14 @@ class PortalError(Exception):
 
         :return: flask jsonify response
         """
+        print(traceback.format_exc())
         logging.error(self._error_)
         return (
-            jsonify(
-                {
-                    "error": self._error_,
-                    "fail_location": self._fail_location_,
-                    "message": self._message_,
-                    "error_code": self._error_code_,
-                }
-            ),
+            jsonify({
+                "error": self._error_,
+                "fail_location": self._fail_location_,
+                "message": self._message_,
+                "error_code": self._error_code_,
+            }),
             self._status_,
         )

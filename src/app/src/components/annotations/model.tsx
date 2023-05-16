@@ -61,7 +61,7 @@ export type FormData = {
   modelKey: string;
   projectSecret: string;
   modelURL: string;
-  modelType: "tensorflow" | "darknet" | "";
+  modelType: "tensorflow" | "darknet" | "autodetect" | "";
 };
 
 interface ModelProps {
@@ -126,7 +126,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
       projectTags: {},
       formData: {
         type: "local",
-        modelType: "tensorflow",
+        modelType: "autodetect",
         name: "",
         description: "",
         directory: "",
@@ -258,6 +258,8 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 message = "Are you sure this is a TensorFlow Model?";
               else if (this.state.formData.modelType === "darknet")
                 message = "Are you sure this is a Darknet Model?";
+              else if (this.state.formData.modelType === "autodetect")
+                message = "Detected Model Output Format Not Supported.";
             } else {
               message = `${error.response.data.message}`;
             }
@@ -666,7 +668,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     this.setState({
       formData: {
         type: tabId.toString(),
-        modelType: "tensorflow",
+        modelType: "autodetect",
         name: "",
         description: "",
         directory: "",
@@ -747,7 +749,8 @@ export default class Model extends React.Component<ModelProps, ModelState> {
     );
 
     const modelTypes = {
-      tensorflow: "TensorFlow 2.0",
+      autodetect: "Auto Detect",
+      tensorflow: "TensorFlow 2.x",
       darknet: "DarkNet (YOLO v3, YOLO v4)",
     };
 
@@ -761,6 +764,16 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 content={
                   // eslint-disable-next-line react/jsx-wrap-multilines
                   <Menu>
+                    <Menu.Item
+                      shouldDismissPopover={false}
+                      text={modelTypes.autodetect}
+                      onClick={() => {
+                        const event = {
+                          target: { name: "modelType", value: "autodetect" },
+                        };
+                        this.handleChangeForm(event);
+                      }}
+                    />
                     <Menu.Item
                       shouldDismissPopover={false}
                       text={modelTypes.tensorflow}
@@ -1052,7 +1065,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
 
               formData: {
                 type: "local",
-                modelType: "tensorflow",
+                modelType: "autodetect",
                 name: "",
                 description: "",
                 directory: "",

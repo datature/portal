@@ -1,9 +1,24 @@
-from server.services.errors import PortalError, Errors
+#!/usr/bin/env python
+# -*-coding:utf-8 -*-
+'''
+  ████
+██    ██   Datature
+  ██  ██   Powering Breakthrough AI
+    ██
 
-"""Base model class that should be inherited by all other models."""
+@File    :   BaseModel.py
+@Author  :   Marcus Neo
+@Version :   0.5.6
+@Contact :   hello@datature.io
+@License :   Apache License 2.0
+@Desc    :   Module containing the BaseModel Implementation
+'''
+from server.services.errors import PortalError, Errors
 
 
 class BaseModel:
+    """Base model class that should be inherited by all other models."""
+
     def __init__(
         self,
         model_type: str,
@@ -72,8 +87,7 @@ class BaseModel:
         """
         raise NotImplementedError(
             "Using the BaseModel implementation of _load_label_map_."
-            "Please also implement this in your custom model class."
-        )
+            "Please also implement this in your custom model class.")
 
     @classmethod
     def register(self):
@@ -91,8 +105,7 @@ class BaseModel:
         """
         raise NotImplementedError(
             "Using the BaseModel implementation of register."
-            "Please also implement this in your custom model class."
-        )
+            "Please also implement this in your custom model class.")
 
     @classmethod
     def load(self):
@@ -104,8 +117,7 @@ class BaseModel:
         """
         raise NotImplementedError(
             "Using the BaseModel implementation of load."
-            "Please also implement this in your custom model class."
-        )
+            "Please also implement this in your custom model class.")
 
     @classmethod
     def predict(self, image_array):
@@ -129,5 +141,4 @@ class BaseModel:
         """
         raise NotImplementedError(
             "Using the BaseModel implementation of predict."
-            "Please also implement this in your custom model class."
-        )
+            "Please also implement this in your custom model class.")

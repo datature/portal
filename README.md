@@ -110,11 +110,13 @@ Portal works seemlessly with [Nexus, our MLOps platform](https://datature.io), t
   <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/nexus-ss-2.png?raw=true" width="45%">
 </p>
 
-<p>Once you are done with a training and a candidate checkpoint is selected, you can generate a TensorFlow model under the Artifacts page to obtain the model key required by Portal for the following setup. Use the register model interface to insert this key to the model under Datature Hub.</p>
+<p>Once you are done with a training and a candidate checkpoint is selected, you can generate a model under the Artifacts page to obtain the model key required by Portal for the following setup. Use the register model interface to insert this key to the model under Datature Hub.</p>
 
 <p align="center">
   <img alt="Image Prediction" src="https://github.com/datature/portal/blob/develop/docs/images/screencaps/nexus-ss-3.png?raw=true" width="80%">
 </p>
+
+<p>You may also download the model directly from Nexus, then use the register model interface to load your model as an AutoDetect Model.</p>
 
 <p>With this, you can now run Analyze on your test images and you should be able to train and test new models between Nexus and Portal easily by repeating the steps above. If you'd like to give Datature Nexus a try, simply sign up for an account at https://datature.io - It comes with a free tier!</p>
 
@@ -123,7 +125,18 @@ Portal works seemlessly with [Nexus, our MLOps platform](https://datature.io), t
 </p>
 
 
+## Information on Compatible Operating Systems
+### Linux
+- Ubuntu 18.04/20.04/22.04
 
+### Windows
+- Command line support for versions after Windows 7
+- Executable not supported for Windows 10 Pro
+
+### MacOS
+- Currently not supported for devices utilising the M1 Chip (In progress of developing a compatible version).
+
+For any assistance, please contact hello@datature.io
 ## Screencasts
 [Using Portal to Inspect Computer Vision Models](https://www.youtube.com/watch?v=dTaqVkr8re0)
 

@@ -142,7 +142,7 @@ The **Engine** is now configured to accept a new type of model. Next, we configu
     * In `Model -> render() -> modelTypes`, add your custom model
       ```ts
       const modelTypes = {
-        tensorflow: "TensorFlow 2.0",
+        tensorflow: "TensorFlow 2.x",
         darknet: "DarkNet (YOLO v3, YOLO v4)",
         example: "Example Model", //<-------------Add here
       };

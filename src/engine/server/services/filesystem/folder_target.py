@@ -1,7 +1,18 @@
-"""
-Service to deal with the targeted folder (folder selected by user)
-"""
+#!/usr/bin/env python
+# -*-coding:utf-8 -*-
+'''
+  ████
+██    ██   Datature
+  ██  ██   Powering Breakthrough AI
+    ██
 
+@File    :   folder_target.py
+@Author  :   Beatrice Leong
+@Version :   0.5.6
+@Contact :   hello@datature.io
+@License :   Apache License 2.0
+@Desc    :   Service to deal with the targeted folder (folder selected by user)
+'''
 import datetime
 import os
 
@@ -23,35 +34,40 @@ class FolderTargets:
         self._folders_ = []
 
     def get_folders(self):
+        """Obtain all folders."""
         return self._folders_
 
     def get_assets(self):
+        """Obtain all assets."""
         return self._flatten_assets_([], self._folders_)
 
     def get_tree(self):
+        """Obtain all nested folders given a folder."""
         trees_arr = []
         for folder in self._folders_:
             trees_arr.append(folder.get_tree())
         return trees_arr
 
     def update_all_folders(self):
+        """Scan the folders to check for new updates."""
         for index, folder in enumerate(self._folders_):
             decoded_path = os.path.normpath(decode(folder.get_path()))
             if not os.path.isdir(decoded_path):
                 self._folders_.pop(index)
             else:
                 self._folders_[index] = folder.update_folder(
-                    folder.get_path(), datetime.datetime.utcnow()
-                )
+                    folder.get_path(), datetime.datetime.utcnow())
 
     def update_folder(self, path):
+        """Scan one folder to check for new updates."""
         # Ensure all encoded path are encoded with the same format
         decoded_path = os.path.normpath(decode(path))
         if not os.path.isdir(decoded_path):
             self.delete_folder(path)
             raise PortalError(
                 Errors.INVALIDFILETYPE,
-                f"{decoded_path} is no longer a directory. Deleted it from assets",
+                f"{decoded_path} is no longer a directory."
+                "Deleted it from assets",
             )
 
         path = encode(decoded_path)
@@ -59,11 +75,11 @@ class FolderTargets:
             folder = item
             if path.startswith(folder.get_path()):
                 self._folders_[index] = folder.update_folder(
-                    folder.get_path(), datetime.datetime.utcnow()
-                )
+                    folder.get_path(), datetime.datetime.utcnow())
                 break
 
     def delete_folder(self, path):
+        """Remove a folder from the tracked list of folders."""
         # Ensure all encoded path are encoded with the same format
         path = encode(os.path.normpath(decode(path)))
         for item in self._folders_:
@@ -75,13 +91,13 @@ class FolderTargets:
                 f.remove_folder(path, f.get_folders())
 
     def add_folders(self, path):
+        """Add a folder to the tracked list of folders."""
         is_exist = False
         decoded_path = os.path.normpath(decode(path))
         # Makes sure path is a folder
         if not os.path.isdir(decoded_path):
-            raise PortalError(
-                Errors.INVALIDFILETYPE, f"{decoded_path} is not a directory"
-            )
+            raise PortalError(Errors.INVALIDFILETYPE,
+                              f"{decoded_path} is not a directory")
         # Ensure all encoded path are encoded with the same format
         path = encode(decoded_path)
         # pylint: disable=unused-variable
@@ -92,13 +108,11 @@ class FolderTargets:
             if path.startswith(folder.get_path()):
                 is_exist = True
                 self._folders_[index] = folder.update_folder(
-                    path, datetime.datetime.utcnow()
-                )
+                    path, datetime.datetime.utcnow())
                 break
         if not is_exist:
             self._folders_.append(
-                Folder(path, tail, datetime.datetime.utcnow())
-            )
+                Folder(path, tail, datetime.datetime.utcnow()))
 
     def _flatten_assets_(self, arr, folders):
         """
