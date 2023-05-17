@@ -78,7 +78,13 @@ def register_hub(
                 break
         if not found:
             raise ValueError(f"Model key {model_key} not found.")
-        main_path = f"server/hub_models/{model_id}"
+        
+        model_dir = os.path.join("server", "hub_models")
+        if os.path.isdir(model_dir):
+            main_path = os.path.join("server", "hub_models", model_id)
+        else:
+            main_path = os.path.join(
+                "portal_build", "server", "hub_models", model_id)
         zip_path = f"{main_path}.zip"
         urllib.request.urlretrieve(model_list[model_id], zip_path)
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
