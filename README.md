@@ -130,13 +130,15 @@ Portal works seemlessly with [Nexus, our MLOps platform](https://datature.io), t
 - Ubuntu 18.04/20.04/22.04
 
 ### Windows
-- Command line support for versions after Windows 7
-- Executable not supported for Windows 10 Pro
+- CLS (Command-Line Support) for Windows 7 to Windows 11
+- Executable *Not Supported* for Windows 10 Pro (Code Signing Missing)
 
 ### MacOS
-- Currently not supported for devices utilising the M1 Chip (In progress of developing a compatible version).
+- No Support for M1 Chip (Fix Coming in Version `0.5.7`)
 
-For any assistance, please contact hello@datature.io
+## Support
+Reach out to us on our [Community Slack](https://datature.io/community) should you encounter any issues installing or setting up.
+
 ## Screencasts
 [Using Portal to Inspect Computer Vision Models](https://www.youtube.com/watch?v=dTaqVkr8re0)
 
