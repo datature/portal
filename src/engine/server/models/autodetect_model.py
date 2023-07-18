@@ -8,7 +8,7 @@
 
 @File    :   autodetect_model.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.7
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the AutoDetect Model class.

@@ -8,22 +8,24 @@
 
 @File    :   global_store.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.7
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the GlobalStore class.
 '''
-import gc
-import os
 import atexit
+import gc
 import json
+import os
 import time
-from typing import Union, Optional
-import jsonpickle
+from typing import Optional, Union
 
-from flask import Response
+import jsonpickle
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from flask import Response
+from server.models.abstract.BaseModel import BaseModel
+from server.models.abstract.Model import Model
 
 # Ignore import-error and no-name-in-module due to Pyshell
 # pylint: disable=E0401, E0611
@@ -31,9 +33,6 @@ from server.services.errors import Errors, PortalError
 
 # pylint: disable=cyclic-import
 from server.services.filesystem.folder_target import FolderTargets
-
-from server.models.abstract.BaseModel import BaseModel
-from server.models.abstract.Model import Model
 
 
 def _delete_store_():

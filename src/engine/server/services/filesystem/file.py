@@ -8,13 +8,15 @@
 
 @File    :   file.py
 @Author  :   Beatrice Leong
-@Version :   0.5.6
+@Version :   0.5.7
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Service to deal with file related functions.
 '''
 from io import BytesIO
+
 import cv2
+
 # pylint: disable=E0401, E0611
 from server.services.errors import Errors, PortalError
 

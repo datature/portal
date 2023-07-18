@@ -8,12 +8,12 @@
 
 @File    :   BaseModel.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.7
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the BaseModel Implementation
 '''
-from server.services.errors import PortalError, Errors
+from server.services.errors import Errors, PortalError
 
 
 class BaseModel:

@@ -8,7 +8,7 @@
 
 @File    :   routes.py
 @Author  :   Marcus Neo and Beatrice Leong
-@Version :   0.5.6
+@Version :   0.5.7
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing all API routes.
@@ -18,15 +18,8 @@ from functools import wraps
 
 from flask import Response, jsonify, request, send_file, send_from_directory
 from flask_cors import cross_origin
-
-# Ignore import-error and no-name-in-module due to Pyshell
-# pylint: disable=E0401, E0611, E1135
-# pylint: disable=cyclic-import
-# pylint: disable=undefined-variable
-
 from server import app, global_store, logger, server, wait_for_process
 from server.services import decode, encode
-
 from server.services.errors import Errors, PortalError
 from server.services.filesystem.file import (
     allowed_image,
@@ -39,9 +32,16 @@ from server.services.model_register import (
     register_hub,
     register_local,
 )
-
 from server.services.predictions import predict_image, predict_video
 from server.utils.prediction_utilities import corrected_predict_query
+
+# Ignore import-error and no-name-in-module due to Pyshell
+# pylint: disable=E0401, E0611, E1135
+# pylint: disable=cyclic-import
+# pylint: disable=undefined-variable
+
+
+
 
 
 def portal_function_handler(clear_status: bool) -> callable:

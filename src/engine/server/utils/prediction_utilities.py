@@ -8,7 +8,7 @@
 
 @File    :   prediction_utilities.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.7
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the utilities needed for predictions.
@@ -16,15 +16,15 @@
 from base64 import encodebytes
 from typing import Union
 
-import numpy as np
 import cv2
-from shapely.geometry import Polygon, MultiPolygon
-from shapely.ops import unary_union
+import numpy as np
+from server import EPSILON_MULTIPLIER
+from server.services.global_store import Errors, PortalError
 
 # pylint: disable=E0401, E0611
 from server.utils.color_switch import color_switch
-from server import EPSILON_MULTIPLIER
-from server.services.global_store import PortalError, Errors
+from shapely.geometry import MultiPolygon, Polygon
+from shapely.ops import unary_union
 
 
 def corrected_predict_query(*args, request) -> dict:

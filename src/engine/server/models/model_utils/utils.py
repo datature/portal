@@ -8,12 +8,13 @@
 
 @File    :   utils.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.7
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing utilities for models.
 '''
 from typing import List, Tuple
+
 import cv2
 import numpy as np
 import tensorflow as tf

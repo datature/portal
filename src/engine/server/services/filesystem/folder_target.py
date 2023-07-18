@@ -8,7 +8,7 @@
 
 @File    :   folder_target.py
 @Author  :   Beatrice Leong
-@Version :   0.5.6
+@Version :   0.5.7
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Service to deal with the targeted folder (folder selected by user)
@@ -19,7 +19,7 @@ import os
 # Ignore import-error and no-name-in-module due to Pyshell
 # pylint: disable=E0401, E0611
 from server.services import decode, encode
-from server.services.errors import PortalError, Errors
+from server.services.errors import Errors, PortalError
 from server.services.filesystem.folder import Folder
 
 

@@ -8,7 +8,7 @@
 
 @File    :   predictions.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.7
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the prediction function.
@@ -18,19 +18,18 @@ from typing import Optional
 
 import cv2
 import numpy as np
+from server import global_store
+from server.models.abstract.BaseModel import BaseModel
+from server.services.errors import Errors, PortalError
 
 # pylint: disable=E0401, E0611
 from server.utils.prediction_utilities import (
-    get_suppressed_output,
     back_to_array,
     get_detection_json,
-    visualize,
+    get_suppressed_output,
     save_to_bytes,
+    visualize,
 )
-from server.models.abstract.BaseModel import BaseModel
-
-from server.services.errors import PortalError, Errors
-from server import global_store
 
 
 # pylint: disable=R0913

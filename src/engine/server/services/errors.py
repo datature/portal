@@ -8,14 +8,14 @@
 
 @File    :   errors.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.7
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   A service to deal with errors and exceptions
 '''
 import logging
-from enum import Enum
 import traceback
+from enum import Enum
 
 from flask import jsonify
 

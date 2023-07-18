@@ -8,7 +8,7 @@
 
 @File    :   model_loader.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.7
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the loading functions.
@@ -17,9 +17,8 @@ from flask import Response
 
 # pylint: disable=E0401, E0611
 from server import global_store
-from server.services.errors import Errors, PortalError
-
 from server.models.abstract.BaseModel import BaseModel
+from server.services.errors import Errors, PortalError
 
 
 def model_loader(model_id: str) -> Response:

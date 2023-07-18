@@ -8,16 +8,16 @@
 
 @File    :   Model.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.7
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the factory function <model>
 '''
 
-from server.models.tensorflow_model import TensorflowModel
+from server.models.autodetect_model import AutoDetectModel
 from server.models.darknet_model import DarknetModel
 from server.models.endpoint_model import EndpointModel
-from server.models.autodetect_model import AutoDetectModel
+from server.models.tensorflow_model import TensorflowModel
 
 
 def Model(model_type: str, directory: str, name: str, description: str,
