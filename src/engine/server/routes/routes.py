@@ -20,7 +20,7 @@ from flask import Response, jsonify, request, send_file, send_from_directory
 from flask_cors import cross_origin
 
 # Ignore import-error and no-name-in-module due to Pyshell
-# pylint: disable=E0401, E0611
+# pylint: disable=E0401, E0611, E1135
 # pylint: disable=cyclic-import
 # pylint: disable=undefined-variable
 

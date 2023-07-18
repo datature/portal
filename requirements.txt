@@ -11,9 +11,9 @@ opencv-python==4.6.0.66
 Pillow==8.2.0
 scandir==1.10.0
 scantree==0.0.1
-Shapely==1.7.1
-tensorflow==2.11.0; sys_platform != 'darwin' or platform_machine != 'arm64'
-tensorflow-macos==2.11.0; sys_platform == 'darwin' and platform_machine == 'arm64'
+shapely==2.0.1
+tensorflow==2.10.0; sys_platform != 'darwin' or platform_machine != 'arm64'
+tensorflow-macos==2.10.0; sys_platform == 'darwin' and platform_machine == 'arm64'
 torch==1.12.1
 torchvision==0.13.1
 onnx==1.12.0

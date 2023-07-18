@@ -23,7 +23,7 @@ pip install --upgrade pyinstaller
 
 echo "Creating flask executable..."
 if [[ "$OSTYPE" == "msys" ]]; then
-pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ./dist
+pyinstaller -F run.py --hidden-import pydicom.encoders.gdcm --hidden-import pydicom.encoders.pylibjpeg --hidden-import engineio.async_drivers.threading  --distpath ./dist
 chmod u+x ./dist/run.exe
 else
 DYLD_LIBRARY_PATH=".venv/bin" pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ./dist
