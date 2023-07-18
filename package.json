@@ -64,5 +64,8 @@
     "electron": "^13.1.2",
     "electron-builder": "^23.0.2",
     "npx": "^10.2.2"
+  },
+  "optionalDependencies": {
+    "dmg-license": "^1.0.11"
   }
 }
