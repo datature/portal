@@ -44,9 +44,10 @@ def infer_model_type_and_path(directory, folder_contents):
         Tuple containing the model type and path.
     """
     for item in folder_contents:
-        if item in MODEL_TYPES:
-            model_path = os.path.join(directory, item)
-            return MODEL_TYPES[item], model_path
+        for model_type, val in MODEL_TYPES.items():
+            if model_type in item:
+                model_path = os.path.join(directory, item)
+                return val, model_path
 
     raise PortalError(Errors.INVALIDTYPE,
                       "Detected Model Output Format Not Supported.")
