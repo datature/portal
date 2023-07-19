@@ -8,7 +8,7 @@
 
 @File    :   portal.py
 @Author  :   Beatrice Leong
-@Version :   0.5.6
+@Version :   0.5.8
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Script to run portal from the command line.
@@ -43,18 +43,18 @@ if os.path.exists(root):
 
     if "--gpu" in arguments:
         os.environ["IS_GPU"] = "0"
-        with open(use_gpu_dir, "w+") as gpu_flag:
+        with open(use_gpu_dir, "w+", encoding="utf-8") as gpu_flag:
             gpu_flag.write("0")
     else:
-        with open(use_gpu_dir, "w+") as gpu_flag:
+        with open(use_gpu_dir, "w+", encoding="utf-8") as gpu_flag:
             gpu_flag.write("-1")
 
     use_cache = "0"
     if os.path.isfile(use_cache_dir):
-        with open(use_cache_dir, "r") as cache_flag:
+        with open(use_cache_dir, "r", encoding="utf-8") as cache_flag:
             use_cache = cache_flag.read()
     else:
-        with open(use_cache_dir, "w") as cache_flag:
+        with open(use_cache_dir, "w", encoding="utf-8") as cache_flag:
             cache_flag.write(use_cache)
 
     if os.getenv("IS_ELECTRON"):

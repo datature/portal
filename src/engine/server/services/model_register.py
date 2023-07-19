@@ -8,7 +8,7 @@
 
 @File    :   model_register.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.8
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the register functions.
@@ -83,10 +83,11 @@ def register_hub(
         if os.path.isdir(model_dir):
             main_path = os.path.join("server", "hub_models", model_id)
         elif os.path.isdir("resources"):
-            main_path = os.path.join("resources", "server", "hub_models", model_id)
+            main_path = os.path.join("resources", "server", "hub_models",
+                                     model_id)
         else:
-            main_path = os.path.join(
-                "portal_build", "server", "hub_models", model_id)
+            main_path = os.path.join("portal_build", "server", "hub_models",
+                                     model_id)
         zip_path = f"{main_path}.zip"
         urllib.request.urlretrieve(model_list[model_id], zip_path)
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:

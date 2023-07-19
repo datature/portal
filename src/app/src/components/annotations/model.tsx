@@ -766,7 +766,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   <Menu>
                     <Menu.Item
                       shouldDismissPopover={false}
-                      text={modelTypes.autodetect}
+                      text={<>{modelTypes.autodetect}</>}
                       onClick={() => {
                         const event = {
                           target: { name: "modelType", value: "autodetect" },
@@ -776,7 +776,17 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                     />
                     <Menu.Item
                       shouldDismissPopover={false}
-                      text={modelTypes.tensorflow}
+                      text={
+                        <>
+                          {modelTypes.tensorflow}{" "}
+                          <Icon
+                            icon="error"
+                            intent="danger"
+                            size={12}
+                            htmlTitle="For Datature Legacy Models (before April 2023)"
+                          />
+                        </>
+                      }
                       onClick={() => {
                         const event = {
                           target: { name: "modelType", value: "tensorflow" },
@@ -786,7 +796,17 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                     />
                     <Menu.Item
                       shouldDismissPopover={false}
-                      text={modelTypes.darknet}
+                      text={
+                        <>
+                          {modelTypes.darknet}{" "}
+                          <Icon
+                            icon="error"
+                            intent="danger"
+                            size={12}
+                            htmlTitle="For Datature Legacy Models (before April 2023)"
+                          />
+                        </>
+                      }
                       onClick={() => {
                         const event = {
                           target: { name: "modelType", value: "darknet" },

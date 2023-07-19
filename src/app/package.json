@@ -1,6 +1,6 @@
 {
   "name": "portal",
-  "version": "0.5.6",
+  "version": "0.5.8",
   "author": "Datature",
   "private": true,
   "main": "main.js",
