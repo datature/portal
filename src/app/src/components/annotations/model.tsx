@@ -776,7 +776,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                     />
                     <Menu.Item
                       shouldDismissPopover={false}
-                      text={
+                      text={(
                         <>
                           {modelTypes.tensorflow}{" "}
                           <Icon
@@ -785,7 +785,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                             htmlTitle="For Datature Legacy Models (before April 2023)"
                           />
                         </>
-                      }
+                      )}
                       onClick={() => {
                         const event = {
                           target: { name: "modelType", value: "tensorflow" },
@@ -795,7 +795,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                     />
                     <Menu.Item
                       shouldDismissPopover={false}
-                      text={
+                      text={(
                         <>
                           {modelTypes.darknet}{" "}
                           <Icon
@@ -804,7 +804,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                             htmlTitle="For Datature Legacy Models (before April 2023)"
                           />
                         </>
-                      }
+                      )}
                       onClick={() => {
                         const event = {
                           target: { name: "modelType", value: "darknet" },
