@@ -782,7 +782,6 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                           <Icon
                             icon="error"
                             intent="danger"
-                            size={12}
                             htmlTitle="For Datature Legacy Models (before April 2023)"
                           />
                         </>
@@ -802,7 +801,6 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                           <Icon
                             icon="error"
                             intent="danger"
-                            size={12}
                             htmlTitle="For Datature Legacy Models (before April 2023)"
                           />
                         </>

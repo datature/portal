@@ -10,9 +10,9 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 trap 'echo "Exiting shell: \"${last_command}\" command failed with exit code $?."' EXIT
 
 echo "Running build-electron bash job!"
-chmod +x setup-virtualenv.sh build-python.sh 
+chmod +x setup-virtualenv.sh build-python.sh
 echo "Calling setup-virtualenv.sh to setup environment in portal_build"
-. setup-virtualenv.sh 
+. setup-virtualenv.sh
 echo "Calling build-python.sh to build backend executable"
 . build-python.sh
 
