@@ -766,7 +766,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   <Menu>
                     <Menu.Item
                       shouldDismissPopover={false}
-                      text={<>{modelTypes.autodetect}</>}
+                      text={modelTypes.autodetect}
                       onClick={() => {
                         const event = {
                           target: { name: "modelType", value: "autodetect" },
@@ -776,16 +776,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                     />
                     <Menu.Item
                       shouldDismissPopover={false}
-                      text={(
-                        <>
-                          {modelTypes.tensorflow}{" "}
-                          <Icon
-                            icon="error"
-                            intent="danger"
-                            htmlTitle="For Datature Legacy Models (before April 2023)"
-                          />
-                        </>
-                      )}
+                      text={modelTypes.tensorflow}
                       onClick={() => {
                         const event = {
                           target: { name: "modelType", value: "tensorflow" },
@@ -795,16 +786,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                     />
                     <Menu.Item
                       shouldDismissPopover={false}
-                      text={(
-                        <>
-                          {modelTypes.darknet}{" "}
-                          <Icon
-                            icon="error"
-                            intent="danger"
-                            htmlTitle="For Datature Legacy Models (before April 2023)"
-                          />
-                        </>
-                      )}
+                      text={modelTypes.darknet}
                       onClick={() => {
                         const event = {
                           target: { name: "modelType", value: "darknet" },
