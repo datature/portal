@@ -1128,8 +1128,8 @@ export default class Annotator extends Component<
       layer.unbindTooltip();
       /* Render base tooltip first to check offset */
       layer.bindTooltip(
-        `<span class='bp3-tag' 
-        style='color: #FFFFFF; 
+        `<span class='bp3-tag'
+        style='color: #FFFFFF;
         border-radius: 6px !important;
         background-color: ${layer.options.color};'>
           ${InvertedTags[layer.options.annotationTag]}
@@ -1167,9 +1167,6 @@ export default class Annotator extends Component<
 
     /* Checks if there is AssetReselection */
     const isAssetReselection = !(asset.assetUrl !== this.currentAsset.assetUrl);
-    console.log("asset", asset.url);
-    console.log("currentasset", this.currentAsset.url);
-    console.log("single analysis", singleAnalysis);
 
     const currentVideoElement = this.videoOverlay.getElement();
     if (!isAssetReselection) {
@@ -1383,7 +1380,7 @@ export default class Annotator extends Component<
   public resetControls(): void {
     this.setUserState("None");
     /* this.handleDrawRectangle.disable();
-    this.handleDrawPolygon.disable(); 
+    this.handleDrawPolygon.disable();
     this.handleRemoveAnnotation.disable(); */
     this.setSelectedAnnotation(null);
   }

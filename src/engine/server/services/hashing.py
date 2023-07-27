@@ -8,7 +8,7 @@
 
 @File    :   hashing.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.8
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   A service responsible for hashing.

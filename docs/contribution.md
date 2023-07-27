@@ -8,18 +8,74 @@ This file serves as a guide for you to contribute your ideas onto the Portal pla
 
 [What are the Components of Portal?](#components)
 
+[How do I Set Up Portal for Development?](#setting-up)
+
 [How do I Get Started on Contributing?](#contributing)
 
 [How do I Handle Errors while Contributing?](#errors)
+
+[I'm Facing an Issue!](./issues.md)
 
 ## What are the Components of Portal? <a name="components"></a>
 
 The two main components of portal is the **App** and the **Engine**.
 
 The **App** serves as a graphical user interface for users to interact with.
-Events triggerred in **App** may update **App** itself and/or trigger API calls to the **Engine**.
+Events triggered in **App** may update **App** itself and/or trigger API calls to the **Engine**.
 
 The **Engine** performs the more complicated computations. The **Engine** receives a specific API call from the **App**, and performs the function corresponding to the API call, before responding to **App**.
+
+## How do I Set Up Portal for Development? <a name="setting-up"></a>
+
+### <ins>Web Application</ins>
+
+#### Prerequisites
+
+- **Node v16**. You may use [nvm](https://github.com/nvm-sh/nvm) to manage your Node versions.
+- **Python 3.7**. You may run the following commands to install a virtual environment with all the necessary dependencies.
+
+```bash
+chmod u+x setup-virtualenv.sh
+./setup-virtualenv.sh
+source ./portal_build/.venv/Scripts/activate
+```
+
+Alternatively, you can consider other virtual environment managers such as [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/) or [conda](https://docs.conda.io/en/latest/miniconda.html), follow the installation and environment creation instructions, and then run the following command to install the dependencies.
+
+```bash
+pip install -r requirements.txt
+```
+
+#### Initializing Portal
+
+Open two terminals. In the first terminal, navigate to `src/app` from the root directory of the repository and run the following commands:
+
+```bash
+nvm install 16 && nvm use 16
+npm install --legacy-peer-deps
+npm run build:static
+
+npm run dev
+```
+
+In the second terminal, navigate to `src/engine` from the root directory of the repository and run the following commands:
+
+```bash
+python run.py
+```
+
+Lastly, open your browser and navigate to `localhost:3000` to access Portal. You should be able to see Portal's interface.
+
+### <ins>Windows Build</ins>
+
+We have conveniently provided a bash script to build the Windows executable for testing.
+
+```bash
+chmod u+x build-windows.sh
+./build-windows.sh
+```
+
+To install the executable locally, navigate to `application` from the root directory of the repository and double click on `Portal Setup x.x.x.exe` to install Portal. Follow the instructions on the installer to complete the installation, then check the `Run Portal` box to launch Portal after installation. You should be able to see Portal's interface.
 
 ## How do I Get Started on Contributing? <a name="contributing"></a>
 

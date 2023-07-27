@@ -8,22 +8,20 @@
 
 @File    :   endpoint_model.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.8
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the Endpoint Model class.
 '''
-import requests
 import hashlib
 from base64 import encodebytes
 
-import numpy as np
 import cv2
+import numpy as np
+import requests
 from PIL import Image, ImageDraw
-
-from server.services.errors import Errors, PortalError
-
 from server.models.abstract.BaseModel import BaseModel
+from server.services.errors import Errors, PortalError
 
 
 class EndpointModel(BaseModel):
@@ -52,8 +50,8 @@ class EndpointModel(BaseModel):
         self._load_label_map_()
         link = self.kwargs["link"]
         project_secret = self.kwargs["project_secret"]
-        pre_hash = (self._type_ + self._name_ + self._description_ + link +
-                    project_secret).encode("utf-8")
+        pre_hash = (self._model_type_ + self._name_ + self._description_ +
+                    link + project_secret).encode("utf-8")
         self._key_ = hashlib.md5(pre_hash).hexdigest()
         return self._key_, self
 
