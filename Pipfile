@@ -22,8 +22,10 @@ scandir = "==1.10.0"
 scantree = "==0.0.1"
 shapely = "==2.0.1"
 tensorflow = "==2.10.0"
+tensorflow-macos = {version = "==2.10.0", sys_platform = "== 'darwin'", platform_machine = "== 'arm64'"}
 torch = "==1.12.1"
 torchvision = "==0.13.1"
+ultralytics = "==8.0.133"
 werkzeug = "==2.0.0"
 
 [dev-packages]
