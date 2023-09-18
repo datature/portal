@@ -766,7 +766,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   <Menu>
                     <Menu.Item
                       shouldDismissPopover={false}
-                      text={modelTypes.autodetect}
+                      text={<>{modelTypes.autodetect}</>}
                       onClick={() => {
                         const event = {
                           target: { name: "modelType", value: "autodetect" },
