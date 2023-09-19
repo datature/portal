@@ -59,7 +59,8 @@ jobs:
           pyinstaller --collect-data ultralytics --hidden-import pydicom.encoders.gdcm --hidden-import pydicom.encoders.pylibjpeg --hidden-import engineio.async_drivers.threading -F run.py --distpath ../../portal_build/dist
           if [ -f ../../portal_build/dist/run ]; then
             chmod u+x ../../portal_build/dist/run
-            mv ../../portal_build/dist/run ../../portal_build/dist/run.exe
+          else
+            chmod u+x ../../portal_build/dist/run.exe
           fi
           chmod u+x ../../portal_build/dist/run.exe
 
