@@ -127,4 +127,3 @@ def tf_predict(model, model_format, output_name, image_array):
         detections_output = bboxes, masks, scores, classes
     else:
         detections_output = np.array(detections_output[output_name][0])
-    return detections_output
