@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*-coding:utf-8 -*-
-'''
+"""
   ████
 ██    ██   Datature
   ██  ██   Powering Breakthrough AI
@@ -12,7 +12,7 @@
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the Endpoint Model class.
-'''
+"""
 import hashlib
 from base64 import encodebytes
 
@@ -32,7 +32,7 @@ class EndpointModel(BaseModel):
         link = self.kwargs["link"] + "/classes"
         project_secret = self.kwargs["project_secret"]
         headers = {"Authorization": "Bearer " + project_secret}
-        response = requests.post(
+        response = requests.get(
             url=link,
             headers=headers,
         )
@@ -43,15 +43,20 @@ class EndpointModel(BaseModel):
                 "This could signify that the endpoint is "
                 "corrupted or simply not present.",
             )
-        self._label_map_ = response.json()
+        label_map = response.json()
+        self._label_map_ = {}
+        for id, dct in label_map.items():
+            dct["id"] = int(id)
+            self._label_map_[id] = dct
 
     def register(self):
         """Overloaded from Parent Class."""
         self._load_label_map_()
         link = self.kwargs["link"]
         project_secret = self.kwargs["project_secret"]
-        pre_hash = (self._model_type_ + self._name_ + self._description_ +
-                    link + project_secret).encode("utf-8")
+        pre_hash = (
+            f"endpoint{self._name_}{self._description_}{link}{project_secret}"
+        ).encode("utf-8")
         self._key_ = hashlib.md5(pre_hash).hexdigest()
         return self._key_, self
 
@@ -66,9 +71,11 @@ class EndpointModel(BaseModel):
         height, width, channels = image_array.shape
         # convert the array back to bgr for exporting
 
-        image_array = (cv2.cvtColor(image_array, cv2.COLOR_RGBA2BGR)
-                       if channels == 4 else cv2.cvtColor(
-                           image_array, cv2.COLOR_RGB2BGR))
+        image_array = (
+            cv2.cvtColor(image_array, cv2.COLOR_RGBA2BGR)
+            if channels == 4
+            else cv2.cvtColor(image_array, cv2.COLOR_RGB2BGR)
+        )
         _, bts = cv2.imencode(".jpg", image_array)
         base64_array = {
             "data": encodebytes(bts.tostring()).decode("ascii"),
@@ -88,8 +95,7 @@ class EndpointModel(BaseModel):
         classes = []
         scores = []
         masks = []
-
-        for single_detection in output:
+        for single_detection in output["predictions"]:
             # 1. bounds to bbox:
             bounds = single_detection["bound"]
             top_left = bounds[0]
