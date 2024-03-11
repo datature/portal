@@ -29,7 +29,8 @@ class EndpointModel(BaseModel):
 
     def _load_label_map_(self):
         """Overloaded from Parent Class."""
-        link = self.kwargs["link"] + "/classes"
+        index = self.kwargs["link"].rfind("/predict")
+        link = self.kwargs["link"][:index] + "/classes"
         project_secret = self.kwargs["project_secret"]
         headers = {"Authorization": "Bearer " + project_secret}
         response = requests.get(
@@ -81,7 +82,7 @@ class EndpointModel(BaseModel):
             "data": encodebytes(bts.tostring()).decode("ascii"),
             "image_type": "base_64",
         }
-        link = self.kwargs["link"] + "/predict"
+        link = self.kwargs["link"]
         project_secret = self.kwargs["project_secret"]
         headers = {"Authorization": "Bearer " + project_secret}
         response = requests.post(
@@ -90,6 +91,7 @@ class EndpointModel(BaseModel):
             headers=headers,
         )
         output = response.json()
+
         # convert output into the tensor required by the BaseModel predict
         boxes = []
         classes = []
