@@ -1045,11 +1045,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   >
                     <Tab id="local" title="Local" />
                     <Tab id="hub" title="Datature Hub" />
-                    <Tab
-                      id="endpoint"
-                      title="Datature API (Coming Soon)"
-                      disabled={true}
-                    />
+                    <Tab id="endpoint" title="Datature API" disabled={false} />
                     <Tabs.Expander />
                   </Tabs>
                 </NavbarGroup>{" "}
