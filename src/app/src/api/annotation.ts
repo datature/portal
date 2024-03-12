@@ -136,6 +136,7 @@ export function APIRegisterModel(
   description: string,
   directory: string,
   modelKey: string,
+  projectKey: string,
   projectSecret: string,
   modelURL: string
 ): Promise<AxiosResponse<any>> {
@@ -146,6 +147,7 @@ export function APIRegisterModel(
     description,
     credentials: {
       modelKey,
+      projectKey,
       projectSecret,
       modelURL,
     },

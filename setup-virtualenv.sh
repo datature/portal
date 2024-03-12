@@ -44,7 +44,7 @@ else
     python3 -m pip install --upgrade pip
     python3 -m pip install pipenv
 fi
-PIPENV_VENV_IN_PROJECT=1 PIPENV_DEFAULT_PYTHON_VERSION=3.7 pipenv sync -d
+PIPENV_VENV_IN_PROJECT=1 PIPENV_DEFAULT_PYTHON_VERSION=3.9 pipenv sync -d
 
 cd ..
 

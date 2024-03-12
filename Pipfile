@@ -5,7 +5,7 @@ verify_ssl = true
 
 [packages]
 apscheduler = "==3.7.0"
-datature = "==1.0.1"
+datature = "==1.6.0"
 dirhash = "==0.2.1"
 flask = "==2.0.0"
 flask-cors = "==3.0.10"
@@ -16,13 +16,13 @@ numpy = "==1.21.6"
 onnx = "==1.12.0"
 onnx2torch = "==1.5.6"
 onnxruntime = "==1.14.1"
-opencv-python = "==4.6.0.66"
-pillow = "==8.2.0"
+opencv-python = "==4.7.0.72"
+pillow = "==9.5.0"
 scandir = "==1.10.0"
 scantree = "==0.0.1"
 shapely = "==2.0.1"
-tensorflow = "==2.10.0"
-tensorflow-macos = {version = "==2.10.0", sys_platform = "== 'darwin'", platform_machine = "== 'arm64'"}
+tensorflow = "==2.11.0"
+tensorflow-macos = {version = "==2.11.0", sys_platform = "== 'darwin'", platform_machine = "== 'arm64'"}
 torch = "==1.12.1"
 torchvision = "==0.13.1"
 ultralytics = "==8.0.133"
@@ -33,4 +33,4 @@ isort = "*"
 pylint = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.9"

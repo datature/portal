@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "electron": "^13.1.2",
-    "electron-builder": "^23.0.2",
+    "electron-builder": "^23.6.0",
     "npx": "^10.2.2"
   },
   "optionalDependencies": {
