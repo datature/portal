@@ -11,11 +11,11 @@ echo "Running build-python bash job!"
 cd ./portal_build
 echo "$OSTYPE"
 if [[ "$OSTYPE" == "msys" ]]; then
-echo "Activating .venv/Scripts/activate"
-. .venv/Scripts/activate
+    echo "Activating .venv/Scripts/activate"
+    . .venv/Scripts/activate
 else
-echo "Activating .venv/bin/activate"
-. .venv/bin/activate
+    echo "Activating .venv/bin/activate"
+    . .venv/bin/activate
 fi
 echo "Installing Pyinstaller..."
 pip install --upgrade pyinstaller
@@ -23,15 +23,28 @@ pip install --upgrade pyinstaller
 
 echo "Creating flask executable..."
 if [[ "$OSTYPE" == "msys" ]]; then
-pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ./dist
-chmod u+x ./dist/run.exe
+    pyinstaller \
+        --collect-data ultralytics \
+        --hidden-import pydicom.encoders.gdcm \
+        --hidden-import pydicom.encoders.pylibjpeg \
+        --hidden-import engineio.async_drivers.threading \
+        -F run.py \
+        --distpath ./dist
+    chmod u+x ./dist/run.exe
 else
-DYLD_LIBRARY_PATH=".venv/bin" pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ./dist
-chmod u+x ./dist/run
-if [ -f ./dist/run ]; then
-echo "Renaming file"
-mv ./dist/run ./dist/run.exe
-fi
+    DYLD_LIBRARY_PATH=".venv/bin"
+    pyinstaller \
+        --collect-data ultralytics \
+        --hidden-import pydicom.encoders.gdcm \
+        --hidden-import pydicom.encoders.pylibjpeg \
+        --hidden-import engineio.async_drivers.threading \
+        -F run.py \
+        --distpath ./dist
+    chmod u+x ./dist/run
+    if [ -f ./dist/run ]; then
+        echo "Renaming file"
+        mv ./dist/run ./dist/run.exe
+    fi
 fi
 
 echo "Removing extra files - run.spec and build"

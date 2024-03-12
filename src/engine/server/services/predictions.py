@@ -8,7 +8,7 @@
 
 @File    :   predictions.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.8
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the prediction function.
@@ -50,7 +50,6 @@ def _predict_single_image(
     :param confidence: The confidence threshold.
     :return: The predictions in the format requested by format_arg.
     """
-    label_map = model_class.get_label_map()
     image_array = cv2.cvtColor(image_array, cv2.COLOR_BGRA2RGB)
     detections = model_class.predict(image_array=image_array, )
     suppressed_output = get_suppressed_output(
@@ -59,6 +58,7 @@ def _predict_single_image(
         iou=iou,
         confidence=confidence,
     )
+    label_map = model_class.get_label_map()
     if format_arg == "json":
         output = get_detection_json(
             back_to_array(suppressed_output),

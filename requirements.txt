@@ -1,5 +1,5 @@
 APScheduler==3.7.0
-datature==1.0.1
+datature==1.6.0
 dirhash==0.2.1
 Flask==2.0.0
 Flask-Cors==3.0.10
@@ -7,15 +7,17 @@ Flask-RESTful==0.3.9
 Flask-SocketIO==5.1.0
 jsonpickle==2.0.0
 numpy==1.21.6
-opencv-python==4.6.0.66
-Pillow==8.2.0
+opencv-python==4.7.0.72
+Pillow==9.5.0
 scandir==1.10.0
 scantree==0.0.1
-Shapely==1.7.1
-tensorflow==2.11.0
+shapely==2.0.1
+tensorflow==2.11.0; sys_platform != 'darwin' or platform_machine != 'arm64'
+tensorflow-macos==2.11.0; sys_platform == 'darwin' and platform_machine == 'arm64'
 torch==1.12.1
 torchvision==0.13.1
 onnx==1.12.0
 onnx2torch==1.5.6
 onnxruntime==1.14.1
+ultralytics==8.0.133
 werkzeug==2.0.0

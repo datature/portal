@@ -1,6 +1,6 @@
 {
   "name": "portal",
-  "version": "0.5.6",
+  "version": "0.5.8",
   "author": "Datature",
   "private": true,
   "main": "./src/app/main.js",
@@ -62,7 +62,10 @@
   },
   "devDependencies": {
     "electron": "^13.1.2",
-    "electron-builder": "^22.10.5",
+    "electron-builder": "^23.6.0",
     "npx": "^10.2.2"
+  },
+  "optionalDependencies": {
+    "dmg-license": "^1.0.11"
   }
 }

@@ -12,7 +12,7 @@ jobs:
         os: [macos-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
       - name: Set the env variables
         run: |
           echo "USE_HARD_LINKS=false" >> $GITHUB_ENV
@@ -33,17 +33,17 @@ jobs:
         shell: bash
         run: |
           if [ ${{ steps.extract_platform.outputs.platform }} = "windows" ]; then
-          echo "##[set-output name=name;]$(echo Portal Setup ${{ steps.extract_version.outputs.version }}.exe)"
+            echo "##[set-output name=name;]$(echo Portal Setup ${{ steps.extract_version.outputs.version }}.exe)"
           elif [ ${{ steps.extract_platform.outputs.platform }} = "ubuntu" ]; then
-          echo "##[set-output name=name;]$(echo Portal-${{ steps.extract_version.outputs.version }}.AppImage)"
+            echo "##[set-output name=name;]$(echo Portal-${{ steps.extract_version.outputs.version }}.AppImage)"
           else
-          echo "##[set-output name=name;]$(echo Portal-${{ steps.extract_version.outputs.version }}.dmg)"
+            echo "##[set-output name=name;]$(echo Portal-${{ steps.extract_version.outputs.version }}.dmg)"
           fi
         id: extract_executable_name
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.7
+          python-version: "3.10"
 
       - name: Install Engine dependencies
         run: |
@@ -56,10 +56,11 @@ jobs:
         working-directory: ./src/engine
         shell: bash
         run: |
-          pyinstaller -F run.py --hidden-import datature-hub --hidden-import engineio.async_drivers.threading  --distpath ../../portal_build/dist
+          pyinstaller --collect-data ultralytics --hidden-import pydicom.encoders.gdcm --hidden-import pydicom.encoders.pylibjpeg --hidden-import engineio.async_drivers.threading -F run.py --distpath ../../portal_build/dist
           if [ -f ../../portal_build/dist/run ]; then
-          chmod u+x ../../portal_build/dist/run
-          mv ../../portal_build/dist/run ../../portal_build/dist/run.exe
+            chmod u+x ../../portal_build/dist/run
+          else
+            chmod u+x ../../portal_build/dist/run.exe
           fi
           chmod u+x ../../portal_build/dist/run.exe
 

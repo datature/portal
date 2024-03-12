@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*-coding:utf-8 -*-
-'''
+"""
   ████
 ██    ██   Datature
   ██  ██   Powering Breakthrough AI
@@ -8,21 +8,19 @@
 
 @File    :   model_register.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.8
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the register functions.
-'''
+"""
 import os
-import urllib.request
-import zipfile
 
-import datature
+from datature.nexus import Client
 
 # pylint: disable=E0401, E0611
 from server import global_store
-from server.services.errors import Errors, PortalError
 from server.models.abstract.Model import Model
+from server.services.errors import Errors, PortalError
 
 
 def register_local(
@@ -48,6 +46,7 @@ def register_local(
 
 def register_hub(
     model_key: str,
+    project_key: str,
     project_secret: str,
     name: str,
     description: str,
@@ -55,43 +54,43 @@ def register_hub(
     """Register a model from hub.
 
     :param model_key: The model key obtained from Nexus.
+    :param project_key: The project key obtained from Nexus.
     :param project_secret: The project secret obtained from Nexus.
     """
     try:
-        api_url = os.environ.get("API_BASE_URL")
-        if api_url is not None:
-            datature.API_BASE_URL = api_url
-        datature.secret_key = project_secret
+        client = Client(secret_key=project_secret)
+        project = client.get_project(f"proj_{project_key}")
 
         model_id = f"model_{model_key}"
-        artifact_list = [
-            artifact["id"] for artifact in datature.Artifact.list()
-        ]
+        artifact_list = [artifact["id"] for artifact in project.artifacts.list()]
         found = False
         for artifact_id in artifact_list:
             model_list = {
                 model["id"]: model["download"]["url"]
-                for model in datature.Artifact.list_exported(artifact_id)
+                for model in project.artifacts.list_exported_models(artifact_id)
             }
             if model_id in model_list:
                 found = True
                 break
         if not found:
             raise ValueError(f"Model key {model_key} not found.")
-        main_path = f"server/hub_models/{model_id}"
-        zip_path = f"{main_path}.zip"
-        urllib.request.urlretrieve(model_list[model_id], zip_path)
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(main_path)
-        os.remove(zip_path)
+
+        model_dir = os.path.join("server", "hub_models")
+        if os.path.isdir(model_dir):
+            main_path = os.path.join("server", "hub_models", model_id)
+        elif os.path.isdir("resources"):
+            main_path = os.path.join("resources", "server", "hub_models", model_id)
+        else:
+            main_path = os.path.join("portal_build", "server", "hub_models", model_id)
+
+        project.artifacts.download_exported_model(model_id, main_path)
         reg_model = Model(
             "autodetect",
             main_path,
             name,
             description,
         )
-        global_store.add_registered_model(*reg_model.register(),
-                                          store_cache=True)
+        global_store.add_registered_model(*reg_model.register(), store_cache=True)
 
     # Except Block
     # Catches all possible native exceptions here and
@@ -102,8 +101,9 @@ def register_hub(
         raise PortalError(Errors.HUBERROR, str(e)) from e
 
 
-def register_endpoint(link: str, project_secret: str, name: str,
-                      description: str) -> None:
+def register_endpoint(
+    link: str, project_secret: str, name: str, description: str
+) -> None:
     """Register a model from an endpoint.
 
     :param link: The URL of the endpoint.

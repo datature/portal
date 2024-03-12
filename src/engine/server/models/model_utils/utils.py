@@ -8,15 +8,75 @@
 
 @File    :   utils.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.8
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing utilities for models.
 '''
+import ast
+import os
 from typing import List, Tuple
+
 import cv2
 import numpy as np
 import tensorflow as tf
+from server.services.global_store import Errors, PortalError
+
+MODEL_TYPES = {
+    "yolov8": "yolov8",
+    "model.pth": "pytorch",
+    "model.onnx": "onnx",
+    "model.tflite": "tflite",
+    "saved_model": "tensorflow",
+}
+
+MODEL_FORMATS = ["semantic", "instance", "bounding box"]
+
+
+def infer_model_type_and_path(directory, folder_contents):
+    """Infers the model type and path from the directory and folder contents.
+
+    Args:
+        directory: The directory containing the model.
+        folder_contents: The contents of the directory.
+
+    Returns:
+        Tuple containing the model type and path.
+    """
+    for item in folder_contents:
+        for model_type, val in MODEL_TYPES.items():
+            if model_type in item:
+                model_path = os.path.join(directory, item)
+                return val, model_path
+
+    raise PortalError(Errors.INVALIDTYPE,
+                      "Detected Model Output Format Not Supported.")
+
+
+def infer_input_details(prediction_script):
+    """Infers the input details from Datature's prediction script.
+
+    The prediction script is a Python script (`predict.py`) that is
+    included in the model directory during artifact export.
+    It is used to run inference locally.
+
+    The input details are the model input height and width, and the
+    description of the model that determines the model format
+    (semantic segmentation, instance segmentation or bounding box).
+
+    Args:
+        prediction_script: Path to Datature's prediction script.
+
+    Returns:
+        Tuple containing the input details.
+    """
+    with open(prediction_script, "r", encoding="utf-8") as predictor_file:
+        lines = predictor_file.readlines()
+        info_line = list(filter(lambda x: "@Desc" in x, lines))[0]
+        height, width = ast.literal_eval(
+            list(filter(lambda x: "HEIGHT, WIDTH" in x,
+                        lines))[0].replace("HEIGHT, WIDTH = ", ""))
+        return height, width, info_line
 
 
 def reframe_box_masks_to_image_masks(box_masks,

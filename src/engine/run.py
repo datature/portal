@@ -8,7 +8,7 @@
 
 @File    :   run.py
 @Author  :   Marcus Neo
-@Version :   0.5.6
+@Version :   0.5.8
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Main file to run the flask app.
