@@ -62,7 +62,6 @@ jobs:
           else
             chmod u+x ../../portal_build/dist/run.exe
           fi
-          chmod u+x ../../portal_build/dist/run.exe
 
         # Install Node.js
       - uses: actions/setup-node@v1.4.4
