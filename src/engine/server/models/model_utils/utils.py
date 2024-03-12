@@ -20,7 +20,7 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 import tensorflow as tf
-from server.services.global_store import Errors, PortalError
+from server.services.errors import Errors, PortalError
 
 MODEL_TYPES = {
     "yolov8": "yolov8",
