@@ -12,7 +12,7 @@ jobs:
         os: [macos-latest, windows-latest]
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
       - name: Set the env variables
         run: |
           echo "USE_HARD_LINKS=false" >> $GITHUB_ENV
@@ -41,9 +41,9 @@ jobs:
           fi
         id: extract_executable_name
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.7
+          python-version: 3.10
 
       - name: Install Engine dependencies
         run: |
