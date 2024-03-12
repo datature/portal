@@ -8,7 +8,7 @@
 
 @File    :   model_register.py
 @Author  :   Marcus Neo
-@Version :   0.5.8
+@Version :   0.5.9
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the register functions.

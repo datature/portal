@@ -8,7 +8,7 @@
 
 @File    :   routes.py
 @Author  :   Marcus Neo and Beatrice Leong
-@Version :   0.5.8
+@Version :   0.5.9
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing all API routes.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*-coding:utf-8 -*-
-'''
+"""
   ████
 ██    ██   Datature
   ██  ██   Powering Breakthrough AI
@@ -8,13 +8,15 @@
 
 @File    :   file.py
 @Author  :   Beatrice Leong
-@Version :   0.5.8
+@Version :   0.5.9
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Service to deal with file related functions.
-'''
+"""
 from io import BytesIO
+
 import cv2
+
 # pylint: disable=E0401, E0611
 from server.services.errors import Errors, PortalError
 
@@ -56,8 +58,7 @@ def allowed_file(filename):
     :param filename: a string that is the name of the file
     :return: boolean (TRUE: Allowed; FALSE: Not Allowed)
     """
-    return "." in filename and filename.rsplit(
-        ".", 1)[1].lower() in ALLOWED_EXTENSIONS
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def allowed_image(filename):
@@ -67,8 +68,10 @@ def allowed_image(filename):
     :param filename: a string that is the name of the file
     :return: boolean (TRUE: Allowed; FALSE: Not Allowed)
     """
-    return ("." in filename
-            and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS_IMAGE)
+    return (
+        "." in filename
+        and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS_IMAGE
+    )
 
 
 def allowed_video(filename):
@@ -78,8 +81,10 @@ def allowed_video(filename):
     :param filename: a string that is the name of the file
     :return: boolean (TRUE: Allowed; FALSE: Not Allowed)
     """
-    return ("." in filename
-            and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS_VIDEO)
+    return (
+        "." in filename
+        and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS_VIDEO
+    )
 
 
 def generate_thumbnail(path, filename):
@@ -104,8 +109,7 @@ def generate_thumbnail(path, filename):
         res, image_ar = vcap.read()
         while image_ar.mean() < threshold and res:
             res, image_ar = vcap.read()
-        image_ar = cv2.resize(image_ar, (width, height), 0, 0,
-                              cv2.INTER_LINEAR)
+        image_ar = cv2.resize(image_ar, (width, height), 0, 0, cv2.INTER_LINEAR)
         res, image_buf = cv2.imencode(".jpeg", image_ar)
         thumb_bytes = image_buf.tobytes()
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*-coding:utf-8 -*-
-'''
+"""
   ████
 ██    ██   Datature
   ██  ██   Powering Breakthrough AI
@@ -8,20 +8,18 @@
 
 @File    :   darknet_model.py
 @Author  :   Marcus Neo
-@Version :   0.5.8
+@Version :   0.5.9
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the Darknet Model class.
-'''
+"""
 import os
 
 import cv2
 import numpy as np
-
+from server.models.abstract.BaseModel import BaseModel
 from server.services.errors import Errors, PortalError
 from server.services.hashing import get_hash
-
-from server.models.abstract.BaseModel import BaseModel
 
 
 class DarknetModel(BaseModel):
@@ -29,13 +27,14 @@ class DarknetModel(BaseModel):
 
     def _load_label_map_(self):
         """Overloaded from Parent Class."""
-        labels = (open(os.path.join(
-            self._directory_, self._labelsname_)).read().strip().split("\n"))
+        labels = (
+            open(os.path.join(self._directory_, self._labelsname_))
+            .read()
+            .strip()
+            .split("\n")
+        )
         self._label_map_ = {
-            str(label_index): {
-                "id": label_index,
-                "name": label_name
-            }
+            str(label_index): {"id": label_index, "name": label_name}
             for label_index, label_name in enumerate(labels)
         }
 
@@ -60,24 +59,21 @@ class DarknetModel(BaseModel):
                 "class label file .names is not found in given directory.",
             )
         if labels > 1:
-            raise PortalError(Errors.OVERLOADED,
-                              "multiple class label files found.")
+            raise PortalError(Errors.OVERLOADED, "multiple class label files found.")
         if self._weightsname_ == "":
             raise PortalError(
                 Errors.INVALIDFILEPATH,
                 "weights file .weights is not found in given directory",
             )
         if weights > 1:
-            raise PortalError(Errors.OVERLOADED,
-                              "multiple weights label files found.")
+            raise PortalError(Errors.OVERLOADED, "multiple weights label files found.")
         if self._configname_ == "":
             raise PortalError(
                 Errors.INVALIDFILEPATH,
                 "config file .cfg is not found in given directory.",
             )
         if configs > 1:
-            raise PortalError(Errors.OVERLOADED,
-                              "multiple config files found.")
+            raise PortalError(Errors.OVERLOADED, "multiple config files found.")
         with open(self._configname_, "r") as conf:
             heightcheck = False
             widthcheck = False
@@ -86,11 +82,13 @@ class DarknetModel(BaseModel):
                     break
                 if "height" in line:
                     self._height_ = int(
-                        line.replace("=", "").replace("height", "").strip())
+                        line.replace("=", "").replace("height", "").strip()
+                    )
                     heightcheck = True
                 if "width" in line:
                     self._width_ = int(
-                        line.replace("=", "").replace("width", "").strip())
+                        line.replace("=", "").replace("width", "").strip()
+                    )
                     widthcheck = True
         self._load_label_map_()
         self._key_ = get_hash(self._directory_)
@@ -98,8 +96,7 @@ class DarknetModel(BaseModel):
 
     def load(self):
         """Overloaded from Parent Class."""
-        loaded_model = cv2.dnn.readNetFromDarknet(self._configname_,
-                                                  self._weightsname_)
+        loaded_model = cv2.dnn.readNetFromDarknet(self._configname_, self._weightsname_)
         self._model_ = loaded_model
 
     def predict(self, image_array):

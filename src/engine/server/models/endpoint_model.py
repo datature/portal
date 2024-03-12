@@ -8,7 +8,7 @@
 
 @File    :   endpoint_model.py
 @Author  :   Marcus Neo
-@Version :   0.5.8
+@Version :   0.5.9
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the Endpoint Model class.

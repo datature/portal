@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*-coding:utf-8 -*-
-'''
+"""
   ████
 ██    ██   Datature
   ██  ██   Powering Breakthrough AI
@@ -8,22 +8,24 @@
 
 @File    :   global_store.py
 @Author  :   Marcus Neo
-@Version :   0.5.8
+@Version :   0.5.9
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the GlobalStore class.
-'''
-import gc
-import os
+"""
 import atexit
+import gc
 import json
+import os
 import time
-from typing import Union, Optional
-import jsonpickle
+from typing import Optional, Union
 
-from flask import Response
+import jsonpickle
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
+from flask import Response
+from server.models.abstract.BaseModel import BaseModel
+from server.models.abstract.Model import Model
 
 # Ignore import-error and no-name-in-module due to Pyshell
 # pylint: disable=E0401, E0611
@@ -31,9 +33,6 @@ from server.services.errors import Errors, PortalError
 
 # pylint: disable=cyclic-import
 from server.services.filesystem.folder_target import FolderTargets
-
-from server.models.abstract.BaseModel import BaseModel
-from server.models.abstract.Model import Model
 
 
 def _delete_store_():
@@ -102,8 +101,9 @@ class GlobalStore:
         """Start the scheduler"""
         if self._scheduler_ is None:
             self._scheduler_ = BackgroundScheduler(daemon=True)
-            self._scheduler_.add_job(self._schedule_shutdown_,
-                                     IntervalTrigger(minutes=1))
+            self._scheduler_.add_job(
+                self._schedule_shutdown_, IntervalTrigger(minutes=1)
+            )
             self._scheduler_.start()
 
             # Shut down the scheduler when exiting the app
@@ -126,9 +126,9 @@ class GlobalStore:
         """Enable caching during runtime."""
         self.caching_system = True
         with open(
-                os.environ["USE_CACHE_DIR"],
-                "w",
-                encoding="utf-8",
+            os.environ["USE_CACHE_DIR"],
+            "w",
+            encoding="utf-8",
         ) as cache_flag:
             cache_flag.write("1")
         self._save_store_()
@@ -136,9 +136,9 @@ class GlobalStore:
     def turn_off_autosave(self):
         """Disable caching during runtime."""
         with open(
-                os.environ["USE_CACHE_DIR"],
-                "w",
-                encoding="utf-8",
+            os.environ["USE_CACHE_DIR"],
+            "w",
+            encoding="utf-8",
         ) as cache_flag:
             cache_flag.write("0")
         _delete_store_()
@@ -158,12 +158,12 @@ class GlobalStore:
             with open(os.getenv("CACHE_DIR"), "r", encoding="utf-8") as cache:
                 self._store_ = json.load(cache)
                 self._targeted_folders_ = jsonpickle.decode(
-                    self._store_["targeted_folders"])
+                    self._store_["targeted_folders"]
+                )
                 store_registry = self._store_["registry"]
                 # pylint: disable=R1721
                 deepcopy_store_registry = {
-                    key: value
-                    for key, value in store_registry.items()
+                    key: value for key, value in store_registry.items()
                 }
                 for _, value in deepcopy_store_registry.items():
                     reg_model = Model(
@@ -193,8 +193,9 @@ class GlobalStore:
             updated_registry = {
                 registry_key: {
                     key: value
-                    for key, value in self._store_["registry"]
-                    [registry_key].items() if key in [
+                    for key, value in self._store_["registry"][registry_key].items()
+                    if key
+                    in [
                         "model_type",
                         "model_dir",
                         "model_name",
@@ -232,7 +233,7 @@ class GlobalStore:
     # This function is called instead.
     def delete_cache(self) -> None:
         """Sync all persistent dicitionaries.
-            To be done before entire system closes.
+        To be done before entire system closes.
         """
         if self.caching_system:
             _delete_store_()
@@ -267,8 +268,9 @@ class GlobalStore:
             return False
         if self._op_status_["status"] == status:
             return True
-        raise PortalError(Errors.ATOMICERROR,
-                          "Another atomic process is already running.")
+        raise PortalError(
+            Errors.ATOMICERROR, "Another atomic process is already running."
+        )
 
     def get_status(self) -> None:
         """Acquire the status of the atomic function."""
@@ -279,8 +281,9 @@ class GlobalStore:
         self._op_status_["status"] = None
         self._op_atomic_ = False
 
-    def set_caught_response(self, response_name: str,
-                            response: Union[Response, tuple]) -> None:
+    def set_caught_response(
+        self, response_name: str, response: Union[Response, tuple]
+    ) -> None:
         """Store the return of a function.
 
         :param response_name: The string signifying the origin of the response.
@@ -299,10 +302,7 @@ class GlobalStore:
     # MODEL (DE)REGISTRATION AND INFORMATION
     def get_registered_model_list(self) -> dict:
         """Retrieve the list of models."""
-        return {
-            key: dic["directory"]
-            for key, dic in self._store_["registry"].items()
-        }
+        return {key: dic["directory"] for key, dic in self._store_["registry"].items()}
 
     def add_registered_model(
         self,
@@ -428,8 +428,9 @@ class GlobalStore:
 
     def check_prediction_cache(self, key: tuple) -> bool:
         """Check if a prediction key is in the prediction cache."""
-        return key[2] in list(self._store_["predictions"].get(key[0], {}).get(
-            key[1], {}).keys())
+        return key[2] in list(
+            self._store_["predictions"].get(key[0], {}).get(key[1], {}).keys()
+        )
 
     def get_predicted_images(self, model_id: str) -> list:
         """Return a list of all successfully predicted images."""
@@ -447,9 +448,9 @@ class GlobalStore:
         :param key: The prediction key.
         :return: The predictions.
         """
-        return (self._store_["predictions"].get(key[0],
-                                                {}).get(key[1],
-                                                        {}).get(key[2], {}))
+        return (
+            self._store_["predictions"].get(key[0], {}).get(key[1], {}).get(key[2], {})
+        )
 
     def get_prediction_progress(self) -> dict:
         """Retrieve the _prediction_progress_ attribute."""

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*-coding:utf-8 -*-
-'''
+"""
   ████
 ██    ██   Datature
   ██  ██   Powering Breakthrough AI
@@ -8,14 +8,14 @@
 
 @File    :   errors.py
 @Author  :   Marcus Neo
-@Version :   0.5.8
+@Version :   0.5.9
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   A service to deal with errors and exceptions
-'''
+"""
 import logging
-from enum import Enum
 import traceback
+from enum import Enum
 
 from flask import jsonify
 
@@ -65,10 +65,7 @@ class PortalError(Exception):
     """Error class to handle the errors and exceptions thrown."""
 
     # pylint: disable=super-init-not-called
-    def __init__(self,
-                 error: Errors,
-                 message: str,
-                 fail_location: str = None) -> None:
+    def __init__(self, error: Errors, message: str, fail_location: str = None) -> None:
         """Initialize the PortalError class.
 
         :param error: An enum member of the Errors class.
@@ -98,11 +95,13 @@ class PortalError(Exception):
         print(traceback.format_exc())
         logging.error(self._error_)
         return (
-            jsonify({
-                "error": self._error_,
-                "fail_location": self._fail_location_,
-                "message": self._message_,
-                "error_code": self._error_code_,
-            }),
+            jsonify(
+                {
+                    "error": self._error_,
+                    "fail_location": self._fail_location_,
+                    "message": self._message_,
+                    "error_code": self._error_code_,
+                }
+            ),
             self._status_,
         )

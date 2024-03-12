@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*-coding:utf-8 -*-
-'''
+"""
   ████
 ██    ██   Datature
   ██  ██   Powering Breakthrough AI
@@ -8,11 +8,11 @@
 
 @File    :   autodetect_model.py
 @Author  :   Marcus Neo
-@Version :   0.5.8
+@Version :   0.5.9
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing the AutoDetect Model class.
-'''
+"""
 import os
 import sys
 
@@ -108,16 +108,14 @@ class AutoDetectModel(BaseModel):
     def _load_label_map_(self):
         """Overloaded from Parent Class."""
         self._label_map_ = {}
-        label_file = ("label.txt"
-                      if self._model_type_ == "tflite" else "label_map.pbtxt")
-        with open(os.path.join(self._directory_, label_file),
-                  "r",
-                  encoding="utf-8") as label_file:
+        label_file = "label.txt" if self._model_type_ == "tflite" else "label_map.pbtxt"
+        with open(
+            os.path.join(self._directory_, label_file), "r", encoding="utf-8"
+        ) as label_file:
             for line in label_file:
                 if "id" in line:
                     label_index = int(line.split(":")[-1])
-                    label_name = (
-                        next(label_file).split(":")[-1].strip().strip("'"))
+                    label_name = next(label_file).split(":")[-1].strip().strip("'")
                     self._label_map_[str(label_index)] = {
                         "id": label_index,
                         "name": label_name,
@@ -128,13 +126,14 @@ class AutoDetectModel(BaseModel):
         folder_contents = os.listdir(self._directory_)
         try:
             self._model_type_, self._model_path_ = infer_model_type_and_path(
-                self._directory_, folder_contents)
+                self._directory_, folder_contents
+            )
         except Exception as e:
             raise PortalError(Errors.INVALIDTYPE, str(e)) from e
         self._height_, self._width_, info_line = infer_input_details(
-            os.path.join(self._directory_, "predict.py"))
-        self._model_format_ = next(
-            (x for x in MODEL_FORMATS if x in info_line), None)
+            os.path.join(self._directory_, "predict.py")
+        )
+        self._model_format_ = next((x for x in MODEL_FORMATS if x in info_line), None)
         self._load_label_map_()
         self._key_ = get_hash(self._directory_)
         return self._key_, self
@@ -144,9 +143,11 @@ class AutoDetectModel(BaseModel):
         sys.path.append(self._directory_)
         if self._model_type_ == "pytorch":
             import torch
+
             self._model_ = torch.load(self._model_path_)
         elif self._model_type_ == "onnx":
             import onnxruntime as ort
+
             self._model_ = ort.InferenceSession(self._model_path_)
             if self._model_format_ == "instance":
                 self._input_name = self._model_.get_inputs()[0].name
@@ -164,34 +165,40 @@ class AutoDetectModel(BaseModel):
             self._output_name = list(self._model_.structured_outputs.keys())[0]
         elif self._model_type_ == "yolov8":
             from ultralytics import YOLO
+
             self._model_ = YOLO(self._model_path_)
 
     def predict(self, image_array):
         """Overloaded from Parent Class."""
         try:
             if self._model_type_ == "yolov8":
-                return yolov8_predict(self._model_, image_array,
-                                      (self._height_, self._width_))
+                return yolov8_predict(
+                    self._model_, image_array, (self._height_, self._width_)
+                )
             image_array = np.expand_dims(
                 np.array(
-                    Image.fromarray(image_array).resize(
-                        (self._width_, self._height_))).astype(np.float32), 0)
+                    Image.fromarray(image_array).resize((self._width_, self._height_))
+                ).astype(np.float32),
+                0,
+            )
             if self._model_type_ == "onnx":
-                detections_output = onnx_predict(self._model_,
-                                                 self._model_format_,
-                                                 self._input_name,
-                                                 self._output_name,
-                                                 image_array)
+                detections_output = onnx_predict(
+                    self._model_,
+                    self._model_format_,
+                    self._input_name,
+                    self._output_name,
+                    image_array,
+                )
             elif self._model_type_ == "tflite":
-                detections_output = tflite_predict(self._model_,
-                                                   self._model_format_,
-                                                   image_array)
+                detections_output = tflite_predict(
+                    self._model_, self._model_format_, image_array
+                )
             elif self._model_type_ == "pytorch":
                 detections_output = torch_predict(self._model_, image_array)
             elif self._model_type_ == "tensorflow":
-                detections_output = tf_predict(self._model_,
-                                               self._model_format_,
-                                               self._output_name, image_array)
+                detections_output = tf_predict(
+                    self._model_, self._model_format_, self._output_name, image_array
+                )
             return self.postprocess(detections_output)
         except Exception as e:
             raise PortalError(Errors.FAILEDPREDICTION, str(e)) from e
@@ -214,7 +221,8 @@ class AutoDetectModel(BaseModel):
 
         elif self._model_format_ == "semantic":
             mask_list, bbox_list, class_list, scores_list = get_polygons(
-                detections_output)
+                detections_output
+            )
             bboxes = np.array(bbox_list)
             classes = np.array(class_list)
             masks = np.array(mask_list)
@@ -228,8 +236,8 @@ class AutoDetectModel(BaseModel):
             bboxes = bboxes[0]
             masks = masks[0]
             image_masks = reframe_box_masks_to_image_masks(
-                tf.convert_to_tensor(masks), bboxes, self._height_,
-                self._width_)
+                tf.convert_to_tensor(masks), bboxes, self._height_, self._width_
+            )
             image_masks = tf.cast(image_masks > 0.5, tf.uint8).numpy()
 
             detections["detection_masks"] = image_masks
