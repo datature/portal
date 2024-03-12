@@ -37,13 +37,8 @@ cp ./Pipfile ./portal_build
 cd ./portal_build
 echo "Installing Python Environment in portal_build..."
 echo "$OSTYPE"
-if [[ "$OSTYPE" == "msys" ]]; then
-    python -m pip install --upgrade pip
-    python -m pip install pipenv
-else
-    python3 -m pip install --upgrade pip
-    python3 -m pip install pipenv
-fi
+python3 -m pip install --upgrade pip
+python3 -m pip install pipenv
 PIPENV_VENV_IN_PROJECT=1 PIPENV_DEFAULT_PYTHON_VERSION=3.9 pipenv sync -d
 
 cd ..
