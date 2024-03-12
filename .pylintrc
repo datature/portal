@@ -52,7 +52,7 @@ confidence=
 # --disable=W"
 # TODO: remove R1710 (inconsistent-return-statements)
 # TODO: remove C0111 (missing-docstring)
-disable=similarities,fixme,I0011,E1102,R1710,C0111
+disable=similarities,fixme,I0011,E1102,R1710,C0111,cyclic-import
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

@@ -441,10 +441,10 @@ def get_detection_json(detections_output: dict, category_map: tuple) -> list:
     for each_class, _ in enumerate(classes):
         if contours is None or (contours is not None
                                 and bool(contours[each_class])):
-            class_name = category_map[str(classes[each_class])]
+            tag = category_map[str(classes[each_class])]
             item = {}
             item["confidence"] = float(scores[each_class])
-            item["tag"] = class_name
+            item["tag"] = tag
             item["bound"] = [
                 [float(bboxes[each_class][1]),
                  float(bboxes[each_class][0])],

@@ -59,6 +59,7 @@ export type FormData = {
   description: string;
   directory: string;
   modelKey: string;
+  projectKey: string;
   projectSecret: string;
   modelURL: string;
   modelType: "tensorflow" | "darknet" | "autodetect" | "";
@@ -131,6 +132,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         description: "",
         directory: "",
         modelKey: "",
+        projectKey: "",
         projectSecret: "",
         modelURL: "",
       },
@@ -234,6 +236,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         this.state.formData.description,
         this.state.formData.directory,
         this.state.formData.modelKey,
+        this.state.formData.projectKey,
         this.state.formData.projectSecret,
         this.state.formData.modelURL
       )
@@ -552,7 +555,16 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 id="modelKey"
                 name="modelKey"
                 value={this.state.formData.modelKey}
-                placeholder="Enter model key from hub..."
+                placeholder="Enter model key from Nexus..."
+                onChange={this.handleChangeForm}
+              />
+            </FormGroup>
+            <FormGroup label="Project Key" labelFor="label-input">
+              <InputGroup
+                id="projectKey"
+                name="projectKey"
+                value={this.state.formData.projectKey}
+                placeholder="Enter project key from Nexus..."
                 onChange={this.handleChangeForm}
               />
             </FormGroup>
@@ -561,7 +573,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 id="projectSecret"
                 name="projectSecret"
                 value={this.state.formData.projectSecret}
-                placeholder="Enter project secret from hub..."
+                placeholder="Enter project secret from Nexus..."
                 onChange={this.handleChangeForm}
               />{" "}
             </FormGroup>
@@ -673,6 +685,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
         description: "",
         directory: "",
         modelKey: "",
+        projectKey: "",
         projectSecret: "",
         modelURL: "",
       },
@@ -1045,11 +1058,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                   >
                     <Tab id="local" title="Local" />
                     <Tab id="hub" title="Datature Hub" />
-                    <Tab
-                      id="endpoint"
-                      title="Datature API (Coming Soon)"
-                      disabled={true}
-                    />
+                    <Tab id="endpoint" title="Datature API" disabled={false} />
                     <Tabs.Expander />
                   </Tabs>
                 </NavbarGroup>{" "}
@@ -1070,6 +1079,7 @@ export default class Model extends React.Component<ModelProps, ModelState> {
                 description: "",
                 directory: "",
                 modelKey: "",
+                projectKey: "",
                 projectSecret: "",
                 modelURL: "",
               },
