@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*-coding:utf-8 -*-
-'''
+"""
   ████
 ██    ██   Datature
   ██  ██   Powering Breakthrough AI
@@ -8,12 +8,13 @@
 
 @File    :   hashing.py
 @Author  :   Marcus Neo
-@Version :   0.5.8
+@Version :   0.5.9
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   A service responsible for hashing.
-'''
+"""
 import hashlib
+
 from dirhash import dirhash
 
 
@@ -24,7 +25,6 @@ def get_hash(path_to_directory: str) -> str:
     :return: Hash string.
     """
     directory_contents_hash = dirhash(path_to_directory, "md5")
-    double_hash = hashlib.md5(
-        (directory_contents_hash + path_to_directory).encode())
+    double_hash = hashlib.md5((directory_contents_hash + path_to_directory).encode())
 
     return double_hash.hexdigest()

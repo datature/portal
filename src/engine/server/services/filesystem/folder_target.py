@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*-coding:utf-8 -*-
-'''
+"""
   ████
 ██    ██   Datature
   ██  ██   Powering Breakthrough AI
@@ -8,18 +8,18 @@
 
 @File    :   folder_target.py
 @Author  :   Beatrice Leong
-@Version :   0.5.8
+@Version :   0.5.9
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Service to deal with the targeted folder (folder selected by user)
-'''
+"""
 import datetime
 import os
 
 # Ignore import-error and no-name-in-module due to Pyshell
 # pylint: disable=E0401, E0611
 from server.services import decode, encode
-from server.services.errors import PortalError, Errors
+from server.services.errors import Errors, PortalError
 from server.services.filesystem.folder import Folder
 
 
@@ -56,7 +56,8 @@ class FolderTargets:
                 self._folders_.pop(index)
             else:
                 self._folders_[index] = folder.update_folder(
-                    folder.get_path(), datetime.datetime.utcnow())
+                    folder.get_path(), datetime.datetime.utcnow()
+                )
 
     def update_folder(self, path):
         """Scan one folder to check for new updates."""
@@ -66,8 +67,7 @@ class FolderTargets:
             self.delete_folder(path)
             raise PortalError(
                 Errors.INVALIDFILETYPE,
-                f"{decoded_path} is no longer a directory."
-                "Deleted it from assets",
+                f"{decoded_path} is no longer a directory." "Deleted it from assets",
             )
 
         path = encode(decoded_path)
@@ -75,7 +75,8 @@ class FolderTargets:
             folder = item
             if path.startswith(folder.get_path()):
                 self._folders_[index] = folder.update_folder(
-                    folder.get_path(), datetime.datetime.utcnow())
+                    folder.get_path(), datetime.datetime.utcnow()
+                )
                 break
 
     def delete_folder(self, path):
@@ -96,8 +97,9 @@ class FolderTargets:
         decoded_path = os.path.normpath(decode(path))
         # Makes sure path is a folder
         if not os.path.isdir(decoded_path):
-            raise PortalError(Errors.INVALIDFILETYPE,
-                              f"{decoded_path} is not a directory")
+            raise PortalError(
+                Errors.INVALIDFILETYPE, f"{decoded_path} is not a directory"
+            )
         # Ensure all encoded path are encoded with the same format
         path = encode(decoded_path)
         # pylint: disable=unused-variable
@@ -108,11 +110,11 @@ class FolderTargets:
             if path.startswith(folder.get_path()):
                 is_exist = True
                 self._folders_[index] = folder.update_folder(
-                    path, datetime.datetime.utcnow())
+                    path, datetime.datetime.utcnow()
+                )
                 break
         if not is_exist:
-            self._folders_.append(
-                Folder(path, tail, datetime.datetime.utcnow()))
+            self._folders_.append(Folder(path, tail, datetime.datetime.utcnow()))
 
     def _flatten_assets_(self, arr, folders):
         """

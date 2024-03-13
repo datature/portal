@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*-coding:utf-8 -*-
-'''
+"""
   ████
 ██    ██   Datature
   ██  ██   Powering Breakthrough AI
@@ -8,11 +8,11 @@
 
 @File    :   utils.py
 @Author  :   Marcus Neo
-@Version :   0.5.8
+@Version :   0.5.9
 @Contact :   hello@datature.io
 @License :   Apache License 2.0
 @Desc    :   Module containing utilities for models.
-'''
+"""
 import ast
 import os
 from typing import List, Tuple
@@ -20,7 +20,7 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 import tensorflow as tf
-from server.services.global_store import Errors, PortalError
+from server.services.errors import Errors, PortalError
 
 MODEL_TYPES = {
     "yolov8": "yolov8",
@@ -49,8 +49,7 @@ def infer_model_type_and_path(directory, folder_contents):
                 model_path = os.path.join(directory, item)
                 return val, model_path
 
-    raise PortalError(Errors.INVALIDTYPE,
-                      "Detected Model Output Format Not Supported.")
+    raise PortalError(Errors.INVALIDTYPE, "Detected Model Output Format Not Supported.")
 
 
 def infer_input_details(prediction_script):
@@ -74,16 +73,16 @@ def infer_input_details(prediction_script):
         lines = predictor_file.readlines()
         info_line = list(filter(lambda x: "@Desc" in x, lines))[0]
         height, width = ast.literal_eval(
-            list(filter(lambda x: "HEIGHT, WIDTH" in x,
-                        lines))[0].replace("HEIGHT, WIDTH = ", ""))
+            list(filter(lambda x: "HEIGHT, WIDTH" in x, lines))[0].replace(
+                "HEIGHT, WIDTH = ", ""
+            )
+        )
         return height, width, info_line
 
 
-def reframe_box_masks_to_image_masks(box_masks,
-                                     boxes,
-                                     image_height,
-                                     image_width,
-                                     resize_method="bilinear"):
+def reframe_box_masks_to_image_masks(
+    box_masks, boxes, image_height, image_width, resize_method="bilinear"
+):
     """Transforms the box masks back to full image masks.
     Embeds masks in bounding boxes of larger masks whose shapes correspond to
     image shape.
@@ -121,9 +120,7 @@ def reframe_box_masks_to_image_masks(box_masks,
 
         box_masks_expanded = tf.expand_dims(box_masks, axis=3)
         num_boxes = tf.shape(box_masks_expanded)[0]
-        unit_boxes = tf.concat(
-            [tf.zeros([num_boxes, 2]),
-             tf.ones([num_boxes, 2])], 1)
+        unit_boxes = tf.concat([tf.zeros([num_boxes, 2]), tf.ones([num_boxes, 2])], 1)
         reverse_boxes = transform_boxes_relative_to_boxes(unit_boxes, boxes)
 
         resized_crops = tf.image.crop_and_resize(
@@ -145,19 +142,19 @@ def reframe_box_masks_to_image_masks(box_masks,
 
 
 def get_polygons(
-    mask: np.ndarray
-) -> (Tuple[List[np.ndarray], List[List[float]], List[int], List[float]]):
+    mask: np.ndarray,
+) -> Tuple[List[np.ndarray], List[List[float]], List[int], List[float]]:
     """Convert AutoDetect Model semantic segmentation output to polygons.
 
-        Arguments:
-            mask:   Probability map with shape [num_classes, height, width].
+    Arguments:
+        mask:   Probability map with shape [num_classes, height, width].
 
-        Return:
-            Tuple containing polygon masks and their respective bounding boxes,
-            labels and confidences.
+    Return:
+        Tuple containing polygon masks and their respective bounding boxes,
+        labels and confidences.
 
-        NOTE: num_classes includes the background class indexed at 0.
-              This will be filtered out within this function.
+    NOTE: num_classes includes the background class indexed at 0.
+          This will be filtered out within this function.
     """
     height = mask.shape[1]
     width = mask.shape[2]
@@ -168,7 +165,8 @@ def get_polygons(
     # Step 2: for each class mask, convert to polygons
     normalized_mask = (mask - np.min(mask)) / (np.max(mask) - np.min(mask))
     for class_id, (class_mask, normalized_class_mask) in enumerate(
-            zip(mask, normalized_mask)):
+        zip(mask, normalized_mask)
+    ):
         if class_id > 0:
             background_class = np.zeros_like(class_mask, np.uint8)
 
@@ -185,10 +183,13 @@ def get_polygons(
                         cv2.drawContours(instance, contours, cnt_id, 1, -1)
                         total_area = np.count_nonzero(instance)
                         total_score = np.sum(
-                            normalized_class_mask[np.where(instance > 0)])
+                            normalized_class_mask[np.where(instance > 0)]
+                        )
                         average_score = total_score / total_area
-                        contour = tuple((cnt[0][1] / width, cnt[0][0] / height)
-                                        for cnt in contour.tolist())
+                        contour = tuple(
+                            (cnt[0][1] / width, cnt[0][0] / height)
+                            for cnt in contour.tolist()
+                        )
                         y_coordinates, x_coordinates = zip(*contour)
                         xmin = min(x_coordinates)
                         ymin = min(y_coordinates)
