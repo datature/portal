@@ -9,5 +9,7 @@
 
 .Tag {
   position: absolute;
-  top: 80px;
+  top: auto;
+  bottom: 0px;
+  left: 0px;
 }
